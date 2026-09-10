@@ -1,6 +1,6 @@
-# [Project name]
+# Me
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+A privacy-first adult social product for people affected by dementia globally.
 
 ## Run & Operate
 
@@ -22,15 +22,23 @@ _Replace the heading above with the project's name, and this line with one sente
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- Responsive web app: `artifacts/me-social`
+- Shared API server: `artifacts/api-server`
+- API contract: `lib/api-spec/openapi.yaml`
+- Database schema: `lib/db/src/schema`
+- Phase records: `BUILD_PLAN.md`, `ACCEPTANCE.md`, `DECISIONS.md`
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- React/Vite web and future Expo/React Native mobile use separate presentation layers.
+- Clients share a server-enforced OpenAPI contract and suitable domain libraries.
+- Profiles and personal content default to restricted visibility; public is explicit opt-in.
+- Relationships and self-selected identity labels never grant account or staff permissions.
+- Media bytes belong in private object storage, not PostgreSQL.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+Phase 0 establishes the responsive product foundation and documents privacy, accessibility, permissions, and the cross-platform architecture. Social features remain planned until later phases.
 
 ## User preferences
 
@@ -38,7 +46,9 @@ _Populate as you build — explicit user instructions worth remembering across s
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- Implement one numbered phase at a time and preserve verified work.
+- Never imply incomplete features or integrations are production-ready.
+- Apply audience rules to search, feeds, media, notifications, exports, and shared links.
 
 ## Pointers
 

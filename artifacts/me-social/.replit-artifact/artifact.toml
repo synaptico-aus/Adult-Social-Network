@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Me"
+description = "A calm, privacy-first social app for adults affected by dementia, designed as the responsive web foundation for a future shared mobile and web product."
+version = "1.0.0"
+id = "artifacts/me-social"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 24845
+
+[services.development]
+run = "pnpm --filter @workspace/me-social run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/me-social", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/me-social/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "24845"
+BASE_PATH = "/"
