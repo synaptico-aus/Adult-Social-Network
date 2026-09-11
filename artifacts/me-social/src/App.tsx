@@ -136,6 +136,7 @@ function Router() {
                   <Route path="/profile/preview"><RequireMember><ProfilePreview /></RequireMember></Route>
                   <Route path="/this-is-me"><RequireMember><ThisIsMe /></RequireMember></Route>
                   <Route path="/profile/privacy"><RequireMember><ProfilePrivacy /></RequireMember></Route>
+                  <Route path="/profile-privacy"><RequireMember><ProfilePrivacy /></RequireMember></Route>
                   <Route path="/account/security"><RequireMember><AccountSecurity /></RequireMember></Route>
                   <Route path="/safety"><RequireMember><SafetyPage /></RequireMember></Route>
                   <Route path="/staff/moderation"><RequireMember><StaffModerationPage /></RequireMember></Route>

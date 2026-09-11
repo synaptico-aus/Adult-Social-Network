@@ -535,3 +535,237 @@ export const ReviewStaffAppealResponse = zod.object({
 })
 
 
+export const listFriendRequestsQueryLimitDefault = 50;
+export const listFriendRequestsQueryLimitMax = 50;
+
+export const listFriendRequestsQueryCursorMax = 200;
+
+
+
+export const ListFriendRequestsQueryParams = zod.object({
+  "limit": zod.coerce.number().int().min(1).max(listFriendRequestsQueryLimitMax).default(listFriendRequestsQueryLimitDefault),
+  "cursor": zod.coerce.string().max(listFriendRequestsQueryCursorMax).optional()
+})
+
+export const ListFriendRequestsResponse = zod.object({
+  "incoming": zod.array(zod.object({
+  "id": zod.string(),
+  "requesterMemberId": zod.string(),
+  "recipientMemberId": zod.string(),
+  "memberAId": zod.string(),
+  "memberBId": zod.string(),
+  "status": zod.enum(['pending', 'declined']),
+  "createdAt": zod.coerce.date(),
+  "profile": zod.object({
+  "id": zod.string(),
+  "preferredName": zod.string()
+})
+})),
+  "outgoing": zod.array(zod.object({
+  "id": zod.string(),
+  "requesterMemberId": zod.string(),
+  "recipientMemberId": zod.string(),
+  "memberAId": zod.string(),
+  "memberBId": zod.string(),
+  "status": zod.enum(['pending', 'declined']),
+  "createdAt": zod.coerce.date(),
+  "profile": zod.object({
+  "id": zod.string(),
+  "preferredName": zod.string()
+})
+})),
+  "nextCursor": zod.string().nullable()
+})
+
+
+
+
+
+export const SendFriendRequestBody = zod.object({
+  "targetMemberId": zod.string().min(1)
+})
+
+export const SendFriendRequestResponse = zod.object({
+  "status": zod.enum(['created', 'incoming_request']),
+  "request": zod.object({
+  "id": zod.string(),
+  "requesterMemberId": zod.string(),
+  "recipientMemberId": zod.string(),
+  "memberAId": zod.string(),
+  "memberBId": zod.string(),
+  "status": zod.enum(['pending', 'declined']),
+  "createdAt": zod.coerce.date()
+})
+})
+
+
+export const AcceptFriendRequestParams = zod.object({
+  "requestId": zod.coerce.string()
+})
+
+export const AcceptFriendRequestResponse = zod.unknown()
+
+
+export const DeclineFriendRequestParams = zod.object({
+  "requestId": zod.coerce.string()
+})
+
+export const DeclineFriendRequestResponse = zod.void()
+
+
+export const CancelFriendRequestParams = zod.object({
+  "requestId": zod.coerce.string()
+})
+
+export const CancelFriendRequestResponse = zod.void()
+
+
+export const listFriendsQueryLimitDefault = 50;
+export const listFriendsQueryLimitMax = 50;
+
+export const listFriendsQueryCursorMax = 200;
+
+
+
+export const ListFriendsQueryParams = zod.object({
+  "limit": zod.coerce.number().int().min(1).max(listFriendsQueryLimitMax).default(listFriendsQueryLimitDefault),
+  "cursor": zod.coerce.string().max(listFriendsQueryCursorMax).optional()
+})
+
+export const ListFriendsResponse = zod.object({
+  "items": zod.array(zod.object({
+  "id": zod.string(),
+  "memberId": zod.string(),
+  "preferredName": zod.string(),
+  "direction": zod.enum(['mutual']),
+  "status": zod.enum(['friends']),
+  "createdAt": zod.coerce.date()
+})),
+  "nextCursor": zod.string().nullable()
+})
+
+
+export const UnfriendParams = zod.object({
+  "memberId": zod.coerce.string()
+})
+
+export const UnfriendResponse = zod.void()
+
+
+export const FollowMemberParams = zod.object({
+  "memberId": zod.coerce.string()
+})
+
+export const FollowMemberResponse = zod.void()
+
+
+export const UnfollowMemberParams = zod.object({
+  "memberId": zod.coerce.string()
+})
+
+export const UnfollowMemberResponse = zod.void()
+
+
+export const listFollowsQueryLimitDefault = 50;
+export const listFollowsQueryLimitMax = 50;
+
+export const listFollowsQueryCursorMax = 200;
+
+
+
+export const ListFollowsQueryParams = zod.object({
+  "limit": zod.coerce.number().int().min(1).max(listFollowsQueryLimitMax).default(listFollowsQueryLimitDefault),
+  "cursor": zod.coerce.string().max(listFollowsQueryCursorMax).optional()
+})
+
+export const ListFollowsResponse = zod.object({
+  "items": zod.array(zod.object({
+  "id": zod.string(),
+  "memberId": zod.string(),
+  "preferredName": zod.string(),
+  "direction": zod.enum(['incoming', 'outgoing']),
+  "status": zod.enum(['following']),
+  "createdAt": zod.coerce.date()
+})),
+  "nextCursor": zod.string().nullable()
+})
+
+
+export const searchProfilesQueryQMin = 2;
+export const searchProfilesQueryQMax = 100;
+
+export const searchProfilesQueryCursorMax = 200;
+
+export const searchProfilesQueryLimitMax = 50;
+
+
+
+export const SearchProfilesQueryParams = zod.object({
+  "q": zod.coerce.string().min(searchProfilesQueryQMin).max(searchProfilesQueryQMax),
+  "cursor": zod.coerce.string().max(searchProfilesQueryCursorMax).optional(),
+  "limit": zod.coerce.number().int().min(1).max(searchProfilesQueryLimitMax).optional()
+})
+
+export const SearchProfilesResponse = zod.object({
+  "items": zod.array(zod.object({
+  "memberId": zod.string(),
+  "profile": zod.object({
+  "id": zod.string(),
+  "memberId": zod.string().nullish(),
+  "preferredName": zod.string(),
+  "photoPath": zod.string().nullish(),
+  "biography": zod.string().nullish(),
+  "language": zod.string().nullish(),
+  "broadRegion": zod.string().nullish(),
+  "interests": zod.array(zod.string()).optional(),
+  "dementiaConnection": zod.string().nullish(),
+  "roles": zod.array(zod.string()).optional(),
+  "discoverable": zod.boolean().nullish(),
+  "visibility": zod.record(zod.string(), zod.enum(['private', 'connections', 'members'])).optional()
+}),
+  "relationship": zod.enum(['none', 'friends']),
+  "request": zod.enum(['none', 'incoming', 'outgoing']),
+  "pendingRequestId": zod.string().nullable(),
+  "isFollowing": zod.boolean()
+})),
+  "nextCursor": zod.string().nullable()
+})
+
+
+export const ListSuggestionsResponseItem = zod.object({
+  "memberId": zod.string(),
+  "preferredName": zod.string(),
+  "explanation": zod.string()
+})
+export const ListSuggestionsResponse = zod.array(ListSuggestionsResponseItem)
+
+
+export const HideSuggestionParams = zod.object({
+  "memberId": zod.coerce.string()
+})
+
+export const HideSuggestionResponse = zod.void()
+
+
+export const GetAccountSettingsResponse = zod.object({
+  "memberId": zod.string(),
+  "inboundFriendRequests": zod.boolean(),
+  "inboundFollows": zod.boolean(),
+  "suggestionsEnabled": zod.boolean()
+})
+
+
+export const UpdateAccountSettingsBody = zod.object({
+  "inboundFriendRequests": zod.boolean().optional(),
+  "inboundFollows": zod.boolean().optional(),
+  "suggestionsEnabled": zod.boolean().optional()
+})
+
+export const UpdateAccountSettingsResponse = zod.object({
+  "memberId": zod.string(),
+  "inboundFriendRequests": zod.boolean(),
+  "inboundFollows": zod.boolean(),
+  "suggestionsEnabled": zod.boolean()
+})
+
+

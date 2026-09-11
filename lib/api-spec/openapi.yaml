@@ -344,8 +344,218 @@ paths:
       parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
       requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/AppealReviewInput" } } } }
       responses: { "200": { description: Reviewed appeal, content: { application/json: { schema: { $ref: "#/components/schemas/Appeal" } } } } }
+  /friends/requests:
+    get:
+      operationId: listFriendRequests
+      tags: [friends]
+      parameters:
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 50, default: 50 } }
+        - { name: cursor, in: query, schema: { type: string, maxLength: 200 } }
+      responses: { "200": { description: Incoming and outgoing requests, content: { application/json: { schema: { $ref: "#/components/schemas/FriendRequestLists" } } } } }
+    post:
+      operationId: sendFriendRequest
+      tags: [friends]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/MemberTargetInput" } } } }
+      responses: { "201": { description: Request created, content: { application/json: { schema: { $ref: "#/components/schemas/FriendRequestMutationResponse" } } } }, "200": { description: Existing reciprocal request, content: { application/json: { schema: { $ref: "#/components/schemas/FriendRequestMutationResponse" } } } } }
+  /friends/requests/{requestId}/accept:
+    post:
+      operationId: acceptFriendRequest
+      tags: [friends]
+      parameters: [{ name: requestId, in: path, required: true, schema: { type: string } }]
+      responses: { "200": { description: Friendship } }
+  /friends/requests/{requestId}/decline:
+    post:
+      operationId: declineFriendRequest
+      tags: [friends]
+      parameters: [{ name: requestId, in: path, required: true, schema: { type: string } }]
+      responses: { "204": { description: Declined } }
+  /friends/requests/{requestId}:
+    delete:
+      operationId: cancelFriendRequest
+      tags: [friends]
+      parameters: [{ name: requestId, in: path, required: true, schema: { type: string } }]
+      responses: { "204": { description: Cancelled } }
+  /friends:
+    get:
+      operationId: listFriends
+      tags: [friends]
+      parameters:
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 50, default: 50 } }
+        - { name: cursor, in: query, schema: { type: string, maxLength: 200 } }
+      responses: { "200": { description: Friendships, content: { application/json: { schema: { $ref: "#/components/schemas/PaginatedFriends" } } } } }
+  /friends/{memberId}:
+    delete:
+      operationId: unfriend
+      tags: [friends]
+      parameters: [{ name: memberId, in: path, required: true, schema: { type: string } }]
+      responses: { "204": { description: Removed } }
+  /follows/{memberId}:
+    post:
+      operationId: followMember
+      tags: [follows]
+      parameters: [{ name: memberId, in: path, required: true, schema: { type: string } }]
+      responses: { "201": { description: Follow created } }
+    delete:
+      operationId: unfollowMember
+      tags: [follows]
+      parameters: [{ name: memberId, in: path, required: true, schema: { type: string } }]
+      responses: { "204": { description: Removed } }
+  /follows:
+    get:
+      operationId: listFollows
+      tags: [follows]
+      parameters:
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 50, default: 50 } }
+        - { name: cursor, in: query, schema: { type: string, maxLength: 200 } }
+      responses: { "200": { description: Follows, content: { application/json: { schema: { $ref: "#/components/schemas/PaginatedFollows" } } } } }
+  /search:
+    get:
+      operationId: searchProfiles
+      tags: [discovery]
+      parameters:
+        - { name: q, in: query, required: true, schema: { type: string, minLength: 2, maxLength: 100 } }
+        - { name: cursor, in: query, schema: { type: string, maxLength: 200 } }
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 50 } }
+      responses: { "200": { description: Discoverable profiles, content: { application/json: { schema: { $ref: "#/components/schemas/SearchResponse" } } } } }
+  /discovery/suggestions:
+    get:
+      operationId: listSuggestions
+      tags: [discovery]
+      responses: { "200": { description: Explicitly opted-in suggestions, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Suggestion" } } } } } }
+  /discovery/suggestions/{memberId}/hide:
+    post:
+      operationId: hideSuggestion
+      tags: [discovery]
+      parameters: [{ name: memberId, in: path, required: true, schema: { type: string } }]
+      responses: { "204": { description: Hidden } }
+  /account/settings:
+    get:
+      operationId: getAccountSettings
+      tags: [account]
+      responses: { "200": { description: Relationship and discovery settings, content: { application/json: { schema: { $ref: "#/components/schemas/AccountSettings" } } } } }
+    patch:
+      operationId: updateAccountSettings
+      tags: [account]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/AccountSettingsInput" } } } }
+      responses: { "200": { description: Updated settings, content: { application/json: { schema: { $ref: "#/components/schemas/AccountSettings" } } } } }
 components:
   schemas:
+    MemberTargetInput:
+      type: object
+      required: [targetMemberId]
+      properties: { targetMemberId: { type: string, minLength: 1 } }
+    Relationship:
+      type: object
+      properties: { id: { type: string }, createdAt: { type: string, format: date-time } }
+    AccountSettingsInput:
+      type: object
+      properties:
+        inboundFriendRequests: { type: boolean }
+        inboundFollows: { type: boolean }
+        suggestionsEnabled: { type: boolean }
+    AccountSettings:
+      type: object
+      required: [memberId, inboundFriendRequests, inboundFollows, suggestionsEnabled]
+      properties:
+        memberId: { type: string }
+        inboundFriendRequests: { type: boolean }
+        inboundFollows: { type: boolean }
+        suggestionsEnabled: { type: boolean }
+    RelationshipProfile:
+      type: object
+      required: [id, preferredName]
+      properties: { id: { type: string }, preferredName: { type: string } }
+    FriendListItem:
+      type: object
+      required: [id, memberId, preferredName, direction, status, createdAt]
+      properties:
+        id: { type: string }
+        memberId: { type: string }
+        preferredName: { type: string }
+        direction: { type: string, enum: [mutual] }
+        status: { type: string, enum: [friends] }
+        createdAt: { type: string, format: date-time }
+    FollowListItem:
+      type: object
+      required: [id, memberId, preferredName, direction, status, createdAt]
+      properties:
+        id: { type: string }
+        memberId: { type: string }
+        preferredName: { type: string }
+        direction: { type: string, enum: [incoming, outgoing] }
+        status: { type: string, enum: [following] }
+        createdAt: { type: string, format: date-time }
+    FriendRequestMutationResponse:
+      type: object
+      required: [status, request]
+      properties:
+        status: { type: string, enum: [created, incoming_request] }
+        request: { $ref: "#/components/schemas/FriendRequest" }
+    FriendRequest:
+      type: object
+      required: [id, requesterMemberId, recipientMemberId, memberAId, memberBId, status, createdAt]
+      properties:
+        id: { type: string }
+        requesterMemberId: { type: string }
+        recipientMemberId: { type: string }
+        memberAId: { type: string }
+        memberBId: { type: string }
+        status: { type: string, enum: [pending, declined] }
+        createdAt: { type: string, format: date-time }
+    FriendRequestItem:
+      type: object
+      required: [id, requesterMemberId, recipientMemberId, memberAId, memberBId, status, createdAt, profile]
+      properties:
+        id: { type: string }
+        requesterMemberId: { type: string }
+        recipientMemberId: { type: string }
+        memberAId: { type: string }
+        memberBId: { type: string }
+        status: { type: string, enum: [pending, declined] }
+        createdAt: { type: string, format: date-time }
+        profile: { $ref: "#/components/schemas/RelationshipProfile" }
+    FriendRequestLists:
+      type: object
+      required: [incoming, outgoing, nextCursor]
+      properties:
+        incoming: { type: array, items: { $ref: "#/components/schemas/FriendRequestItem" } }
+        outgoing: { type: array, items: { $ref: "#/components/schemas/FriendRequestItem" } }
+        nextCursor: { type: ["string", "null"] }
+    SearchItem:
+      type: object
+      required: [memberId, profile, relationship, request, pendingRequestId, isFollowing]
+      properties:
+        memberId: { type: string }
+        profile: { $ref: "#/components/schemas/Profile" }
+        relationship: { type: string, enum: [none, friends] }
+        request: { type: string, enum: [none, incoming, outgoing] }
+        pendingRequestId: { type: ["string", "null"] }
+        isFollowing: { type: boolean }
+    SearchResponse:
+      type: object
+      required: [items, nextCursor]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/SearchItem" } }
+        nextCursor: { type: ["string", "null"] }
+    Suggestion:
+      type: object
+      required: [memberId, preferredName, explanation]
+      properties:
+        memberId: { type: string }
+        preferredName: { type: string }
+        explanation: { type: string }
+    PaginatedFriends:
+      type: object
+      required: [items, nextCursor]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/FriendListItem" } }
+        nextCursor: { type: ["string", "null"] }
+    PaginatedFollows:
+      type: object
+      required: [items, nextCursor]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/FollowListItem" } }
+        nextCursor: { type: ["string", "null"] }
     SafetyRelationshipInput:
       type: object
       required: [targetMemberId]

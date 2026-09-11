@@ -80,3 +80,13 @@ _Populate as you build — explicit user instructions worth remembering across s
 ## Pointers
 
 - See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details
+
+### Phase 5 relationship and discovery rules
+Friends are accepted mutual connections; follows are directional and never
+grant extra audience access. Every friends-audience read must resolve current
+friendship and either-direction blocks on the server. Search and suggestions
+require discoverability and a member-visible preferred name. Suggestions are
+opt-in and may use only voluntarily supplied, member-visible interests,
+language, and broad region. Pair mutations are transactionally serialized, all
+lists are bounded, and no address-book upload or automatic invitation flow is
+permitted.

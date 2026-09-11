@@ -4,6 +4,7 @@ import accountRouter from "./account";
 import staffRouter from "./staff";
 import profileRouter from "./profile";
 import safetyRouter from "./safety";
+import relationshipsRouter from "./relationships";
 
 const router: IRouter = Router();
 
@@ -12,5 +13,6 @@ router.use(accountRouter);
 router.use(staffRouter);
 router.use(profileRouter);
 router.use(safetyRouter);
+router.use(relationshipsRouter);
 
 export default router;

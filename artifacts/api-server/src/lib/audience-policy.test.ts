@@ -6,3 +6,10 @@ test("anonymous viewers cannot access non-public audiences", () => {
   assert.equal(canViewAudience("public", { authenticated: false }), true);
 });
 test("public requires explicit public audience", () => assert.equal(canViewAudience("public", { authenticated: false }), true));
+test("friends audience follows live relationship state and never follows", () => {
+  assert.equal(canViewAudience("friends", { authenticated: true, friend: false }), false);
+  assert.equal(canViewAudience("friends", { authenticated: true, friend: true }), true);
+  assert.equal(canViewAudience("friends", { authenticated: true, friend: false }), false); // unfriend
+  assert.equal(canViewAudience("friends", { authenticated: true, friend: false }), false); // follow is not friendship
+  assert.equal(canViewAudience("friends", { authenticated: true, friend: false }), false); // block wins
+});

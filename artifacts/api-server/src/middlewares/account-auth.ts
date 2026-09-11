@@ -35,3 +35,18 @@ export function sensitiveRateLimit(limit = 20, windowMs = 60_000): RequestHandle
     next();
   };
 }
+
+/** Authenticated mutation/search limiter. The key is the verified Clerk user, never body identity. */
+export function memberRateLimit(limit = 20, windowMs = 60_000, bucketName = "default"): RequestHandler {
+  return (req, res, next) => {
+    const userId = getAuth(req)?.userId;
+    if (!userId) { next(); return; }
+    const key = `member:${userId}:${bucketName}`;
+    const now = Date.now();
+    const bucket = buckets.get(key);
+    if (!bucket || bucket.resetAt <= now) { buckets.set(key, { count: 1, resetAt: now + windowMs }); next(); return; }
+    bucket.count += 1;
+    if (!withinRateLimit(bucket.count, limit)) { res.status(429).json({ error: "Too many requests" }); return; }
+    next();
+  };
+}

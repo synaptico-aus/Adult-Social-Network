@@ -5,6 +5,213 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+export interface MemberTargetInput {
+  /** @minLength 1 */
+  targetMemberId: string;
+}
+
+export interface Relationship {
+  id?: string;
+  createdAt?: string;
+}
+
+export interface AccountSettingsInput {
+  inboundFriendRequests?: boolean;
+  inboundFollows?: boolean;
+  suggestionsEnabled?: boolean;
+}
+
+export interface AccountSettings {
+  memberId: string;
+  inboundFriendRequests: boolean;
+  inboundFollows: boolean;
+  suggestionsEnabled: boolean;
+}
+
+export interface RelationshipProfile {
+  id: string;
+  preferredName: string;
+}
+
+export type FriendListItemDirection = typeof FriendListItemDirection[keyof typeof FriendListItemDirection];
+
+
+export const FriendListItemDirection = {
+  mutual: 'mutual',
+} as const;
+
+export type FriendListItemStatus = typeof FriendListItemStatus[keyof typeof FriendListItemStatus];
+
+
+export const FriendListItemStatus = {
+  friends: 'friends',
+} as const;
+
+export interface FriendListItem {
+  id: string;
+  memberId: string;
+  preferredName: string;
+  direction: FriendListItemDirection;
+  status: FriendListItemStatus;
+  createdAt: string;
+}
+
+export type FollowListItemDirection = typeof FollowListItemDirection[keyof typeof FollowListItemDirection];
+
+
+export const FollowListItemDirection = {
+  incoming: 'incoming',
+  outgoing: 'outgoing',
+} as const;
+
+export type FollowListItemStatus = typeof FollowListItemStatus[keyof typeof FollowListItemStatus];
+
+
+export const FollowListItemStatus = {
+  following: 'following',
+} as const;
+
+export interface FollowListItem {
+  id: string;
+  memberId: string;
+  preferredName: string;
+  direction: FollowListItemDirection;
+  status: FollowListItemStatus;
+  createdAt: string;
+}
+
+export type FriendRequestMutationResponseStatus = typeof FriendRequestMutationResponseStatus[keyof typeof FriendRequestMutationResponseStatus];
+
+
+export const FriendRequestMutationResponseStatus = {
+  created: 'created',
+  incoming_request: 'incoming_request',
+} as const;
+
+export type FriendRequestStatus = typeof FriendRequestStatus[keyof typeof FriendRequestStatus];
+
+
+export const FriendRequestStatus = {
+  pending: 'pending',
+  declined: 'declined',
+} as const;
+
+export interface FriendRequest {
+  id: string;
+  requesterMemberId: string;
+  recipientMemberId: string;
+  memberAId: string;
+  memberBId: string;
+  status: FriendRequestStatus;
+  createdAt: string;
+}
+
+export interface FriendRequestMutationResponse {
+  status: FriendRequestMutationResponseStatus;
+  request: FriendRequest;
+}
+
+export type FriendRequestItemStatus = typeof FriendRequestItemStatus[keyof typeof FriendRequestItemStatus];
+
+
+export const FriendRequestItemStatus = {
+  pending: 'pending',
+  declined: 'declined',
+} as const;
+
+export interface FriendRequestItem {
+  id: string;
+  requesterMemberId: string;
+  recipientMemberId: string;
+  memberAId: string;
+  memberBId: string;
+  status: FriendRequestItemStatus;
+  createdAt: string;
+  profile: RelationshipProfile;
+}
+
+export interface FriendRequestLists {
+  incoming: FriendRequestItem[];
+  outgoing: FriendRequestItem[];
+  /** @nullable */
+  nextCursor: string | null;
+}
+
+export type SearchItemRelationship = typeof SearchItemRelationship[keyof typeof SearchItemRelationship];
+
+
+export const SearchItemRelationship = {
+  none: 'none',
+  friends: 'friends',
+} as const;
+
+export type SearchItemRequest = typeof SearchItemRequest[keyof typeof SearchItemRequest];
+
+
+export const SearchItemRequest = {
+  none: 'none',
+  incoming: 'incoming',
+  outgoing: 'outgoing',
+} as const;
+
+export type ProfileVisibility = {[key: string]: 'private' | 'connections' | 'members'};
+
+export interface Profile {
+  id: string;
+  /** @nullable */
+  memberId?: string | null;
+  preferredName: string;
+  /** @nullable */
+  photoPath?: string | null;
+  /** @nullable */
+  biography?: string | null;
+  /** @nullable */
+  language?: string | null;
+  /** @nullable */
+  broadRegion?: string | null;
+  interests?: string[];
+  /** @nullable */
+  dementiaConnection?: string | null;
+  roles?: string[];
+  /** @nullable */
+  discoverable?: boolean | null;
+  visibility?: ProfileVisibility;
+}
+
+export interface SearchItem {
+  memberId: string;
+  profile: Profile;
+  relationship: SearchItemRelationship;
+  request: SearchItemRequest;
+  /** @nullable */
+  pendingRequestId: string | null;
+  isFollowing: boolean;
+}
+
+export interface SearchResponse {
+  items: SearchItem[];
+  /** @nullable */
+  nextCursor: string | null;
+}
+
+export interface Suggestion {
+  memberId: string;
+  preferredName: string;
+  explanation: string;
+}
+
+export interface PaginatedFriends {
+  items: FriendListItem[];
+  /** @nullable */
+  nextCursor: string | null;
+}
+
+export interface PaginatedFollows {
+  items: FollowListItem[];
+  /** @nullable */
+  nextCursor: string | null;
+}
+
 export interface SafetyRelationshipInput {
   targetMemberId: string;
 }
@@ -309,30 +516,6 @@ export interface DeletionStatus {
   requestedAt?: string | null;
 }
 
-export type ProfileVisibility = {[key: string]: 'private' | 'connections' | 'members'};
-
-export interface Profile {
-  id: string;
-  /** @nullable */
-  memberId?: string | null;
-  preferredName: string;
-  /** @nullable */
-  photoPath?: string | null;
-  /** @nullable */
-  biography?: string | null;
-  /** @nullable */
-  language?: string | null;
-  /** @nullable */
-  broadRegion?: string | null;
-  interests?: string[];
-  /** @nullable */
-  dementiaConnection?: string | null;
-  roles?: string[];
-  /** @nullable */
-  discoverable?: boolean | null;
-  visibility?: ProfileVisibility;
-}
-
 export type ProfileInputVisibility = {[key: string]: 'private' | 'connections' | 'members'};
 
 export interface ProfileInput {
@@ -441,4 +624,57 @@ export interface ProfilePhotoUpload {
   objectPath: string;
   reminder: string;
 }
+
+export type ListFriendRequestsParams = {
+/**
+ * @minimum 1
+ * @maximum 50
+ */
+limit?: number;
+/**
+ * @maxLength 200
+ */
+cursor?: string;
+};
+
+export type ListFriendsParams = {
+/**
+ * @minimum 1
+ * @maximum 50
+ */
+limit?: number;
+/**
+ * @maxLength 200
+ */
+cursor?: string;
+};
+
+export type ListFollowsParams = {
+/**
+ * @minimum 1
+ * @maximum 50
+ */
+limit?: number;
+/**
+ * @maxLength 200
+ */
+cursor?: string;
+};
+
+export type SearchProfilesParams = {
+/**
+ * @minLength 2
+ * @maxLength 100
+ */
+q: string;
+/**
+ * @maxLength 200
+ */
+cursor?: string;
+/**
+ * @minimum 1
+ * @maximum 50
+ */
+limit?: number;
+};
 

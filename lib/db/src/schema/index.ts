@@ -22,3 +22,4 @@ export * from "./consents";
 export * from "./deletion-requests";
 export * from "./profiles";
 export * from "./safety";
+export * from "./relationships";

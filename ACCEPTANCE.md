@@ -192,3 +192,27 @@ Phase 3 is verified in development. Production release still depends on Phase 2 
 | Full API suite | Passed: 33 policy, screening, sanction, and direct HTTP route tests |
 | Development schema push | Passed after Phase 4 safety retention changes |
 | Direct HTTP route authorization tests | Passed: 7 direct HTTP scenarios via `pnpm --filter @workspace/api-server test` |
+## Phase 5 acceptance
+
+- [x] Members can send, cancel, accept, and decline friend requests and unfriend.
+- [x] Members can follow and unfollow without gaining additional audience access.
+- [x] Blocking and friendship removal revoke relationship-based access using
+  live server checks.
+- [x] Search respects discoverability, field visibility, and either-direction blocks.
+- [x] Suggestions are opt-in, explainable, hideable, and limited to voluntarily
+  supplied member-visible interests, language, and broad region.
+- [x] Friend, follow, request, and search lists use bounded cursor pagination.
+- [x] Member-scoped anti-spam limits cover relationship mutations and search.
+- [x] No address-book upload or automatic external invitation capability exists.
+- [x] Responsive interfaces cover Discover, Friends, Requests, Following, and
+  persisted connection controls.
+
+### Phase 5 verification record
+
+| Check | Result |
+| --- | --- |
+| OpenAPI generation and full workspace typecheck | Passed |
+| Development schema push | Passed |
+| API and policy suite | Passed: 45 tests |
+| Concurrency and revocation tests | Passed for crossed requests, block races, unfriend, follow-only access, and repeated block cleanup |
+| Browser journey | Passed for search, send request, follow, block, settings persistence, and database cleanup |

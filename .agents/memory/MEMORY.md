@@ -1,1 +1,2 @@
 - [Clerk verification ages](clerk-verification-ages.md) — treat fva entries as minutes since factor verification and return Clerk’s structured hint for reverification UI.
+- [Relationship identity contracts](relationship-identity-contracts.md) — relationship actions need member and pending-request IDs; profile IDs cannot substitute.

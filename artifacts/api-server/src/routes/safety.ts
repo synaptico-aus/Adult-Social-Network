@@ -1,8 +1,8 @@
 import { Router, type Request } from "express";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, or, sql } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
-import { db, appealsTable, membersTable, moderationRecordsTable, reportsTable, safetyRelationshipsTable } from "@workspace/db";
+import { db, appealsTable, membersTable, moderationRecordsTable, reportsTable, safetyRelationshipsTable, friendRequestsTable, friendshipsTable, followsTable } from "@workspace/db";
 import { getAuth } from "@clerk/express";
 import { requireAuth } from "../middlewares/account-auth";
 import "../lib/safety-deletion-hook";
@@ -30,7 +30,18 @@ router.post("/safety/:kind", async (req, res): Promise<void> => {
   if (!kind.success || !input.success) { res.status(400).json({ error: "Invalid safety relationship" }); return; }
   const target = (await db.select({ id: membersTable.id }).from(membersTable).where(eq(membersTable.id, input.data.targetMemberId)).limit(1))[0];
   if (!member || !target || member.id === input.data.targetMemberId) { res.status(400).json({ error: "Invalid target member" }); return; }
-  const [record] = await db.insert(safetyRelationshipsTable).values({ id: randomUUID(), actorMemberId: member.id, targetMemberId: input.data.targetMemberId, kind: kind.data }).onConflictDoNothing().returning();
+  const [record] = await db.transaction(async (tx) => {
+    const [left, right] = member.id < input.data.targetMemberId ? [member.id, input.data.targetMemberId] : [input.data.targetMemberId, member.id];
+    await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${left + ":" + right}, 0))`);
+    const [created] = await tx.insert(safetyRelationshipsTable).values({ id: randomUUID(), actorMemberId: member.id, targetMemberId: input.data.targetMemberId, kind: kind.data }).onConflictDoNothing().returning();
+    if (kind.data === "block") {
+      const [a, b] = [left, right];
+      await tx.delete(friendRequestsTable).where(and(eq(friendRequestsTable.memberAId, a), eq(friendRequestsTable.memberBId, b)));
+      await tx.delete(friendshipsTable).where(and(eq(friendshipsTable.memberAId, a), eq(friendshipsTable.memberBId, b)));
+      await tx.delete(followsTable).where(or(and(eq(followsTable.followerMemberId, member.id), eq(followsTable.followedMemberId, input.data.targetMemberId)), and(eq(followsTable.followerMemberId, input.data.targetMemberId), eq(followsTable.followedMemberId, member.id))));
+    }
+    return [created] as const;
+  });
   if (!record) { res.status(200).json({ status: "already_exists" }); return; }
   res.status(201).json(record);
 });

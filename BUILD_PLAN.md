@@ -206,18 +206,20 @@ interfaces. Member publishing remains disabled.
   restrictions, account scoping, queue redaction, evidence reason/scope/audit
   checks, and cross-account appeals.
 
-## Phase 5 — Connections, private posting, and feeds
+## Phase 5 — Friends, follows, and discovery
 
-**Status: Not started**
+**Status: Verified in development**
 
-Restricted-by-default posts, audience selection, connections, privacy-aware feeds,
-and contextual reporting. This phase must use the Phase 4 policy and safety APIs.
+Transactional friend requests and mutual friendships, directional follows,
+privacy-aware member search, opt-in voluntary-trait suggestions, connection
+controls, anti-spam limits, and block-aware access revocation.
 
 ## Phase 6 — Media and private storage
 
 **Status: Not started**
 
-Private uploads, signed access, metadata, deletion, accessibility descriptions, and privacy-aware media delivery.
+Restricted-by-default posting and feeds, private uploads, signed access,
+metadata, deletion, accessibility descriptions, and privacy-aware media delivery.
 
 ## Phase 7 — Messaging and notifications
 
@@ -249,3 +251,17 @@ Expo/React Native clients for iOS and Android, tablet layouts, device accessibil
 **Status: Not started**
 
 Security, accessibility, privacy, moderation, performance, operational, legal, and store-release verification. No public launch occurs before this phase is verified.
+### Phase 5 implementation record
+
+- Added transactional friend requests and mutual friendships, directional
+  follows, account controls, search, and opt-in suggestions.
+- Pair-scoped database locks and live block checks prevent relationship races;
+  blocking removes requests, friendships, and follows in both directions.
+- Search and suggestions require explicit discoverability and member-visible
+  names. Suggestions use only voluntarily supplied, member-visible interests,
+  language, and broad region.
+- Added bounded cursor pagination, member-scoped anti-spam limits, deletion and
+  export coverage, and a live relationship resolver for future content reads.
+- Added responsive Discover, Friends, Requests, and Following interfaces plus
+  persisted Connection Settings.
+- Verified with 45 API/library tests and a Clerk-authenticated browser journey.

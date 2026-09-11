@@ -158,3 +158,15 @@ a reason and remains subject to appeal.
 
 **Consequence:** Staff actions and audits use consistent labels; arbitrary
 free-text sanction types are rejected at the API boundary.
+## Phase 5 decisions
+- Friendship pairs use canonical member ordering and database uniqueness; follow relationships remain directional.
+- Pair-scoped transactions serialize request, friendship, follow, and block
+  changes so blocking cannot race with a new access-granting relationship.
+- Following never upgrades audience access. Friends-audience reads must resolve
+  current friendship and either-direction blocks from the server at read time.
+- Suggestions are explicit opt-in and use only voluntarily stored,
+  member-visible interests, language, and broad region. They never use or expose
+  dementia connection, roles, or inferred traits.
+- Discoverability does not override field visibility: search and suggestions
+  require a member-visible preferred name.
+- Content audience authorization has no publishing route in Phase 5; future content reads must call `canViewMemberContent`, which resolves live friendship/block state before applying audience policy.

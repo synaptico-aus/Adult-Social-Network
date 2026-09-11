@@ -5,6 +5,8 @@ import {
   useGetOwnVerificationRequests, getGetOwnVerificationRequestsQueryKey,
   useSubmitVerificationRequest,
   useGetConsentHistory, getGetConsentHistoryQueryKey,
+  useGetAccountSettings, getGetAccountSettingsQueryKey,
+  useUpdateAccountSettings,
   exportOwnProfile
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -34,8 +36,13 @@ export default function ProfilePrivacy() {
     query: { queryKey: getGetConsentHistoryQueryKey() }
   });
 
+  const { data: accountSettings, isLoading: isAccountSettingsLoading } = useGetAccountSettings({
+    query: { queryKey: getGetAccountSettingsQueryKey() }
+  });
+
   const updatePrivacy = useUpdatePrivacySettings();
   const submitVerification = useSubmitVerificationRequest();
+  const updateAccountSettings = useUpdateAccountSettings();
 
   // Verification request state
   const [verificationScope, setVerificationScope] = useState("");
@@ -55,11 +62,24 @@ export default function ProfilePrivacy() {
     roles: "private",
   });
 
+  // Account Settings state
+  const [settings, setSettings] = useState({
+    inboundFriendRequests: true,
+    inboundFollows: true,
+    suggestionsEnabled: true,
+  });
+
   useEffect(() => {
     if (profile?.visibility) {
       setVisibility((current) => ({ ...current, ...profile.visibility }));
     }
   }, [profile?.visibility]);
+
+  useEffect(() => {
+    if (accountSettings) {
+      setSettings((current) => ({ ...current, ...accountSettings }));
+    }
+  }, [accountSettings]);
 
   const handleDiscoverabilityChange = async (checked: boolean) => {
     try {
@@ -85,6 +105,23 @@ export default function ProfilePrivacy() {
       toast({ title: "Visibility settings saved" });
     } catch (e) {
       toast({ title: "Error saving visibility", variant: "destructive" });
+    }
+  };
+
+  const handleSettingsChange = async (key: keyof typeof settings, value: boolean) => {
+    const newSettings = { ...settings, [key]: value };
+    setSettings(newSettings);
+    try {
+      await updateAccountSettings.mutateAsync({
+        data: {
+          [key]: value
+        }
+      });
+      queryClient.setQueryData(getGetAccountSettingsQueryKey(), (old: any) => ({ ...old, [key]: value }));
+      toast({ title: "Settings updated" });
+    } catch (e) {
+      setSettings(settings); // Revert
+      toast({ title: "Error updating settings", variant: "destructive" });
     }
   };
 
@@ -137,7 +174,7 @@ export default function ProfilePrivacy() {
     }
   };
 
-  const isLoading = isProfileLoading || isVerificationLoading || isConsentLoading;
+  const isLoading = isProfileLoading || isVerificationLoading || isConsentLoading || isAccountSettingsLoading;
 
   if (isLoading) {
     return (
@@ -186,6 +223,66 @@ export default function ProfilePrivacy() {
               onCheckedChange={handleDiscoverabilityChange}
               disabled={updatePrivacy.isPending}
             />
+          </div>
+        </div>
+      </section>
+
+      {/* Account Preferences Section */}
+      <section className="bg-card border border-border p-8 md:p-10 rounded-[2rem] shadow-sm space-y-8">
+        <h3 className="text-2xl font-display font-semibold flex items-center gap-3">
+          <Lock className="w-6 h-6 text-primary" /> Connection Settings
+        </h3>
+
+        <div className="space-y-8">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="max-w-lg">
+              <h4 className="text-xl font-semibold">Friend Requests</h4>
+              <p className="text-muted-foreground mt-2 text-base leading-relaxed">
+                Allow other members to send you friend requests.
+              </p>
+            </div>
+            <div className="flex shrink-0">
+              <Switch
+                checked={settings.inboundFriendRequests}
+                onCheckedChange={(checked) => handleSettingsChange("inboundFriendRequests", checked)}
+                disabled={updateAccountSettings.isPending}
+                aria-label="Allow friend requests"
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-t border-border pt-8">
+            <div className="max-w-lg">
+              <h4 className="text-xl font-semibold">Followers</h4>
+              <p className="text-muted-foreground mt-2 text-base leading-relaxed">
+                Allow other members to follow you. Following never changes what content the person may see; it only helps them find your public activity more easily.
+              </p>
+            </div>
+            <div className="flex shrink-0">
+              <Switch
+                checked={settings.inboundFollows}
+                onCheckedChange={(checked) => handleSettingsChange("inboundFollows", checked)}
+                disabled={updateAccountSettings.isPending}
+                aria-label="Allow followers"
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-t border-border pt-8">
+            <div className="max-w-lg">
+              <h4 className="text-xl font-semibold">Member Suggestions</h4>
+              <p className="text-muted-foreground mt-2 text-base leading-relaxed">
+                Receive suggestions for other members you might know or want to connect with.
+              </p>
+            </div>
+            <div className="flex shrink-0">
+              <Switch
+                checked={settings.suggestionsEnabled}
+                onCheckedChange={(checked) => handleSettingsChange("suggestionsEnabled", checked)}
+                disabled={updateAccountSettings.isPending}
+                aria-label="Enable member suggestions"
+              />
+            </div>
           </div>
         </div>
       </section>
