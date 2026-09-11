@@ -32,6 +32,8 @@ import UnderstandingDementia from '@/pages/understanding-dementia';
 import About from '@/pages/about';
 import AccountSecurity from '@/pages/account-security';
 import Onboarding from '@/pages/onboarding';
+import SafetyPage from '@/pages/safety';
+import StaffModerationPage from '@/pages/staff/moderation';
 import {
   getGetAccountSummaryQueryKey,
   useGetAccountSummary,
@@ -135,6 +137,8 @@ function Router() {
                   <Route path="/this-is-me"><RequireMember><ThisIsMe /></RequireMember></Route>
                   <Route path="/profile/privacy"><RequireMember><ProfilePrivacy /></RequireMember></Route>
                   <Route path="/account/security"><RequireMember><AccountSecurity /></RequireMember></Route>
+                  <Route path="/safety"><RequireMember><SafetyPage /></RequireMember></Route>
+                  <Route path="/staff/moderation"><RequireMember><StaffModerationPage /></RequireMember></Route>
                   <Route path="/components-preview" component={ComponentsPreview} />
                   <Route path="/understanding-dementia" component={UnderstandingDementia} />
                   <Route component={NotFound} />

@@ -63,6 +63,19 @@ _Populate as you build — explicit user instructions worth remembering across s
 - Phase 3 profile fields use private/connections/members audiences with server-side filtering. Discoverability is opt-in and must be changed through the privacy route so consent history remains append-only.
 - Self-described roles are never authorization or verification. Staff-reviewed professional or organisation status is stored separately and requires the existing staff MFA gate.
 - Phase 3 allows an owner-scoped private profile photo only. This is Me photo/audio cards remain disabled until Phase 7, and assisted account access remains disabled pending a separate revocable, reviewed delegation system.
+- Phase 4 backend foundation provides one server audience policy (only_me,
+  friends, this_group, my_circle, selected_communities, public), member safety
+  relationships, reports, appeals, moderation schemas, and capability-scoped
+  staff routes. Anonymous access is denied unless content explicitly selects
+  public; member publishing is not implemented.
+- Screening is a deterministic interface/default only; no external screening
+  provider is configured. Required unavailable media screening holds uploads.
+- Sensitive audit records are append-only and minimal. Retention duration and
+  pseudonymisation remain pending privacy/legal approval.
+- Staff access uses only active server role assignments with role-specific
+  capability defaults and fresh MFA; legacy profile/private-metadata staff
+  wildcards do not authorize capability routes. The runtime support contact
+  requires SUPPORT_CONTACT_EMAIL in the deployment environment.
 
 ## Pointers
 

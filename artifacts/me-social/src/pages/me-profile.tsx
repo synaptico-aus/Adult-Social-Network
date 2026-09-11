@@ -144,6 +144,19 @@ export default function MePage() {
             <ArrowRight className="w-8 h-8 text-muted-foreground group-hover:text-primary transition-colors hidden sm:block" aria-hidden="true" />
           </Link>
 
+          <Link href="/safety" className="flex items-center justify-between group p-4 rounded-xl hover:bg-secondary/30 transition-colors">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-primary shrink-0">
+                <Shield className="w-6 h-6" aria-hidden="true" />
+              </div>
+              <div>
+                <h3 className="text-2xl font-semibold text-foreground group-hover:text-primary transition-colors">Safety and Support</h3>
+                <p className="text-muted-foreground mt-1 text-lg">Manage blocked accounts, reports, and appeals.</p>
+              </div>
+            </div>
+            <ArrowRight className="w-8 h-8 text-muted-foreground group-hover:text-primary transition-colors hidden sm:block" aria-hidden="true" />
+          </Link>
+
           <Link href="/account/security" className="flex items-center justify-between group p-4 rounded-xl hover:bg-secondary/30 transition-colors">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-primary shrink-0">

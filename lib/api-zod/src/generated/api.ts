@@ -247,7 +247,16 @@ export const ServeProfilePhotoParams = zod.object({
 export const ServeProfilePhotoResponse = zod.unknown()
 
 
-export const ListVerificationRequestsForStaffResponse = zod.unknown()
+export const ListVerificationRequestsForStaffResponseItem = zod.object({
+  "id": zod.string(),
+  "memberId": zod.string(),
+  "scope": zod.string(),
+  "evidence": zod.string().nullish(),
+  "notes": zod.string().nullish(),
+  "status": zod.string(),
+  "createdAt": zod.coerce.date()
+})
+export const ListVerificationRequestsForStaffResponse = zod.array(ListVerificationRequestsForStaffResponseItem)
 
 
 export const ReviewVerificationRequestParams = zod.object({
@@ -258,6 +267,271 @@ export const ReviewVerificationRequestBody = zod.object({
   "status": zod.enum(['approved', 'rejected'])
 })
 
-export const ReviewVerificationRequestResponse = zod.unknown()
+export const ReviewVerificationRequestResponse = zod.object({
+  "id": zod.string(),
+  "memberId": zod.string(),
+  "scope": zod.string(),
+  "evidence": zod.string().nullish(),
+  "notes": zod.string().nullish(),
+  "status": zod.string(),
+  "createdAt": zod.coerce.date()
+})
+
+
+export const GetStaffCapabilitySummaryResponse = zod.object({
+  "enabled": zod.boolean(),
+  "message": zod.string()
+})
+
+
+export const GetStaffCapabilitiesResponse = zod.object({
+  "role": zod.enum(['administrator', 'moderator', 'education_editor']),
+  "capabilities": zod.array(zod.string()),
+  "tools": zod.array(zod.object({
+  "capability": zod.string(),
+  "enabled": zod.boolean()
+}))
+})
+
+
+export const CreateSafetyRelationshipParams = zod.object({
+  "kind": zod.enum(['block', 'mute', 'restrict'])
+})
+
+export const CreateSafetyRelationshipBody = zod.object({
+  "targetMemberId": zod.string()
+})
+
+export const CreateSafetyRelationshipResponse = zod.object({
+  "id": zod.string(),
+  "actorMemberId": zod.string(),
+  "targetMemberId": zod.string(),
+  "kind": zod.enum(['block', 'mute', 'restrict']),
+  "createdAt": zod.coerce.date()
+})
+
+
+export const DeleteSafetyRelationshipParams = zod.object({
+  "kind": zod.enum(['block', 'mute', 'restrict']),
+  "targetMemberId": zod.coerce.string()
+})
+
+export const DeleteSafetyRelationshipResponse = zod.void()
+
+
+export const ListOwnSafetyRelationshipsResponseItem = zod.object({
+  "id": zod.string(),
+  "actorMemberId": zod.string(),
+  "targetMemberId": zod.string(),
+  "kind": zod.enum(['block', 'mute', 'restrict']),
+  "createdAt": zod.coerce.date()
+})
+export const ListOwnSafetyRelationshipsResponse = zod.array(ListOwnSafetyRelationshipsResponseItem)
+
+
+export const ListOwnReportsResponseItem = zod.object({
+  "report": zod.object({
+  "id": zod.string(),
+  "reporterMemberId": zod.string(),
+  "targetMemberId": zod.string().nullish(),
+  "contentId": zod.string().nullish(),
+  "category": zod.string(),
+  "details": zod.string().nullish(),
+  "status": zod.string(),
+  "createdAt": zod.coerce.date()
+}),
+  "moderationRecord": zod.object({
+  "id": zod.string(),
+  "reportId": zod.string().nullish(),
+  "contentId": zod.string().nullish(),
+  "subjectMemberId": zod.string().nullish(),
+  "state": zod.enum(['pending', 'allowed', 'held', 'removed', 'appealed']),
+  "decision": zod.string().nullish(),
+  "sanction": zod.string().nullish(),
+  "reason": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+})
+})
+export const ListOwnReportsResponse = zod.array(ListOwnReportsResponseItem)
+
+
+export const createReportBodyDetailsMax = 5000;
+
+
+
+export const CreateReportBody = zod.object({
+  "targetMemberId": zod.string().optional(),
+  "contentId": zod.string().optional(),
+  "category": zod.enum(['harassment', 'threats', 'exploitation', 'scams', 'impersonation', 'hateful_content', 'dangerous_medical_claims', 'distress_disclosure', 'respectful_disagreement']),
+  "details": zod.string().max(createReportBodyDetailsMax).optional()
+})
+
+export const CreateReportResponse = zod.object({
+  "report": zod.object({
+  "id": zod.string(),
+  "reporterMemberId": zod.string(),
+  "targetMemberId": zod.string().nullish(),
+  "contentId": zod.string().nullish(),
+  "category": zod.string(),
+  "details": zod.string().nullish(),
+  "status": zod.string(),
+  "createdAt": zod.coerce.date()
+}),
+  "moderationRecord": zod.object({
+  "id": zod.string(),
+  "reportId": zod.string().nullish(),
+  "contentId": zod.string().nullish(),
+  "subjectMemberId": zod.string().nullish(),
+  "state": zod.enum(['pending', 'allowed', 'held', 'removed', 'appealed']),
+  "decision": zod.string().nullish(),
+  "sanction": zod.string().nullish(),
+  "reason": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+})
+})
+
+
+export const ListOwnAppealsResponseItem = zod.object({
+  "id": zod.string(),
+  "moderationRecordId": zod.string(),
+  "appellantMemberId": zod.string(),
+  "statement": zod.string(),
+  "status": zod.enum(['pending', 'allowed', 'removed']),
+  "createdAt": zod.coerce.date()
+})
+export const ListOwnAppealsResponse = zod.array(ListOwnAppealsResponseItem)
+
+
+export const createAppealBodyStatementMax = 5000;
+
+
+
+export const CreateAppealBody = zod.object({
+  "moderationRecordId": zod.string(),
+  "statement": zod.string().min(1).max(createAppealBodyStatementMax)
+})
+
+export const CreateAppealResponse = zod.object({
+  "id": zod.string(),
+  "moderationRecordId": zod.string(),
+  "appellantMemberId": zod.string(),
+  "statement": zod.string(),
+  "status": zod.enum(['pending', 'allowed', 'removed']),
+  "createdAt": zod.coerce.date()
+})
+
+
+export const GetSupportContactResponse = zod.object({
+  "email": zod.string().email()
+})
+
+
+export const GetModerationQueueResponseItem = zod.object({
+  "reportId": zod.string(),
+  "category": zod.string(),
+  "reportStatus": zod.string(),
+  "reportCreatedAt": zod.coerce.date(),
+  "moderationRecordId": zod.string(),
+  "moderationState": zod.enum(['pending', 'allowed', 'held', 'removed', 'appealed'])
+})
+export const GetModerationQueueResponse = zod.array(GetModerationQueueResponseItem)
+
+
+export const GetUrgentModerationQueueResponseItem = zod.object({
+  "reportId": zod.string(),
+  "category": zod.string(),
+  "reportStatus": zod.string(),
+  "reportCreatedAt": zod.coerce.date(),
+  "moderationRecordId": zod.string(),
+  "moderationState": zod.enum(['pending', 'allowed', 'held', 'removed', 'appealed'])
+})
+export const GetUrgentModerationQueueResponse = zod.array(GetUrgentModerationQueueResponseItem)
+
+
+export const AccessReportedEvidenceParams = zod.object({
+  "evidenceId": zod.coerce.string()
+})
+
+export const accessReportedEvidenceBodyReasonMax = 1000;
+
+
+
+export const AccessReportedEvidenceBody = zod.object({
+  "reason": zod.string().min(1).max(accessReportedEvidenceBodyReasonMax)
+})
+
+export const AccessReportedEvidenceResponse = zod.object({
+  "allowed": zod.boolean(),
+  "report": zod.object({
+  "id": zod.string(),
+  "reporterMemberId": zod.string(),
+  "targetMemberId": zod.string().nullish(),
+  "contentId": zod.string().nullish(),
+  "category": zod.string(),
+  "details": zod.string().nullish(),
+  "status": zod.string(),
+  "createdAt": zod.coerce.date()
+})
+})
+
+
+export const DecideModerationParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+
+
+
+export const DecideModerationBody = zod.object({
+  "state": zod.enum(['pending', 'allowed', 'held', 'removed', 'appealed']),
+  "decision": zod.string().optional(),
+  "sanction": zod.string().optional(),
+  "reason": zod.string().min(1)
+})
+
+export const DecideModerationResponse = zod.object({
+  "id": zod.string(),
+  "reportId": zod.string().nullish(),
+  "contentId": zod.string().nullish(),
+  "subjectMemberId": zod.string().nullish(),
+  "state": zod.enum(['pending', 'allowed', 'held', 'removed', 'appealed']),
+  "decision": zod.string().nullish(),
+  "sanction": zod.string().nullish(),
+  "reason": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+})
+
+
+export const ListStaffAppealsResponseItem = zod.object({
+  "id": zod.string(),
+  "moderationRecordId": zod.string(),
+  "appellantMemberId": zod.string(),
+  "statement": zod.string(),
+  "status": zod.enum(['pending', 'allowed', 'removed']),
+  "createdAt": zod.coerce.date()
+})
+export const ListStaffAppealsResponse = zod.array(ListStaffAppealsResponseItem)
+
+
+export const ReviewStaffAppealParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+
+
+
+export const ReviewStaffAppealBody = zod.object({
+  "status": zod.enum(['allowed', 'removed']),
+  "reason": zod.string().min(1)
+})
+
+export const ReviewStaffAppealResponse = zod.object({
+  "id": zod.string(),
+  "moderationRecordId": zod.string(),
+  "appellantMemberId": zod.string(),
+  "statement": zod.string(),
+  "status": zod.enum(['pending', 'allowed', 'removed']),
+  "createdAt": zod.coerce.date()
+})
 
 

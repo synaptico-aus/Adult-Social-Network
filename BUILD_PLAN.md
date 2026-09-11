@@ -166,43 +166,82 @@ Profiles, restricted field visibility, explicit discoverability, ordinary-member
 - Development schema push, full workspace typecheck, 18 policy tests, and an authenticated desktop/mobile browser journey passed on 11 September 2026.
 - Production release remains blocked by Phase 2 launch dependencies, production App Storage verification, staffed verification operations, and approved retention/pseudonymisation procedures.
 
-## Phase 4 — Connections, private posting, and feeds
+## Phase 4 — Privacy, safety, and staff foundation
+
+**Status: Verified in development except published support contact**
+
+Restricted-by-default audience policy, member safety controls, reporting and appeals,
+staff moderation roles, scoped evidence access, auditing, and fail-closed screening
+interfaces. Member publishing remains disabled.
+
+### Implementation delivered
+
+- Reusable server audience policy supports only_me, friends, this_group, my_circle,
+  selected_communities, and explicit public; anonymous access is denied for all
+  non-public audiences.
+- Member block, mute, restrict, reporting, report history, appeals, and configured
+  support-contact APIs are authenticated and account-scoped.
+- Moderation, staff assignments/capabilities, evidence-access audit, append-only
+  sensitive-action audit, and screening-result schemas are present. Staff routes
+  require Clerk identity, fresh MFA, and server capability checks.
+- Deterministic text screening is only a baseline interface; no third-party
+  screening integration is claimed. Media screening remains an interface and
+  required-screening-unavailable uploads must be held.
+- Deletion hooks follow existing registration conventions. Detailed retention
+  duration and pseudonymisation approval remain pending privacy/legal review.
+- Member Safety and Support and capability-scoped staff moderation interfaces use
+  the generated API contract. Queue responses exclude private evidence until a
+  separately authorised, reason-audited evidence request succeeds.
+
+### Checks
+
+- OpenAPI code generation, database schema push, shared library typecheck, and
+  API-server typecheck passed after final route edits.
+- API policy, moderation-intake, and direct HTTP route tests passed (32 tests).
+- Direct HTTP authorization tests passed for member safety/report
+  authentication, staff capability and fresh-MFA gates, education-editor
+  restrictions, account scoping, queue redaction, evidence reason/scope/audit
+  checks, and cross-account appeals.
+
+## Phase 5 — Connections, private posting, and feeds
 
 **Status: Not started**
 
-Restricted-by-default posts, precise audiences, connections, blocks, privacy-aware feeds, and reporting entry points.
+Restricted-by-default posts, audience selection, connections, privacy-aware feeds,
+and contextual reporting. This phase must use the Phase 4 policy and safety APIs.
 
-## Phase 5 — Media and private storage
+## Phase 6 — Media and private storage
 
 **Status: Not started**
 
 Private uploads, signed access, metadata, deletion, accessibility descriptions, and privacy-aware media delivery.
 
-## Phase 6 — Messaging and notifications
+## Phase 7 — Messaging and notifications
 
 **Status: Not started**
 
 Private messaging, notification preferences, abuse controls, and privacy-safe delivery.
 
-## Phase 7 — Moderation, reporting, and safety operations
+## Phase 8 — Moderation operations and external screening
 
 **Status: Not started**
 
-Moderation queues, staff permissions, audit records, appeals, escalation, and measurable safety checks.
+Operational staffing, escalation targets, approved retention procedures, external
+screening providers, and measurable safety checks.
 
-## Phase 8 — Exports and shared links
+## Phase 9 — Exports and shared links
 
 **Status: Not started**
 
 Privacy-aware exports, revocable shared links, deletion, retention, and account recovery.
 
-## Phase 9 — Mobile applications
+## Phase 10 — Mobile applications
 
 **Status: Not started**
 
 Expo/React Native clients for iOS and Android, tablet layouts, device accessibility checks, and store-readiness work.
 
-## Phase 10 — Launch readiness
+## Phase 11 — Launch readiness
 
 **Status: Not started**
 

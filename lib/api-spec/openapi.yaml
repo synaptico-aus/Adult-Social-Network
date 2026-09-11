@@ -12,6 +12,10 @@ tags:
     description: Health operations
   - name: account
     description: Authenticated account lifecycle
+  - name: safety
+    description: Member safety and reporting
+  - name: staff
+    description: Capability-scoped moderation operations
 paths:
   /healthz:
     get:
@@ -222,7 +226,7 @@ paths:
     get:
       operationId: listVerificationRequestsForStaff
       tags: [verification]
-      responses: { "200": { description: Staff-only verification queue } }
+      responses: { "200": { description: Staff-only verification queue, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/VerificationRequest" } } } } } }
   /staff/verification-requests/{id}:
     patch:
       operationId: reviewVerificationRequest
@@ -231,9 +235,259 @@ paths:
       requestBody:
         required: true
         content: { application/json: { schema: { $ref: "#/components/schemas/VerificationReviewInput" } } }
-      responses: { "200": { description: Reviewed request } }
+      responses: { "200": { description: Reviewed request, content: { application/json: { schema: { $ref: "#/components/schemas/VerificationRequest" } } } } }
+  /staff/tools:
+    get:
+      operationId: getStaffCapabilitySummary
+      tags: [staff]
+      responses: { "200": { description: Staff capability summary, content: { application/json: { schema: { $ref: "#/components/schemas/StaffCapabilitySummary" } } } } }
+  /staff/capabilities:
+    get:
+      operationId: getStaffCapabilities
+      tags: [staff]
+      responses:
+        "200":
+          description: Server-authorized staff capabilities and tools
+          content: { application/json: { schema: { $ref: "#/components/schemas/StaffCapabilities" } } }
+        "401": { description: Unauthorized }
+        "403": { description: Active staff assignment required }
+  /safety/{kind}:
+    post:
+      operationId: createSafetyRelationship
+      tags: [safety]
+      parameters: [{ name: kind, in: path, required: true, schema: { type: string, enum: [block, mute, restrict] } }]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/SafetyRelationshipInput" } } }
+      responses: { "201": { description: Relationship created, content: { application/json: { schema: { $ref: "#/components/schemas/SafetyRelationship" } } } }, "401": { description: Unauthorized } }
+  /safety/{kind}/{targetMemberId}:
+    delete:
+      operationId: deleteSafetyRelationship
+      tags: [safety]
+      parameters:
+        - { name: kind, in: path, required: true, schema: { type: string, enum: [block, mute, restrict] } }
+        - { name: targetMemberId, in: path, required: true, schema: { type: string } }
+      responses: { "204": { description: Removed }, "401": { description: Unauthorized } }
+  /safety/relationships:
+    get:
+      operationId: listOwnSafetyRelationships
+      tags: [safety]
+      responses:
+        "200":
+          description: Safety relationships owned by the signed-in member
+          content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/SafetyRelationship" } } } }
+        "401": { description: Unauthorized }
+  /reports:
+    get:
+      operationId: listOwnReports
+      tags: [safety]
+      responses: { "200": { description: Own report history, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/ReportHistoryItem" } } } } } }
+    post:
+      operationId: createReport
+      tags: [safety]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/ReportInput" } } }
+      responses: { "201": { description: Report created, content: { application/json: { schema: { $ref: "#/components/schemas/ReportCreateResponse" } } } } }
+  /appeals:
+    get:
+      operationId: listOwnAppeals
+      tags: [safety]
+      responses: { "200": { description: Own appeals, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Appeal" } } } } } }
+    post:
+      operationId: createAppeal
+      tags: [safety]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/AppealInput" } } }
+      responses: { "201": { description: Appeal created, content: { application/json: { schema: { $ref: "#/components/schemas/Appeal" } } } } }
+  /support-contact:
+    get:
+      operationId: getSupportContact
+      tags: [safety]
+      responses: { "200": { description: Published support contact, content: { application/json: { schema: { $ref: "#/components/schemas/SupportContact" } } } }, "503": { description: Not configured } }
+  /staff/moderation/queue:
+    get:
+      operationId: getModerationQueue
+      tags: [staff]
+      responses: { "200": { description: Capability-scoped moderation queue, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/QueueItem" } } } } } }
+  /staff/moderation/urgent:
+    get:
+      operationId: getUrgentModerationQueue
+      tags: [staff]
+      responses: { "200": { description: Urgent queue, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/QueueItem" } } } } } }
+  /staff/evidence/{evidenceId}/access:
+    post:
+      operationId: accessReportedEvidence
+      tags: [staff]
+      parameters: [{ name: evidenceId, in: path, required: true, schema: { type: string } }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/EvidenceAccessInput" } } } }
+      responses: { "200": { description: Scoped reported evidence, content: { application/json: { schema: { $ref: "#/components/schemas/EvidenceAccessResponse" } } } } }
+  /staff/moderation/{id}/decision:
+    post:
+      operationId: decideModeration
+      tags: [staff]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/ModerationDecisionInput" } } }
+      responses: { "200": { description: Moderation decision, content: { application/json: { schema: { $ref: "#/components/schemas/ModerationRecord" } } } } }
+  /staff/appeals:
+    get:
+      operationId: listStaffAppeals
+      tags: [staff]
+      responses: { "200": { description: Pending appeals, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Appeal" } } } } } }
+  /staff/appeals/{id}:
+    patch:
+      operationId: reviewStaffAppeal
+      tags: [staff]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/AppealReviewInput" } } } }
+      responses: { "200": { description: Reviewed appeal, content: { application/json: { schema: { $ref: "#/components/schemas/Appeal" } } } } }
 components:
   schemas:
+    SafetyRelationshipInput:
+      type: object
+      required: [targetMemberId]
+      properties: { targetMemberId: { type: string } }
+    SafetyRelationship:
+      type: object
+      required: [id, actorMemberId, targetMemberId, kind, createdAt]
+      properties:
+        id: { type: string }
+        actorMemberId: { type: string }
+        targetMemberId: { type: string }
+        kind: { type: string, enum: [block, mute, restrict] }
+        createdAt: { type: string, format: date-time }
+    ReportInput:
+      type: object
+      required: [category]
+      properties:
+        targetMemberId: { type: string }
+        contentId: { type: string }
+        category: { type: string, enum: [harassment, threats, exploitation, scams, impersonation, hateful_content, dangerous_medical_claims, distress_disclosure, respectful_disagreement] }
+        details: { type: string, maxLength: 5000 }
+    AppealInput:
+      type: object
+      required: [moderationRecordId, statement]
+      properties: { moderationRecordId: { type: string }, statement: { type: string, minLength: 1, maxLength: 5000 } }
+    ModerationDecisionInput:
+      type: object
+      required: [state, reason]
+      properties:
+        state: { type: string, enum: [pending, allowed, held, removed, appealed] }
+        decision: { type: string }
+        sanction: { type: string }
+        reason: { type: string, minLength: 1 }
+    ModerationRecord:
+      type: object
+      required: [id, state, createdAt]
+      properties:
+        id: { type: string }
+        reportId: { type: ["string", "null"] }
+        contentId: { type: ["string", "null"] }
+        subjectMemberId: { type: ["string", "null"] }
+        state: { type: string, enum: [pending, allowed, held, removed, appealed] }
+        decision: { type: ["string", "null"] }
+        sanction: { type: ["string", "null"] }
+        reason: { type: ["string", "null"] }
+        createdAt: { type: string, format: date-time }
+    Report:
+      type: object
+      required: [id, reporterMemberId, category, status, createdAt]
+      properties:
+        id: { type: string }
+        reporterMemberId: { type: string }
+        targetMemberId: { type: ["string", "null"] }
+        contentId: { type: ["string", "null"] }
+        category: { type: string }
+        details: { type: ["string", "null"] }
+        status: { type: string }
+        createdAt: { type: string, format: date-time }
+    ReportCreateResponse:
+      type: object
+      required: [report, moderationRecord]
+      properties:
+        report: { $ref: "#/components/schemas/Report" }
+        moderationRecord: { $ref: "#/components/schemas/ModerationRecord" }
+    ReportHistoryItem:
+      type: object
+      required: [report, moderationRecord]
+      properties:
+        report: { $ref: "#/components/schemas/Report" }
+        moderationRecord: { $ref: "#/components/schemas/ModerationRecord" }
+    QueueItem:
+      type: object
+      required: [reportId, category, reportStatus, reportCreatedAt, moderationRecordId, moderationState]
+      properties:
+        reportId: { type: string }
+        category: { type: string }
+        reportStatus: { type: string }
+        reportCreatedAt: { type: string, format: date-time }
+        moderationRecordId: { type: string }
+        moderationState: { type: string, enum: [pending, allowed, held, removed, appealed] }
+    Appeal:
+      type: object
+      required: [id, moderationRecordId, appellantMemberId, statement, status, createdAt]
+      properties:
+        id: { type: string }
+        moderationRecordId: { type: string }
+        appellantMemberId: { type: string }
+        statement: { type: string }
+        status: { type: string, enum: [pending, allowed, removed] }
+        createdAt: { type: string, format: date-time }
+    AppealReviewInput:
+      type: object
+      required: [status, reason]
+      # A non-empty reason is required for the immutable review audit.
+      properties:
+        status: { type: string, enum: [allowed, removed] }
+        reason: { type: string, minLength: 1 }
+    SupportContact:
+      type: object
+      required: [email]
+      properties: { email: { type: string, format: email } }
+    EvidenceAccessInput:
+      type: object
+      required: [reason]
+      properties: { reason: { type: string, minLength: 1, maxLength: 1000 } }
+    EvidenceAccessResponse:
+      type: object
+      required: [allowed, report]
+      properties:
+        allowed: { type: boolean }
+        report: { $ref: "#/components/schemas/Report" }
+    StaffCapabilitySummary:
+      type: object
+      required: [enabled, message]
+      properties:
+        enabled: { type: boolean }
+        message: { type: string }
+    StaffCapabilities:
+      type: object
+      required: [role, capabilities, tools]
+      properties:
+        role: { type: string, enum: [administrator, moderator, education_editor] }
+        capabilities: { type: array, items: { type: string } }
+        tools:
+          type: array
+          items:
+            type: object
+            required: [capability, enabled]
+            properties:
+              capability: { type: string }
+              enabled: { type: boolean }
+    VerificationRequest:
+      type: object
+      required: [id, memberId, scope, status, createdAt]
+      properties:
+        id: { type: string }
+        memberId: { type: string }
+        scope: { type: string }
+        evidence: { type: ["string", "null"] }
+        notes: { type: ["string", "null"] }
+        status: { type: string }
+        createdAt: { type: string, format: date-time }
     HealthStatus:
       type: object
       properties:

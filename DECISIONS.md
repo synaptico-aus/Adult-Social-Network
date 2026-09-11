@@ -119,3 +119,33 @@ Phase 3 permits one private profile photo but keeps This is Me cards text-only u
 **Reason:** Card media needs the broader authorization, accessibility, moderation, and deletion model planned for Phase 7.
 
 **Consequence:** The server rejects photo, audio, media, and attachment fields on This is Me cards. Profile photo upload and serving validate account ownership, file type, and size.
+
+## D-015: Audience and safety decisions are server-owned
+
+**Decision:** Content modules use one shared audience policy with restricted
+defaults; public is explicit. Blocks, mutes, restrictions, reports, moderation,
+appeals, and staff capability checks are enforced by the API rather than clients.
+
+**Consequence:** Future groups, circles, feeds, and content must pass the same
+policy and account-scope checks. Anonymous web access is denied unless the
+content itself explicitly chose public.
+
+## D-016: Screening and retention stay truthful
+
+**Decision:** The initial text screener is deterministic and local, while media
+screening is an interface that holds uploads when required screening is
+unavailable. No vendor integration is represented as present.
+
+**Consequence:** Audit records remain minimal and append-only, and retention
+duration/pseudonymisation awaits documented privacy/legal approval.
+
+## D-017: Staff authority requires an active assignment
+
+**Decision:** Staff capability routes require an active database role assignment,
+role-specific server defaults, and fresh second-factor verification. An explicit
+non-empty assignment capability list replaces the role defaults (allowing
+deliberate narrowing); there is no wildcard or profile/private-metadata fallback.
+
+**Consequence:** Administrator, moderator, and education_editor remain distinct,
+and role changes are auditable database operations rather than claims in a
+profile or legacy Clerk metadata.

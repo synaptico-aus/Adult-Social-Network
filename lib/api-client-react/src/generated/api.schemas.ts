@@ -5,6 +5,237 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+export interface SafetyRelationshipInput {
+  targetMemberId: string;
+}
+
+export type SafetyRelationshipKind = typeof SafetyRelationshipKind[keyof typeof SafetyRelationshipKind];
+
+
+export const SafetyRelationshipKind = {
+  block: 'block',
+  mute: 'mute',
+  restrict: 'restrict',
+} as const;
+
+export interface SafetyRelationship {
+  id: string;
+  actorMemberId: string;
+  targetMemberId: string;
+  kind: SafetyRelationshipKind;
+  createdAt: string;
+}
+
+export type ReportInputCategory = typeof ReportInputCategory[keyof typeof ReportInputCategory];
+
+
+export const ReportInputCategory = {
+  harassment: 'harassment',
+  threats: 'threats',
+  exploitation: 'exploitation',
+  scams: 'scams',
+  impersonation: 'impersonation',
+  hateful_content: 'hateful_content',
+  dangerous_medical_claims: 'dangerous_medical_claims',
+  distress_disclosure: 'distress_disclosure',
+  respectful_disagreement: 'respectful_disagreement',
+} as const;
+
+export interface ReportInput {
+  targetMemberId?: string;
+  contentId?: string;
+  category: ReportInputCategory;
+  /** @maxLength 5000 */
+  details?: string;
+}
+
+export interface AppealInput {
+  moderationRecordId: string;
+  /**
+     * @minLength 1
+     * @maxLength 5000
+     */
+  statement: string;
+}
+
+export type ModerationDecisionInputState = typeof ModerationDecisionInputState[keyof typeof ModerationDecisionInputState];
+
+
+export const ModerationDecisionInputState = {
+  pending: 'pending',
+  allowed: 'allowed',
+  held: 'held',
+  removed: 'removed',
+  appealed: 'appealed',
+} as const;
+
+export interface ModerationDecisionInput {
+  state: ModerationDecisionInputState;
+  decision?: string;
+  sanction?: string;
+  /** @minLength 1 */
+  reason: string;
+}
+
+export type ModerationRecordState = typeof ModerationRecordState[keyof typeof ModerationRecordState];
+
+
+export const ModerationRecordState = {
+  pending: 'pending',
+  allowed: 'allowed',
+  held: 'held',
+  removed: 'removed',
+  appealed: 'appealed',
+} as const;
+
+export interface ModerationRecord {
+  id: string;
+  /** @nullable */
+  reportId?: string | null;
+  /** @nullable */
+  contentId?: string | null;
+  /** @nullable */
+  subjectMemberId?: string | null;
+  state: ModerationRecordState;
+  /** @nullable */
+  decision?: string | null;
+  /** @nullable */
+  sanction?: string | null;
+  /** @nullable */
+  reason?: string | null;
+  createdAt: string;
+}
+
+export interface Report {
+  id: string;
+  reporterMemberId: string;
+  /** @nullable */
+  targetMemberId?: string | null;
+  /** @nullable */
+  contentId?: string | null;
+  category: string;
+  /** @nullable */
+  details?: string | null;
+  status: string;
+  createdAt: string;
+}
+
+export interface ReportCreateResponse {
+  report: Report;
+  moderationRecord: ModerationRecord;
+}
+
+export interface ReportHistoryItem {
+  report: Report;
+  moderationRecord: ModerationRecord;
+}
+
+export type QueueItemModerationState = typeof QueueItemModerationState[keyof typeof QueueItemModerationState];
+
+
+export const QueueItemModerationState = {
+  pending: 'pending',
+  allowed: 'allowed',
+  held: 'held',
+  removed: 'removed',
+  appealed: 'appealed',
+} as const;
+
+export interface QueueItem {
+  reportId: string;
+  category: string;
+  reportStatus: string;
+  reportCreatedAt: string;
+  moderationRecordId: string;
+  moderationState: QueueItemModerationState;
+}
+
+export type AppealStatus = typeof AppealStatus[keyof typeof AppealStatus];
+
+
+export const AppealStatus = {
+  pending: 'pending',
+  allowed: 'allowed',
+  removed: 'removed',
+} as const;
+
+export interface Appeal {
+  id: string;
+  moderationRecordId: string;
+  appellantMemberId: string;
+  statement: string;
+  status: AppealStatus;
+  createdAt: string;
+}
+
+export type AppealReviewInputStatus = typeof AppealReviewInputStatus[keyof typeof AppealReviewInputStatus];
+
+
+export const AppealReviewInputStatus = {
+  allowed: 'allowed',
+  removed: 'removed',
+} as const;
+
+export interface AppealReviewInput {
+  status: AppealReviewInputStatus;
+  /** @minLength 1 */
+  reason: string;
+}
+
+export interface SupportContact {
+  email: string;
+}
+
+export interface EvidenceAccessInput {
+  /**
+     * @minLength 1
+     * @maxLength 1000
+     */
+  reason: string;
+}
+
+export interface EvidenceAccessResponse {
+  allowed: boolean;
+  report: Report;
+}
+
+export interface StaffCapabilitySummary {
+  enabled: boolean;
+  message: string;
+}
+
+export type StaffCapabilitiesRole = typeof StaffCapabilitiesRole[keyof typeof StaffCapabilitiesRole];
+
+
+export const StaffCapabilitiesRole = {
+  administrator: 'administrator',
+  moderator: 'moderator',
+  education_editor: 'education_editor',
+} as const;
+
+export type StaffCapabilitiesToolsItem = {
+  capability: string;
+  enabled: boolean;
+};
+
+export interface StaffCapabilities {
+  role: StaffCapabilitiesRole;
+  capabilities: string[];
+  tools: StaffCapabilitiesToolsItem[];
+}
+
+export interface VerificationRequest {
+  id: string;
+  memberId: string;
+  scope: string;
+  /** @nullable */
+  evidence?: string | null;
+  /** @nullable */
+  notes?: string | null;
+  status: string;
+  createdAt: string;
+}
+
 export interface HealthStatus {
   status: string;
 }

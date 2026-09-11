@@ -161,3 +161,35 @@ must be approved before launch. Expo secure token storage with
 | Formal Clerk/database route integration suite | Not claimed; current evidence combines policy tests with one real development browser journey |
 
 Phase 3 is verified in development. Production release still depends on Phase 2 launch requirements, production App Storage verification, staffed verification operations, and an approved retention/pseudonymisation process. No public object URL or delegated access is supported.
+
+## Phase 4 — Privacy, safety, and staff foundation
+
+- [x] A shared server audience policy defines only_me, friends, this_group,
+  my_circle, selected_communities, and explicit public.
+- [x] Anonymous requests cannot access non-public audiences; public access is
+  possible only when content explicitly selects public.
+- [x] Authenticated member safety relationships, reports/history, and appeals
+  are account-scoped.
+- [ ] A real published support contact is configured. The endpoint and interface
+  are implemented but return an explicit unavailable state until
+  SUPPORT_CONTACT_EMAIL is supplied.
+- [x] Staff queue, urgent queue, evidence access, moderation decisions, and
+  appeal review routes require fresh Clerk MFA and server capability checks;
+  profile roles do not grant access.
+- [x] Database schemas cover relationships, reports, moderation states,
+  appeals, staff assignments, minimal append-only audits, and screening results.
+- [x] Screening interfaces are deterministic/local only; unavailable required
+  media screening holds content rather than silently allowing it.
+- [ ] Member publishing, complete group/circle evaluation, production screening,
+  and retention approval remain pending.
+
+### Phase 4 verification record
+
+| Check | Result |
+| --- | --- |
+| OpenAPI code generation | Passed |
+| Shared database library typecheck | Passed |
+| API-server typecheck | Passed |
+| Full API suite | Passed: 32 policy, screening, and direct HTTP route tests |
+| Development schema push | Passed after Phase 4 safety retention changes |
+| Direct HTTP route authorization tests | Passed: 7 direct HTTP scenarios via `pnpm --filter @workspace/api-server test` |

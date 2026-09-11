@@ -1,9 +1,8 @@
-import { ReactNode, useState } from "react"
+import { ReactNode } from "react"
 import { Link, useLocation } from "wouter"
-import { Home, Compass, Users, MessageSquare, UserCircle, Heart, Plus, ChevronLeft, Info } from "lucide-react"
+import { Home, Compass, Users, MessageSquare, UserCircle, Heart, ChevronLeft, Info } from "lucide-react"
 import { useSimpleView } from "@/lib/simple-view"
 import { Button } from "@/components/ui/button"
-import { PlannedFeatureDialog } from "@/components/shared/planned-feature-dialog"
 
 const navItems = [
   { href: "/", label: "Home", icon: Home },
@@ -16,7 +15,6 @@ const navItems = [
 function DesktopSidebar() {
   const [location] = useLocation()
   const { isSimpleView } = useSimpleView()
-  const [createOpen, setCreateOpen] = useState(false)
   
   const items = isSimpleView ? navItems.filter(i => !i.advanced) : navItems
 
@@ -42,16 +40,6 @@ function DesktopSidebar() {
       </nav>
 
       <div className="p-4 lg:p-6 space-y-4 border-t border-border/50">
-        <Button size="lg" className="w-full text-xl gap-3 rounded-2xl shadow-sm h-16 shrink-0" onClick={() => setCreateOpen(true)}>
-          <Plus className="w-7 h-7 shrink-0" aria-hidden="true" />
-          <span className="truncate">Create Post</span>
-        </Button>
-        <PlannedFeatureDialog 
-          open={createOpen} 
-          onOpenChange={setCreateOpen} 
-          title="Creating posts is planned"
-          description="We are thoughtfully building the ability to share your thoughts and moments. This feature is not yet available in the current preview, as we are prioritizing privacy and safety first."
-        />
         <Link href="/understanding-dementia" className="flex items-center gap-4 px-4 py-5 rounded-2xl bg-muted/60 text-foreground hover:bg-muted transition-colors font-medium border border-border/50 min-w-0">
           <Heart className="w-8 h-8 text-primary shrink-0" aria-hidden="true" />
           <span className="leading-tight text-lg truncate">Understanding<br/>Dementia</span>
@@ -119,7 +107,7 @@ function RightPanel() {
           <div className="w-14 h-14 rounded-2xl bg-secondary flex items-center justify-center mb-5">
             <Info className="w-7 h-7 text-primary" />
           </div>
-          <h3 className="font-display font-semibold text-2xl mb-3 text-foreground">Welcome to Phase 3</h3>
+          <h3 className="font-display font-semibold text-2xl mb-3 text-foreground">Welcome to Phase 4</h3>
           <p className="text-foreground/80 text-base leading-relaxed">
             You are exploring the foundational design of Me. While some features are not yet active, you can preview the layout, accessibility settings, and calm interface designed for dignity.
           </p>
@@ -142,39 +130,6 @@ function RightPanel() {
   )
 }
 
-function MobileFAB() {
-  const [location] = useLocation()
-  const [open, setOpen] = useState(false)
-  const isProfileOrAccount =
-    location === "/me" ||
-    location === "/this-is-me" ||
-    location.startsWith("/profile/") ||
-    location.startsWith("/account/")
-
-  if (isProfileOrAccount) return null
-  
-  return (
-    <>
-      <div className="md:hidden fixed bottom-[calc(env(safe-area-inset-bottom)+72px)] left-0 right-0 flex justify-center z-40 pointer-events-none px-4">
-        <button 
-          onClick={() => setOpen(true)}
-          className="pointer-events-auto flex items-center justify-center gap-2 h-14 px-6 bg-primary text-primary-foreground font-semibold text-base rounded-full shadow-lg hover:bg-primary/90 transition-transform active:scale-95 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring w-auto max-w-[280px]"
-          aria-label="Create Post"
-        >
-          <Plus className="w-6 h-6 shrink-0" aria-hidden="true" />
-          <span>Create Post</span>
-        </button>
-      </div>
-      <PlannedFeatureDialog 
-        open={open} 
-        onOpenChange={setOpen} 
-        title="Creating posts is planned"
-        description="We are thoughtfully building the ability to share your thoughts and moments. This feature is not yet available in the current preview, as we are prioritizing privacy and safety first."
-      />
-    </>
-  )
-}
-
 export function AppLayout({ children }: { children: ReactNode }) {
   const { isSimpleView } = useSimpleView();
   
@@ -191,7 +146,6 @@ export function AppLayout({ children }: { children: ReactNode }) {
       </div>
       {!isSimpleView && <RightPanel />}
       <MobileBottomNav />
-      <MobileFAB />
     </div>
   )
 }

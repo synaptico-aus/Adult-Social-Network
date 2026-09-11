@@ -1,4 +1,4 @@
-import express, { type Express } from "express";
+import express, { type Express, type RequestHandler } from "express";
 import cors from "cors";
 import pinoHttp from "pino-http";
 import router from "./routes";
@@ -11,6 +11,7 @@ import {
   getClerkProxyHost,
 } from "./middlewares/clerkProxyMiddleware";
 
+export function createApp(options: { authMiddleware?: RequestHandler } = {}): Express {
 const app: Express = express();
 
 app.use(
@@ -37,7 +38,7 @@ app.use(cors({ credentials: true, origin: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(
-  clerkMiddleware((req) => ({
+  options.authMiddleware ?? clerkMiddleware((req) => ({
     publishableKey: publishableKeyFromHost(
       getClerkProxyHost(req) ?? "",
       process.env.CLERK_PUBLISHABLE_KEY,
@@ -47,4 +48,8 @@ app.use(
 
 app.use("/api", router);
 
+return app;
+}
+
+const app = createApp();
 export default app;
