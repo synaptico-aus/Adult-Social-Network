@@ -40,6 +40,7 @@ export const thisIsMeCardsTable = pgTable("this_is_me_cards", {
   text: text("text").notNull(),
   position: integer("position").notNull().default(0),
   permissionAcknowledged: boolean("permission_acknowledged").notNull().default(false),
+  mediaAssetIds: jsonb("media_asset_ids").$type<string[]>().notNull().default([]),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 }, (table) => [

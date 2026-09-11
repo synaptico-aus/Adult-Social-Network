@@ -70,6 +70,10 @@ _Populate as you build — explicit user instructions worth remembering across s
   public; member publishing is not implemented.
 - Screening is a deterministic interface/default only; no external screening
   provider is configured. Required unavailable media screening holds uploads.
+- My Circle is invitation-only and separate from friendships/family labels.
+  Circle posts require current membership on every server read. Pre-join history
+  is private until an explicit, revocable grant; removal, leaving, closure, and
+  blocks revoke future server access but cannot recall downloaded copies.
 - Sensitive audit records are append-only and minimal. Retention duration and
   pseudonymisation remain pending privacy/legal approval.
 - Staff access uses only active server role assignments with role-specific

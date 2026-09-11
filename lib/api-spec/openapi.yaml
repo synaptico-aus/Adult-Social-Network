@@ -552,19 +552,222 @@ paths:
         - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 50, default: 20 } }
         - { name: cursor, in: query, schema: { type: string } }
       responses: { "200": { description: Saved posts, content: { application/json: { schema: { $ref: "#/components/schemas/PaginatedPosts" } } } } }
+  /circles:
+    get:
+      operationId: listCircles
+      tags: [circles]
+      responses: { "200": { description: Circles I belong to, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Circle" } } } } } }
+    post:
+      operationId: createCircle
+      tags: [circles]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/CircleInput" } } } }
+      responses: { "201": { description: Created circle, content: { application/json: { schema: { $ref: "#/components/schemas/Circle" } } } } }
+  /circles/{circleId}:
+    get:
+      operationId: getCircle
+      tags: [circles]
+      parameters: [{ name: circleId, in: path, required: true, schema: { type: string } }]
+      responses: { "200": { description: Circle, content: { application/json: { schema: { $ref: "#/components/schemas/Circle" } } } } }
+    delete:
+      operationId: closeCircle
+      tags: [circles]
+      parameters: [{ name: circleId, in: path, required: true, schema: { type: string } }]
+      responses: { "204": { description: Circle closed } }
+  /circles/{circleId}/invitations:
+    post:
+      operationId: createCircleInvitation
+      tags: [circles]
+      parameters: [{ name: circleId, in: path, required: true, schema: { type: string } }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/CircleInvitationInput" } } } }
+      responses: { "201": { description: Invitation, content: { application/json: { schema: { $ref: "#/components/schemas/CircleInvitation" } } } } }
+  /circle-invitations:
+    get:
+      operationId: listCircleInvitations
+      tags: [circles]
+      responses: { "200": { description: My pending invitations, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/CircleInvitation" } } } } } }
+  /circle-invitations/{invitationId}/accept:
+    post:
+      operationId: acceptCircleInvitation
+      tags: [circles]
+      parameters: [{ name: invitationId, in: path, required: true, schema: { type: string } }]
+      responses: { "200": { description: Joined circle, content: { application/json: { schema: { $ref: "#/components/schemas/Circle" } } } } }
+  /circle-invitations/{invitationId}/decline:
+    post:
+      operationId: declineCircleInvitation
+      tags: [circles]
+      parameters: [{ name: invitationId, in: path, required: true, schema: { type: string } }]
+      responses: { "204": { description: Invitation declined } }
+  /circles/{circleId}/members/{memberId}:
+    patch:
+      operationId: updateCircleMember
+      tags: [circles]
+      parameters: [{ name: circleId, in: path, required: true, schema: { type: string } }, { name: memberId, in: path, required: true, schema: { type: string } }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/CircleMemberRoleInput" } } } }
+      responses: { "200": { description: Updated role, content: { application/json: { schema: { $ref: "#/components/schemas/CircleMember" } } } } }
+    delete:
+      operationId: removeCircleMember
+      tags: [circles]
+      parameters: [{ name: circleId, in: path, required: true, schema: { type: string } }, { name: memberId, in: path, required: true, schema: { type: string } }]
+      responses: { "204": { description: Member removed } }
+  /circles/{circleId}/history-access:
+    post:
+      operationId: grantCircleHistoryAccess
+      tags: [circles]
+      parameters: [{ name: circleId, in: path, required: true, schema: { type: string } }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/CircleHistoryInput" } } } }
+      responses: { "204": { description: History access granted } }
+  /circles/{circleId}/history-access/{memberId}:
+    delete:
+      operationId: revokeCircleHistoryAccess
+      tags: [circles]
+      parameters: [{ name: circleId, in: path, required: true, schema: { type: string } }, { name: memberId, in: path, required: true, schema: { type: string } }]
+      responses: { "204": { description: History access revoked } }
+  /circles/{circleId}/leave:
+    post:
+      operationId: leaveCircle
+      tags: [circles]
+      parameters: [{ name: circleId, in: path, required: true, schema: { type: string } }]
+      responses: { "204": { description: Left circle } }
+  /circles/{circleId}/posts:
+    get:
+      operationId: listCirclePosts
+      tags: [circles]
+      parameters: [{ name: circleId, in: path, required: true, schema: { type: string } }]
+      responses: { "200": { description: Circle posts, content: { application/json: { schema: { $ref: "#/components/schemas/PaginatedPosts" } } } } }
+  /media/uploads/request:
+    post:
+      operationId: requestMediaUpload
+      tags: [media]
+      parameters:
+        - { name: Idempotency-Key, in: header, required: false, schema: { type: string } }
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/MediaUploadInput" } } }
+      responses:
+        "201": { description: Upload requested, content: { application/json: { schema: { $ref: "#/components/schemas/MediaUploadSession" } } } }
+        "200": { description: Existing idempotent upload, content: { application/json: { schema: { $ref: "#/components/schemas/MediaUploadSession" } } } }
+  /media/uploads/{id}/complete:
+    post:
+      operationId: completeMediaUpload
+      tags: [media]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { "200": { description: Validated quarantined media, content: { application/json: { schema: { $ref: "#/components/schemas/MediaAttachment" } } } } }
+  /media/uploads/{id}/retry:
+    post:
+      operationId: retryMediaUpload
+      tags: [media]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { "200": { description: Retry upload, content: { application/json: { schema: { $ref: "#/components/schemas/MediaUploadSession" } } } } }
+  /media/uploads/{id}/cancel:
+    post:
+      operationId: cancelMediaUpload
+      tags: [media]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { "204": { description: Cancelled } }
+  /media/{id}:
+    get:
+      operationId: deliverMedia
+      tags: [media]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { "200": { description: Short-lived private media stream } }
+    patch:
+      operationId: updateMediaTranscript
+      tags: [media]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/MediaTranscriptInput" } } }
+      responses: { "200": { description: Updated transcript, content: { application/json: { schema: { $ref: "#/components/schemas/MediaAttachment" } } } } }
 components:
   schemas:
+    MediaUploadInput:
+      type: object
+      required: [kind, contentType, size, clientIdempotencyKey]
+      properties:
+        kind: { type: string, enum: [photo, audio] }
+        contentType: { type: string }
+        size: { type: integer, minimum: 1 }
+        clientIdempotencyKey: { type: string, minLength: 1, maxLength: 200 }
+        altText: { type: string, minLength: 1, maxLength: 1000 }
+    MediaUploadSession:
+      type: object
+      required: [asset, uploadURL]
+      properties:
+        asset: { $ref: "#/components/schemas/MediaAttachment" }
+        uploadURL: { type: ["string", "null"], format: uri }
+    MediaTranscriptInput:
+      type: object
+      required: [transcript]
+      properties: { transcript: { type: string, minLength: 1, maxLength: 100000 } }
+    CircleInput:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 120 }
+        description: { type: string, maxLength: 1000 }
+    CircleMember:
+      type: object
+      required: [memberId, preferredName, role, joinedAt, historyAccess]
+      properties:
+        memberId: { type: string }
+        preferredName: { type: string }
+        role: { type: string, enum: [owner, admin, member] }
+        joinedAt: { type: string, format: date-time }
+        historyAccess: { type: boolean }
+    Circle:
+      type: object
+      required: [id, ownerMemberId, name, description, status, createdAt, updatedAt, members, myRole, historyAccess]
+      properties:
+        id: { type: string }
+        ownerMemberId: { type: string }
+        name: { type: string }
+        description: { type: ["string", "null"] }
+        status: { type: string, enum: [active, closed] }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        members: { type: array, items: { $ref: "#/components/schemas/CircleMember" } }
+        myRole: { type: ["string", "null"], enum: [owner, admin, member, null] }
+        historyAccess: { type: boolean }
+    CircleInvitationInput:
+      type: object
+      required: [recipientMemberId, expiresAt]
+      properties:
+        recipientMemberId: { type: string }
+        expiresAt: { type: string, format: date-time }
+    CircleInvitation:
+      type: object
+      required: [id, circleId, recipientMemberId, invitedByMemberId, status, expiresAt, createdAt, circleName, inviterName]
+      properties:
+        id: { type: string }
+        circleId: { type: string }
+        recipientMemberId: { type: string }
+        invitedByMemberId: { type: string }
+        status: { type: string, enum: [pending, accepted, declined, revoked, expired] }
+        expiresAt: { type: string, format: date-time }
+        createdAt: { type: string, format: date-time }
+        circleName: { type: string }
+        inviterName: { type: string }
+    CircleMemberRoleInput:
+      type: object
+      required: [role]
+      properties: { role: { type: string, enum: [admin, member] } }
+    CircleHistoryInput:
+      type: object
+      required: [memberId]
+      properties: { memberId: { type: string } }
     PostInput:
       type: object
       required: [body]
       properties:
         body: { type: string, maxLength: 20000 }
-        audience: { type: string, enum: [only_me, friends, public] }
+        audience: { type: string, enum: [only_me, friends, my_circle, public] }
+        circleId: { type: ["string", "null"] }
         responseLabel: { type: ["string", "null"], enum: [someone_to_listen, shared_experiences, practical_ideas, something_uplifting, null] }
         commentsOpen: { type: boolean }
         visibleReactionCounts: { type: boolean }
         originalPostId: { type: string }
         commentary: { type: string, maxLength: 10000 }
+        mediaAssetIds: { type: array, maxItems: 10, items: { type: string } }
     Post:
       type: object
       required: [id, authorMemberId, body, audience, status, commentsOpen, visibleReactionCounts, createdAt, updatedAt]
@@ -572,7 +775,8 @@ components:
         id: { type: string }
         authorMemberId: { type: string }
         body: { type: ["string", "null"] }
-        audience: { type: string, enum: [only_me, friends, public] }
+        audience: { type: string, enum: [only_me, friends, my_circle, public] }
+        circleId: { type: ["string", "null"] }
         responseLabel: { type: ["string", "null"] }
         status: { type: string, enum: [draft, published, deleted] }
         commentsOpen: { type: boolean }
@@ -585,6 +789,24 @@ components:
         saved: { type: boolean }
         reactionCounts: { type: ["object", "null"] }
         originalAvailable: { type: boolean }
+        mediaAssets: { type: array, items: { $ref: "#/components/schemas/MediaAttachment" } }
+    MediaAttachment:
+      type: object
+      required: [id, kind, contentType, byteSize, width, height, durationSeconds, status, malwareState, abuseState, altText, transcript, limitation]
+      properties:
+        id: { type: string }
+        kind: { type: string, enum: [photo, audio] }
+        contentType: { type: ["string", "null"] }
+        byteSize: { type: ["integer", "null"] }
+        width: { type: ["integer", "null"] }
+        height: { type: ["integer", "null"] }
+        durationSeconds: { type: ["integer", "null"] }
+        status: { type: string, enum: [uploading, quarantined, held, ready, rejected, cancelled, cleanup_pending] }
+        malwareState: { type: string, enum: [pending, allowed, blocked, unavailable, error] }
+        abuseState: { type: string, enum: [pending, allowed, blocked, unavailable, error] }
+        altText: { type: ["string", "null"] }
+        transcript: { type: ["string", "null"] }
+        limitation: { type: ["string", "null"] }
     PaginatedPosts:
       type: object
       required: [items, nextCursor]
@@ -969,6 +1191,8 @@ components:
         text: { type: string }
         position: { type: integer }
         permissionAcknowledged: { type: boolean }
+        mediaAssetIds: { type: array, items: { type: string } }
+        mediaAssets: { type: array, items: { $ref: "#/components/schemas/MediaAttachment" } }
     ThisIsMeCardInput:
       type: object
       required: [kind, text]
@@ -976,11 +1200,13 @@ components:
         kind: { type: string, enum: [things_i_enjoy, music_i_love, experiences_i_want_to_share, how_i_like_to_communicate] }
         text: { type: string }
         permissionAcknowledged: { type: boolean }
+        mediaAssetIds: { type: array, maxItems: 10, items: { type: string } }
     ThisIsMeCardUpdate:
       type: object
       properties:
         text: { type: string }
         permissionAcknowledged: { type: boolean }
+        mediaAssetIds: { type: array, maxItems: 10, items: { type: string } }
     VerificationRequestInput:
       type: object
       required: [scope]

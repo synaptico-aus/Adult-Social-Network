@@ -5,6 +5,7 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { MediaAttachment } from './mediaAttachment';
 import type { ThisIsMeCardKind } from './thisIsMeCardKind';
 
 export interface ThisIsMeCard {
@@ -13,4 +14,6 @@ export interface ThisIsMeCard {
   text: string;
   position: number;
   permissionAcknowledged?: boolean;
+  mediaAssetIds?: string[];
+  mediaAssets?: MediaAttachment[];
 }

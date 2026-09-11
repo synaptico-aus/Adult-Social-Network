@@ -9,4 +9,6 @@
 export interface ThisIsMeCardUpdate {
   text?: string;
   permissionAcknowledged?: boolean;
+  /** @maxItems 10 */
+  mediaAssetIds?: string[];
 }

@@ -27,6 +27,13 @@ import type {
   Appeal,
   AppealInput,
   AppealReviewInput,
+  Circle,
+  CircleHistoryInput,
+  CircleInput,
+  CircleInvitation,
+  CircleInvitationInput,
+  CircleMember,
+  CircleMemberRoleInput,
   Comment,
   CommentInput,
   CommentUpdateInput,
@@ -44,6 +51,10 @@ import type {
   ListNotificationEvents200Item,
   ListOwnPostsParams,
   ListSavedPostsParams,
+  MediaAttachment,
+  MediaTranscriptInput,
+  MediaUploadInput,
+  MediaUploadSession,
   MemberTargetInput,
   ModerationDecisionInput,
   ModerationRecord,
@@ -138,8 +149,6 @@ export const getHealthCheckQueryKey = () => {
     `/api/healthz`
     ] as const;
     }
-
-
 export const getHealthCheckQueryOptions = <TData = Awaited<ReturnType<typeof healthCheck>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof healthCheck>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
@@ -177,6 +186,13 @@ export function useHealthCheck<TData = Awaited<ReturnType<typeof healthCheck>>, 
 
   return withQueryKey(query, queryOptions.queryKey);
 }
+
+
+
+
+
+
+
 export const getCompleteOnboardingUrl = () => {
 
 
@@ -306,6 +322,13 @@ export function useGetAccountSummary<TData = Awaited<ReturnType<typeof getAccoun
 
   return withQueryKey(query, queryOptions.queryKey);
 }
+
+
+
+
+
+
+
 export const getListAccountSessionsUrl = () => {
 
 
@@ -370,6 +393,13 @@ export function useListAccountSessions<TData = Awaited<ReturnType<typeof listAcc
 
   return withQueryKey(query, queryOptions.queryKey);
 }
+
+
+
+
+
+
+
 export const getRevokeAccountSessionUrl = (sessionId: string,) => {
 
 
@@ -564,6 +594,13 @@ export function useGetDeletionStatus<TData = Awaited<ReturnType<typeof getDeleti
 
   return withQueryKey(query, queryOptions.queryKey);
 }
+
+
+
+
+
+
+
 export const getInitiateDeletionUrl = () => {
 
 
@@ -758,6 +795,13 @@ export function useGetOwnProfile<TData = Awaited<ReturnType<typeof getOwnProfile
 
   return withQueryKey(query, queryOptions.queryKey);
 }
+
+
+
+
+
+
+
 export const getUpdateOwnProfileUrl = () => {
 
 
@@ -887,6 +931,13 @@ export function usePreviewProfileAsMember<TData = Awaited<ReturnType<typeof prev
 
   return withQueryKey(query, queryOptions.queryKey);
 }
+
+
+
+
+
+
+
 export const getUpdatePrivacySettingsUrl = () => {
 
 
@@ -1016,6 +1067,13 @@ export function useListThisIsMeCards<TData = Awaited<ReturnType<typeof listThisI
 
   return withQueryKey(query, queryOptions.queryKey);
 }
+
+
+
+
+
+
+
 export const getCreateThisIsMeCardUrl = () => {
 
 
@@ -5131,3 +5189,1349 @@ export function useListSavedPosts<TData = Awaited<ReturnType<typeof listSavedPos
 
   return withQueryKey(query, queryOptions.queryKey);
 }
+
+
+
+
+
+
+
+export const getListCirclesUrl = () => {
+
+
+
+
+  return `/api/circles`
+}
+
+export const listCircles = async ( options?: Parameters<typeof customFetch>[1]): Promise<Circle[]> => {
+
+  return customFetch<Circle[]>(getListCirclesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListCirclesQueryKey = () => {
+    return [
+    `/api/circles`
+    ] as const;
+    }
+
+
+export const getListCirclesQueryOptions = <TData = Awaited<ReturnType<typeof listCircles>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCircles>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListCirclesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCircles>>> = ({ signal }) => listCircles({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listCircles>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListCirclesQueryResult = NonNullable<Awaited<ReturnType<typeof listCircles>>>
+export type ListCirclesQueryError = ErrorType<unknown>
+
+
+
+export function useListCircles<TData = Awaited<ReturnType<typeof listCircles>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCircles>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListCirclesQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateCircleUrl = () => {
+
+
+
+
+  return `/api/circles`
+}
+
+export const createCircle = async (circleInput: CircleInput, options?: Parameters<typeof customFetch>[1]): Promise<Circle> => {
+
+  return customFetch<Circle>(getCreateCircleUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(circleInput)
+  }
+);}
+
+
+
+
+
+export const getCreateCircleMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCircle>>, TError,{data: BodyType<CircleInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createCircle>>, TError,{data: BodyType<CircleInput>}, TContext> => {
+
+const mutationKey = ['createCircle'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createCircle>>, {data: BodyType<CircleInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createCircle(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateCircleMutationResult = NonNullable<Awaited<ReturnType<typeof createCircle>>>
+    export type CreateCircleMutationBody = BodyType<CircleInput>
+    export type CreateCircleMutationError = ErrorType<unknown>
+
+    export const useCreateCircle = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCircle>>, TError,{data: BodyType<CircleInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createCircle>>,
+        TError,
+        {data: BodyType<CircleInput>},
+        TContext
+      > => {
+      return useMutation(getCreateCircleMutationOptions(options));
+    }
+
+export const getGetCircleUrl = (circleId: string,) => {
+
+
+
+
+  return `/api/circles/${circleId}`
+}
+
+export const getCircle = async (circleId: string, options?: Parameters<typeof customFetch>[1]): Promise<Circle> => {
+
+  return customFetch<Circle>(getGetCircleUrl(circleId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCircleQueryKey = (circleId: string,) => {
+    return [
+    `/api/circles/${circleId}`
+    ] as const;
+    }
+
+
+export const getGetCircleQueryOptions = <TData = Awaited<ReturnType<typeof getCircle>>, TError = ErrorType<unknown>>(circleId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCircle>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCircleQueryKey(circleId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCircle>>> = ({ signal }) => getCircle(circleId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: circleId !== null && circleId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCircle>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetCircleQueryResult = NonNullable<Awaited<ReturnType<typeof getCircle>>>
+export type GetCircleQueryError = ErrorType<unknown>
+
+
+
+export function useGetCircle<TData = Awaited<ReturnType<typeof getCircle>>, TError = ErrorType<unknown>>(
+ circleId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCircle>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetCircleQueryOptions(circleId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCloseCircleUrl = (circleId: string,) => {
+
+
+
+
+  return `/api/circles/${circleId}`
+}
+
+export const closeCircle = async (circleId: string, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+
+  return customFetch<void>(getCloseCircleUrl(circleId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getCloseCircleMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof closeCircle>>, TError,{circleId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof closeCircle>>, TError,{circleId: string}, TContext> => {
+
+const mutationKey = ['closeCircle'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof closeCircle>>, {circleId: string}> = (props) => {
+          const {circleId} = props ?? {};
+
+          return  closeCircle(circleId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CloseCircleMutationResult = NonNullable<Awaited<ReturnType<typeof closeCircle>>>
+
+    export type CloseCircleMutationError = ErrorType<unknown>
+
+    export const useCloseCircle = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof closeCircle>>, TError,{circleId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof closeCircle>>,
+        TError,
+        {circleId: string},
+        TContext
+      > => {
+      return useMutation(getCloseCircleMutationOptions(options));
+    }
+
+export const getCreateCircleInvitationUrl = (circleId: string,) => {
+
+
+
+
+  return `/api/circles/${circleId}/invitations`
+}
+
+export const createCircleInvitation = async (circleId: string,
+    circleInvitationInput: CircleInvitationInput, options?: Parameters<typeof customFetch>[1]): Promise<CircleInvitation> => {
+
+  return customFetch<CircleInvitation>(getCreateCircleInvitationUrl(circleId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(circleInvitationInput)
+  }
+);}
+
+
+
+
+
+export const getCreateCircleInvitationMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCircleInvitation>>, TError,{circleId: string;data: BodyType<CircleInvitationInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createCircleInvitation>>, TError,{circleId: string;data: BodyType<CircleInvitationInput>}, TContext> => {
+
+const mutationKey = ['createCircleInvitation'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createCircleInvitation>>, {circleId: string;data: BodyType<CircleInvitationInput>}> = (props) => {
+          const {circleId,data} = props ?? {};
+
+          return  createCircleInvitation(circleId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateCircleInvitationMutationResult = NonNullable<Awaited<ReturnType<typeof createCircleInvitation>>>
+    export type CreateCircleInvitationMutationBody = BodyType<CircleInvitationInput>
+    export type CreateCircleInvitationMutationError = ErrorType<unknown>
+
+    export const useCreateCircleInvitation = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCircleInvitation>>, TError,{circleId: string;data: BodyType<CircleInvitationInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createCircleInvitation>>,
+        TError,
+        {circleId: string;data: BodyType<CircleInvitationInput>},
+        TContext
+      > => {
+      return useMutation(getCreateCircleInvitationMutationOptions(options));
+    }
+
+export const getListCircleInvitationsUrl = () => {
+
+
+
+
+  return `/api/circle-invitations`
+}
+
+export const listCircleInvitations = async ( options?: Parameters<typeof customFetch>[1]): Promise<CircleInvitation[]> => {
+
+  return customFetch<CircleInvitation[]>(getListCircleInvitationsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListCircleInvitationsQueryKey = () => {
+    return [
+    `/api/circle-invitations`
+    ] as const;
+    }
+
+
+export const getListCircleInvitationsQueryOptions = <TData = Awaited<ReturnType<typeof listCircleInvitations>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCircleInvitations>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListCircleInvitationsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCircleInvitations>>> = ({ signal }) => listCircleInvitations({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listCircleInvitations>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListCircleInvitationsQueryResult = NonNullable<Awaited<ReturnType<typeof listCircleInvitations>>>
+export type ListCircleInvitationsQueryError = ErrorType<unknown>
+
+
+
+export function useListCircleInvitations<TData = Awaited<ReturnType<typeof listCircleInvitations>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCircleInvitations>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListCircleInvitationsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getAcceptCircleInvitationUrl = (invitationId: string,) => {
+
+
+
+
+  return `/api/circle-invitations/${invitationId}/accept`
+}
+
+export const acceptCircleInvitation = async (invitationId: string, options?: Parameters<typeof customFetch>[1]): Promise<Circle> => {
+
+  return customFetch<Circle>(getAcceptCircleInvitationUrl(invitationId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getAcceptCircleInvitationMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof acceptCircleInvitation>>, TError,{invitationId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof acceptCircleInvitation>>, TError,{invitationId: string}, TContext> => {
+
+const mutationKey = ['acceptCircleInvitation'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof acceptCircleInvitation>>, {invitationId: string}> = (props) => {
+          const {invitationId} = props ?? {};
+
+          return  acceptCircleInvitation(invitationId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AcceptCircleInvitationMutationResult = NonNullable<Awaited<ReturnType<typeof acceptCircleInvitation>>>
+
+    export type AcceptCircleInvitationMutationError = ErrorType<unknown>
+
+    export const useAcceptCircleInvitation = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof acceptCircleInvitation>>, TError,{invitationId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof acceptCircleInvitation>>,
+        TError,
+        {invitationId: string},
+        TContext
+      > => {
+      return useMutation(getAcceptCircleInvitationMutationOptions(options));
+    }
+
+export const getDeclineCircleInvitationUrl = (invitationId: string,) => {
+
+
+
+
+  return `/api/circle-invitations/${invitationId}/decline`
+}
+
+export const declineCircleInvitation = async (invitationId: string, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+
+  return customFetch<void>(getDeclineCircleInvitationUrl(invitationId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeclineCircleInvitationMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof declineCircleInvitation>>, TError,{invitationId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof declineCircleInvitation>>, TError,{invitationId: string}, TContext> => {
+
+const mutationKey = ['declineCircleInvitation'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof declineCircleInvitation>>, {invitationId: string}> = (props) => {
+          const {invitationId} = props ?? {};
+
+          return  declineCircleInvitation(invitationId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeclineCircleInvitationMutationResult = NonNullable<Awaited<ReturnType<typeof declineCircleInvitation>>>
+
+    export type DeclineCircleInvitationMutationError = ErrorType<unknown>
+
+    export const useDeclineCircleInvitation = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof declineCircleInvitation>>, TError,{invitationId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof declineCircleInvitation>>,
+        TError,
+        {invitationId: string},
+        TContext
+      > => {
+      return useMutation(getDeclineCircleInvitationMutationOptions(options));
+    }
+
+export const getUpdateCircleMemberUrl = (circleId: string,
+    memberId: string,) => {
+
+
+
+
+  return `/api/circles/${circleId}/members/${memberId}`
+}
+
+export const updateCircleMember = async (circleId: string,
+    memberId: string,
+    circleMemberRoleInput: CircleMemberRoleInput, options?: Parameters<typeof customFetch>[1]): Promise<CircleMember> => {
+
+  return customFetch<CircleMember>(getUpdateCircleMemberUrl(circleId,memberId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(circleMemberRoleInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateCircleMemberMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCircleMember>>, TError,{circleId: string;memberId: string;data: BodyType<CircleMemberRoleInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateCircleMember>>, TError,{circleId: string;memberId: string;data: BodyType<CircleMemberRoleInput>}, TContext> => {
+
+const mutationKey = ['updateCircleMember'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateCircleMember>>, {circleId: string;memberId: string;data: BodyType<CircleMemberRoleInput>}> = (props) => {
+          const {circleId,memberId,data} = props ?? {};
+
+          return  updateCircleMember(circleId,memberId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateCircleMemberMutationResult = NonNullable<Awaited<ReturnType<typeof updateCircleMember>>>
+    export type UpdateCircleMemberMutationBody = BodyType<CircleMemberRoleInput>
+    export type UpdateCircleMemberMutationError = ErrorType<unknown>
+
+    export const useUpdateCircleMember = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCircleMember>>, TError,{circleId: string;memberId: string;data: BodyType<CircleMemberRoleInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateCircleMember>>,
+        TError,
+        {circleId: string;memberId: string;data: BodyType<CircleMemberRoleInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateCircleMemberMutationOptions(options));
+    }
+
+export const getRemoveCircleMemberUrl = (circleId: string,
+    memberId: string,) => {
+
+
+
+
+  return `/api/circles/${circleId}/members/${memberId}`
+}
+
+export const removeCircleMember = async (circleId: string,
+    memberId: string, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+
+  return customFetch<void>(getRemoveCircleMemberUrl(circleId,memberId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getRemoveCircleMemberMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeCircleMember>>, TError,{circleId: string;memberId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof removeCircleMember>>, TError,{circleId: string;memberId: string}, TContext> => {
+
+const mutationKey = ['removeCircleMember'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof removeCircleMember>>, {circleId: string;memberId: string}> = (props) => {
+          const {circleId,memberId} = props ?? {};
+
+          return  removeCircleMember(circleId,memberId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RemoveCircleMemberMutationResult = NonNullable<Awaited<ReturnType<typeof removeCircleMember>>>
+
+    export type RemoveCircleMemberMutationError = ErrorType<unknown>
+
+    export const useRemoveCircleMember = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeCircleMember>>, TError,{circleId: string;memberId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof removeCircleMember>>,
+        TError,
+        {circleId: string;memberId: string},
+        TContext
+      > => {
+      return useMutation(getRemoveCircleMemberMutationOptions(options));
+    }
+
+export const getGrantCircleHistoryAccessUrl = (circleId: string,) => {
+
+
+
+
+  return `/api/circles/${circleId}/history-access`
+}
+
+export const grantCircleHistoryAccess = async (circleId: string,
+    circleHistoryInput: CircleHistoryInput, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+
+  return customFetch<void>(getGrantCircleHistoryAccessUrl(circleId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(circleHistoryInput)
+  }
+);}
+
+
+
+
+
+export const getGrantCircleHistoryAccessMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof grantCircleHistoryAccess>>, TError,{circleId: string;data: BodyType<CircleHistoryInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof grantCircleHistoryAccess>>, TError,{circleId: string;data: BodyType<CircleHistoryInput>}, TContext> => {
+
+const mutationKey = ['grantCircleHistoryAccess'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof grantCircleHistoryAccess>>, {circleId: string;data: BodyType<CircleHistoryInput>}> = (props) => {
+          const {circleId,data} = props ?? {};
+
+          return  grantCircleHistoryAccess(circleId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type GrantCircleHistoryAccessMutationResult = NonNullable<Awaited<ReturnType<typeof grantCircleHistoryAccess>>>
+    export type GrantCircleHistoryAccessMutationBody = BodyType<CircleHistoryInput>
+    export type GrantCircleHistoryAccessMutationError = ErrorType<unknown>
+
+    export const useGrantCircleHistoryAccess = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof grantCircleHistoryAccess>>, TError,{circleId: string;data: BodyType<CircleHistoryInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof grantCircleHistoryAccess>>,
+        TError,
+        {circleId: string;data: BodyType<CircleHistoryInput>},
+        TContext
+      > => {
+      return useMutation(getGrantCircleHistoryAccessMutationOptions(options));
+    }
+
+export const getRevokeCircleHistoryAccessUrl = (circleId: string,
+    memberId: string,) => {
+
+
+
+
+  return `/api/circles/${circleId}/history-access/${memberId}`
+}
+
+export const revokeCircleHistoryAccess = async (circleId: string,
+    memberId: string, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+
+  return customFetch<void>(getRevokeCircleHistoryAccessUrl(circleId,memberId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getRevokeCircleHistoryAccessMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof revokeCircleHistoryAccess>>, TError,{circleId: string;memberId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof revokeCircleHistoryAccess>>, TError,{circleId: string;memberId: string}, TContext> => {
+
+const mutationKey = ['revokeCircleHistoryAccess'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof revokeCircleHistoryAccess>>, {circleId: string;memberId: string}> = (props) => {
+          const {circleId,memberId} = props ?? {};
+
+          return  revokeCircleHistoryAccess(circleId,memberId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RevokeCircleHistoryAccessMutationResult = NonNullable<Awaited<ReturnType<typeof revokeCircleHistoryAccess>>>
+
+    export type RevokeCircleHistoryAccessMutationError = ErrorType<unknown>
+
+    export const useRevokeCircleHistoryAccess = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof revokeCircleHistoryAccess>>, TError,{circleId: string;memberId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof revokeCircleHistoryAccess>>,
+        TError,
+        {circleId: string;memberId: string},
+        TContext
+      > => {
+      return useMutation(getRevokeCircleHistoryAccessMutationOptions(options));
+    }
+
+export const getLeaveCircleUrl = (circleId: string,) => {
+
+
+
+
+  return `/api/circles/${circleId}/leave`
+}
+
+export const leaveCircle = async (circleId: string, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+
+  return customFetch<void>(getLeaveCircleUrl(circleId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getLeaveCircleMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof leaveCircle>>, TError,{circleId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof leaveCircle>>, TError,{circleId: string}, TContext> => {
+
+const mutationKey = ['leaveCircle'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof leaveCircle>>, {circleId: string}> = (props) => {
+          const {circleId} = props ?? {};
+
+          return  leaveCircle(circleId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type LeaveCircleMutationResult = NonNullable<Awaited<ReturnType<typeof leaveCircle>>>
+
+    export type LeaveCircleMutationError = ErrorType<unknown>
+
+    export const useLeaveCircle = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof leaveCircle>>, TError,{circleId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof leaveCircle>>,
+        TError,
+        {circleId: string},
+        TContext
+      > => {
+      return useMutation(getLeaveCircleMutationOptions(options));
+    }
+
+export const getListCirclePostsUrl = (circleId: string,) => {
+
+
+
+
+  return `/api/circles/${circleId}/posts`
+}
+
+export const listCirclePosts = async (circleId: string, options?: Parameters<typeof customFetch>[1]): Promise<PaginatedPosts> => {
+
+  return customFetch<PaginatedPosts>(getListCirclePostsUrl(circleId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListCirclePostsQueryKey = (circleId: string,) => {
+    return [
+    `/api/circles/${circleId}/posts`
+    ] as const;
+    }
+
+
+export const getListCirclePostsQueryOptions = <TData = Awaited<ReturnType<typeof listCirclePosts>>, TError = ErrorType<unknown>>(circleId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCirclePosts>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListCirclePostsQueryKey(circleId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCirclePosts>>> = ({ signal }) => listCirclePosts(circleId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: circleId !== null && circleId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listCirclePosts>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListCirclePostsQueryResult = NonNullable<Awaited<ReturnType<typeof listCirclePosts>>>
+export type ListCirclePostsQueryError = ErrorType<unknown>
+
+
+
+export function useListCirclePosts<TData = Awaited<ReturnType<typeof listCirclePosts>>, TError = ErrorType<unknown>>(
+ circleId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCirclePosts>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListCirclePostsQueryOptions(circleId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getRequestMediaUploadUrl = () => {
+
+
+
+
+  return `/api/media/uploads/request`
+}
+
+export const requestMediaUpload = async (mediaUploadInput: MediaUploadInput, options?: Parameters<typeof customFetch>[1]): Promise<MediaUploadSession> => {
+
+  return customFetch<MediaUploadSession>(getRequestMediaUploadUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(mediaUploadInput)
+  }
+);}
+
+
+
+
+
+export const getRequestMediaUploadMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof requestMediaUpload>>, TError,{data: BodyType<MediaUploadInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof requestMediaUpload>>, TError,{data: BodyType<MediaUploadInput>}, TContext> => {
+
+const mutationKey = ['requestMediaUpload'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof requestMediaUpload>>, {data: BodyType<MediaUploadInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  requestMediaUpload(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RequestMediaUploadMutationResult = NonNullable<Awaited<ReturnType<typeof requestMediaUpload>>>
+    export type RequestMediaUploadMutationBody = BodyType<MediaUploadInput>
+    export type RequestMediaUploadMutationError = ErrorType<unknown>
+
+    export const useRequestMediaUpload = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof requestMediaUpload>>, TError,{data: BodyType<MediaUploadInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof requestMediaUpload>>,
+        TError,
+        {data: BodyType<MediaUploadInput>},
+        TContext
+      > => {
+      return useMutation(getRequestMediaUploadMutationOptions(options));
+    }
+
+export const getCompleteMediaUploadUrl = (id: string,) => {
+
+
+
+
+  return `/api/media/uploads/${id}/complete`
+}
+
+export const completeMediaUpload = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<MediaAttachment> => {
+
+  return customFetch<MediaAttachment>(getCompleteMediaUploadUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getCompleteMediaUploadMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof completeMediaUpload>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof completeMediaUpload>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['completeMediaUpload'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof completeMediaUpload>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  completeMediaUpload(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CompleteMediaUploadMutationResult = NonNullable<Awaited<ReturnType<typeof completeMediaUpload>>>
+
+    export type CompleteMediaUploadMutationError = ErrorType<unknown>
+
+    export const useCompleteMediaUpload = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof completeMediaUpload>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof completeMediaUpload>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getCompleteMediaUploadMutationOptions(options));
+    }
+
+export const getRetryMediaUploadUrl = (id: string,) => {
+
+
+
+
+  return `/api/media/uploads/${id}/retry`
+}
+
+export const retryMediaUpload = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<MediaUploadSession> => {
+
+  return customFetch<MediaUploadSession>(getRetryMediaUploadUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getRetryMediaUploadMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof retryMediaUpload>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof retryMediaUpload>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['retryMediaUpload'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof retryMediaUpload>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  retryMediaUpload(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RetryMediaUploadMutationResult = NonNullable<Awaited<ReturnType<typeof retryMediaUpload>>>
+
+    export type RetryMediaUploadMutationError = ErrorType<unknown>
+
+    export const useRetryMediaUpload = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof retryMediaUpload>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof retryMediaUpload>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getRetryMediaUploadMutationOptions(options));
+    }
+
+export const getCancelMediaUploadUrl = (id: string,) => {
+
+
+
+
+  return `/api/media/uploads/${id}/cancel`
+}
+
+export const cancelMediaUpload = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+
+  return customFetch<void>(getCancelMediaUploadUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getCancelMediaUploadMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelMediaUpload>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof cancelMediaUpload>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['cancelMediaUpload'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof cancelMediaUpload>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  cancelMediaUpload(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CancelMediaUploadMutationResult = NonNullable<Awaited<ReturnType<typeof cancelMediaUpload>>>
+
+    export type CancelMediaUploadMutationError = ErrorType<unknown>
+
+    export const useCancelMediaUpload = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelMediaUpload>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof cancelMediaUpload>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getCancelMediaUploadMutationOptions(options));
+    }
+
+export const getDeliverMediaUrl = (id: string,) => {
+
+
+
+
+  return `/api/media/${id}`
+}
+
+export const deliverMedia = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+
+  return customFetch<void>(getDeliverMediaUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeliverMediaQueryKey = (id: string,) => {
+    return [
+    `/api/media/${id}`
+    ] as const;
+    }
+
+
+export const getDeliverMediaQueryOptions = <TData = Awaited<ReturnType<typeof deliverMedia>>, TError = ErrorType<unknown>>(id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof deliverMedia>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDeliverMediaQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof deliverMedia>>> = ({ signal }) => deliverMedia(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof deliverMedia>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type DeliverMediaQueryResult = NonNullable<Awaited<ReturnType<typeof deliverMedia>>>
+export type DeliverMediaQueryError = ErrorType<unknown>
+
+
+
+export function useDeliverMedia<TData = Awaited<ReturnType<typeof deliverMedia>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof deliverMedia>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getDeliverMediaQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUpdateMediaTranscriptUrl = (id: string,) => {
+
+
+
+
+  return `/api/media/${id}`
+}
+
+export const updateMediaTranscript = async (id: string,
+    mediaTranscriptInput: MediaTranscriptInput, options?: Parameters<typeof customFetch>[1]): Promise<MediaAttachment> => {
+
+  return customFetch<MediaAttachment>(getUpdateMediaTranscriptUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(mediaTranscriptInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateMediaTranscriptMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateMediaTranscript>>, TError,{id: string;data: BodyType<MediaTranscriptInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateMediaTranscript>>, TError,{id: string;data: BodyType<MediaTranscriptInput>}, TContext> => {
+
+const mutationKey = ['updateMediaTranscript'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateMediaTranscript>>, {id: string;data: BodyType<MediaTranscriptInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateMediaTranscript(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateMediaTranscriptMutationResult = NonNullable<Awaited<ReturnType<typeof updateMediaTranscript>>>
+    export type UpdateMediaTranscriptMutationBody = BodyType<MediaTranscriptInput>
+    export type UpdateMediaTranscriptMutationError = ErrorType<unknown>
+
+    export const useUpdateMediaTranscript = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateMediaTranscript>>, TError,{id: string;data: BodyType<MediaTranscriptInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateMediaTranscript>>,
+        TError,
+        {id: string;data: BodyType<MediaTranscriptInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateMediaTranscriptMutationOptions(options));
+    }

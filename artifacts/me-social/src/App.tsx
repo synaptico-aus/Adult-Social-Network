@@ -37,6 +37,7 @@ import AccountSecurity from '@/pages/account-security';
 import Onboarding from '@/pages/onboarding';
 import SafetyPage from '@/pages/safety';
 import StaffModerationPage from '@/pages/staff/moderation';
+import MyCircle from '@/pages/my-circle';
 import {
   getGetAccountSummaryQueryKey,
   useGetAccountSummary,
@@ -132,6 +133,7 @@ function Router() {
                 <Switch>
                   <Route path="/" component={HomeRoute} />
                   <Route path="/explore"><RequireMember><Explore /></RequireMember></Route>
+                   <Route path="/circle"><RequireMember><MyCircle /></RequireMember></Route>
                   <Route path="/groups"><RequireMember><Groups /></RequireMember></Route>
                   <Route path="/messages"><RequireMember><Messages /></RequireMember></Route>
                   <Route path="/me"><RequireMember><MePage /></RequireMember></Route>

@@ -281,3 +281,20 @@ Security, accessibility, privacy, moderation, performance, operational, legal, a
   export/deletion coverage, and moderation-aware internal notification events.
 - Verified with 57 API/policy tests, architecture review, and Clerk-authenticated
   two-account, blocked-member, direct-link, saved-post, and mobile browser checks.
+
+### My Circle implementation record
+
+- Added invitation-only circles for existing members, with single-use,
+  database-expiring invitations, member/admin/owner roles, leaving, removal, and
+  closure.
+- Circle membership is a separate server authorization boundary: relationships do
+  not grant access, and posts require active circle membership on every read.
+- Earlier updates are private by default. A member receives pre-join history only
+  after an explicit, revocable grant; removal, leaving, closure, and blocks revoke
+  future server access. Downloaded copies cannot be recalled.
+- Circle posts use the existing moderated post and private-media controls; they
+  cannot be reshared outside their circle. Own-account exports include only the
+  requester’s circle records.
+- The My Circle page shows current recipients before sharing, prompts before
+  removal, history changes, leaving, or closing, and gives clear empty/error
+  states for invite availability.

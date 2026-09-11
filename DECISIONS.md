@@ -189,3 +189,21 @@ post-row locking.
   always resolve current friendship, blocks, moderation, and source visibility.
 - Chronological pagination uses `(created_at, id)` keysets and continues scanning
   across filtered rows; it does not rank by distress, conflict, or engagement.
+
+### My Circle decisions
+
+- Circle membership is an independent authorization boundary. Friendship and
+  family descriptions never imply circle access or another person’s account,
+  message, or learning-record access.
+- A new member can read only posts published at or after their database-timestamped
+  join time. Earlier posts require an active, explicit history grant. Removal,
+  leaving, closure, and blocking revoke grants; rejoining never revives one.
+- Circle visibility is re-evaluated by the server on every post, media, link,
+  notification, and interaction read. Closing a circle revokes all memberships.
+  A downloaded, photographed, or redistributed copy cannot be recalled.
+- Blocking resolves shared-circle membership safely: an owner who blocks a member
+  removes that member; otherwise the blocker leaves the shared circle. This
+  prevents a block from creating an ownerless circle.
+- Invitation acceptance, membership transitions, and circle-post publication use
+  the database timeline so the pre-join history cutoff is not affected by
+  application-server clock skew.

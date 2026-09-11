@@ -24,6 +24,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { invalidatePhase6 } from "@/lib/invalidation";
 import { ReportDialog } from "./report-dialog";
 import { ShareDialog } from "./share-dialog";
+import { MediaAttachmentRenderer } from "@/components/media/media-renderer";
 
 export interface PostCardProps {
   post: Post;
@@ -215,6 +216,14 @@ export function PostCard({ post, isDetail = false, onEdit, onDeleted, onHidden, 
       <div className="text-foreground text-lg leading-relaxed whitespace-pre-wrap mb-6">
         {post.body}
       </div>
+
+      {post.mediaAssets && post.mediaAssets.length > 0 && (
+        <div className="space-y-4 mb-6">
+          {post.mediaAssets.map(asset => (
+            <MediaAttachmentRenderer key={asset.id} asset={asset} isDetail={isDetail} />
+          ))}
+        </div>
+      )}
 
       <div className="flex flex-wrap items-center gap-2 pt-4 border-t border-border/50">
         <Button

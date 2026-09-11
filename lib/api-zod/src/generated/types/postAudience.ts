@@ -12,5 +12,6 @@ export type PostAudience = typeof PostAudience[keyof typeof PostAudience];
 export const PostAudience = {
   only_me: 'only_me',
   friends: 'friends',
+  my_circle: 'my_circle',
   public: 'public',
 } as const;

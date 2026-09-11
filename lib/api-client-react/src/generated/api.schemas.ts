@@ -5,12 +5,225 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+export type MediaUploadInputKind = typeof MediaUploadInputKind[keyof typeof MediaUploadInputKind];
+
+
+export const MediaUploadInputKind = {
+  photo: 'photo',
+  audio: 'audio',
+} as const;
+
+export interface MediaUploadInput {
+  kind: MediaUploadInputKind;
+  contentType: string;
+  /** @minimum 1 */
+  size: number;
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
+  clientIdempotencyKey: string;
+  /**
+     * @minLength 1
+     * @maxLength 1000
+     */
+  altText?: string;
+}
+
+export type MediaAttachmentKind = typeof MediaAttachmentKind[keyof typeof MediaAttachmentKind];
+
+
+export const MediaAttachmentKind = {
+  photo: 'photo',
+  audio: 'audio',
+} as const;
+
+export type MediaAttachmentStatus = typeof MediaAttachmentStatus[keyof typeof MediaAttachmentStatus];
+
+
+export const MediaAttachmentStatus = {
+  uploading: 'uploading',
+  quarantined: 'quarantined',
+  held: 'held',
+  ready: 'ready',
+  rejected: 'rejected',
+  cancelled: 'cancelled',
+  cleanup_pending: 'cleanup_pending',
+} as const;
+
+export type MediaAttachmentMalwareState = typeof MediaAttachmentMalwareState[keyof typeof MediaAttachmentMalwareState];
+
+
+export const MediaAttachmentMalwareState = {
+  pending: 'pending',
+  allowed: 'allowed',
+  blocked: 'blocked',
+  unavailable: 'unavailable',
+  error: 'error',
+} as const;
+
+export type MediaAttachmentAbuseState = typeof MediaAttachmentAbuseState[keyof typeof MediaAttachmentAbuseState];
+
+
+export const MediaAttachmentAbuseState = {
+  pending: 'pending',
+  allowed: 'allowed',
+  blocked: 'blocked',
+  unavailable: 'unavailable',
+  error: 'error',
+} as const;
+
+export interface MediaAttachment {
+  id: string;
+  kind: MediaAttachmentKind;
+  /** @nullable */
+  contentType: string | null;
+  /** @nullable */
+  byteSize: number | null;
+  /** @nullable */
+  width: number | null;
+  /** @nullable */
+  height: number | null;
+  /** @nullable */
+  durationSeconds: number | null;
+  status: MediaAttachmentStatus;
+  malwareState: MediaAttachmentMalwareState;
+  abuseState: MediaAttachmentAbuseState;
+  /** @nullable */
+  altText: string | null;
+  /** @nullable */
+  transcript: string | null;
+  /** @nullable */
+  limitation: string | null;
+}
+
+export interface MediaUploadSession {
+  asset: MediaAttachment;
+  /** @nullable */
+  uploadURL: string | null;
+}
+
+export interface MediaTranscriptInput {
+  /**
+     * @minLength 1
+     * @maxLength 100000
+     */
+  transcript: string;
+}
+
+export interface CircleInput {
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  name: string;
+  /** @maxLength 1000 */
+  description?: string;
+}
+
+export type CircleMemberRole = typeof CircleMemberRole[keyof typeof CircleMemberRole];
+
+
+export const CircleMemberRole = {
+  owner: 'owner',
+  admin: 'admin',
+  member: 'member',
+} as const;
+
+export interface CircleMember {
+  memberId: string;
+  preferredName: string;
+  role: CircleMemberRole;
+  joinedAt: string;
+  historyAccess: boolean;
+}
+
+export type CircleStatus = typeof CircleStatus[keyof typeof CircleStatus];
+
+
+export const CircleStatus = {
+  active: 'active',
+  closed: 'closed',
+} as const;
+
+/**
+ * @nullable
+ */
+export type CircleMyRole = typeof CircleMyRole[keyof typeof CircleMyRole] | null;
+
+
+export const CircleMyRole = {
+  owner: 'owner',
+  admin: 'admin',
+  member: 'member',
+} as const;
+
+export interface Circle {
+  id: string;
+  ownerMemberId: string;
+  name: string;
+  /** @nullable */
+  description: string | null;
+  status: CircleStatus;
+  createdAt: string;
+  updatedAt: string;
+  members: CircleMember[];
+  /** @nullable */
+  myRole: CircleMyRole;
+  historyAccess: boolean;
+}
+
+export interface CircleInvitationInput {
+  recipientMemberId: string;
+  expiresAt: string;
+}
+
+export type CircleInvitationStatus = typeof CircleInvitationStatus[keyof typeof CircleInvitationStatus];
+
+
+export const CircleInvitationStatus = {
+  pending: 'pending',
+  accepted: 'accepted',
+  declined: 'declined',
+  revoked: 'revoked',
+  expired: 'expired',
+} as const;
+
+export interface CircleInvitation {
+  id: string;
+  circleId: string;
+  recipientMemberId: string;
+  invitedByMemberId: string;
+  status: CircleInvitationStatus;
+  expiresAt: string;
+  createdAt: string;
+  circleName: string;
+  inviterName: string;
+}
+
+export type CircleMemberRoleInputRole = typeof CircleMemberRoleInputRole[keyof typeof CircleMemberRoleInputRole];
+
+
+export const CircleMemberRoleInputRole = {
+  admin: 'admin',
+  member: 'member',
+} as const;
+
+export interface CircleMemberRoleInput {
+  role: CircleMemberRoleInputRole;
+}
+
+export interface CircleHistoryInput {
+  memberId: string;
+}
+
 export type PostInputAudience = typeof PostInputAudience[keyof typeof PostInputAudience];
 
 
 export const PostInputAudience = {
   only_me: 'only_me',
   friends: 'friends',
+  my_circle: 'my_circle',
   public: 'public',
 } as const;
 
@@ -32,12 +245,16 @@ export interface PostInput {
   body: string;
   audience?: PostInputAudience;
   /** @nullable */
+  circleId?: string | null;
+  /** @nullable */
   responseLabel?: PostInputResponseLabel;
   commentsOpen?: boolean;
   visibleReactionCounts?: boolean;
   originalPostId?: string;
   /** @maxLength 10000 */
   commentary?: string;
+  /** @maxItems 10 */
+  mediaAssetIds?: string[];
 }
 
 export type PostAudience = typeof PostAudience[keyof typeof PostAudience];
@@ -46,6 +263,7 @@ export type PostAudience = typeof PostAudience[keyof typeof PostAudience];
 export const PostAudience = {
   only_me: 'only_me',
   friends: 'friends',
+  my_circle: 'my_circle',
   public: 'public',
 } as const;
 
@@ -78,6 +296,8 @@ export interface Post {
   body: string | null;
   audience: PostAudience;
   /** @nullable */
+  circleId?: string | null;
+  /** @nullable */
   responseLabel?: string | null;
   status: PostStatus;
   commentsOpen: boolean;
@@ -91,6 +311,7 @@ export interface Post {
   /** @nullable */
   reactionCounts?: PostReactionCounts;
   originalAvailable?: boolean;
+  mediaAssets?: MediaAttachment[];
 }
 
 export interface PaginatedPosts {
@@ -708,6 +929,8 @@ export interface ThisIsMeCard {
   text: string;
   position: number;
   permissionAcknowledged?: boolean;
+  mediaAssetIds?: string[];
+  mediaAssets?: MediaAttachment[];
 }
 
 export type ThisIsMeCardInputKind = typeof ThisIsMeCardInputKind[keyof typeof ThisIsMeCardInputKind];
@@ -724,11 +947,15 @@ export interface ThisIsMeCardInput {
   kind: ThisIsMeCardInputKind;
   text: string;
   permissionAcknowledged?: boolean;
+  /** @maxItems 10 */
+  mediaAssetIds?: string[];
 }
 
 export interface ThisIsMeCardUpdate {
   text?: string;
   permissionAcknowledged?: boolean;
+  /** @maxItems 10 */
+  mediaAssetIds?: string[];
 }
 
 export interface VerificationRequestInput {

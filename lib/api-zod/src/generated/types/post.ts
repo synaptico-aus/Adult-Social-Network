@@ -5,6 +5,7 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { MediaAttachment } from './mediaAttachment';
 import type { PostAudience } from './postAudience';
 import type { PostMyReactionsItem } from './postMyReactionsItem';
 import type { PostReactionCounts } from './postReactionCounts';
@@ -16,6 +17,8 @@ export interface Post {
   /** @nullable */
   body: string | null;
   audience: PostAudience;
+  /** @nullable */
+  circleId?: string | null;
   /** @nullable */
   responseLabel?: string | null;
   status: PostStatus;
@@ -30,4 +33,5 @@ export interface Post {
   /** @nullable */
   reactionCounts?: PostReactionCounts;
   originalAvailable?: boolean;
+  mediaAssets?: MediaAttachment[];
 }

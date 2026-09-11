@@ -13,10 +13,14 @@ export interface PostInput {
   body: string;
   audience?: PostInputAudience;
   /** @nullable */
+  circleId?: string | null;
+  /** @nullable */
   responseLabel?: PostInputResponseLabel;
   commentsOpen?: boolean;
   visibleReactionCounts?: boolean;
   originalPostId?: string;
   /** @maxLength 10000 */
   commentary?: string;
+  /** @maxItems 10 */
+  mediaAssetIds?: string[];
 }

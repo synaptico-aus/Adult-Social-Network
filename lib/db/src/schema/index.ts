@@ -23,5 +23,7 @@ export * from "./deletion-requests";
 export * from "./profiles";
 export * from "./safety";
 export * from "./relationships";
+export * from "./circles";
 export * from "./posts";
 export * from "./content-events";
+export * from "./media";

@@ -1,8 +1,8 @@
 import { Router, type Request } from "express";
-import { and, desc, eq, or, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, or, sql } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
-import { db, appealsTable, membersTable, moderationRecordsTable, reportsTable, safetyRelationshipsTable, friendRequestsTable, friendshipsTable, followsTable, postsTable, commentsTable, retainedEvidenceTable } from "@workspace/db";
+import { circleHistoryGrantsTable, circleMembersTable, circlesTable, db, appealsTable, membersTable, moderationRecordsTable, reportsTable, safetyRelationshipsTable, friendRequestsTable, friendshipsTable, followsTable, postsTable, commentsTable, retainedEvidenceTable } from "@workspace/db";
 import { getAuth } from "@clerk/express";
 import { requireAuth } from "../middlewares/account-auth";
 import "../lib/safety-deletion-hook";
@@ -44,6 +44,11 @@ router.get("/safety/relationships", async (req, res): Promise<void> => {
   res.json(await db.select().from(safetyRelationshipsTable).where(eq(safetyRelationshipsTable.actorMemberId, member.id)).orderBy(desc(safetyRelationshipsTable.createdAt)));
 });
 const relationshipInput = z.object({ targetMemberId: z.string().min(1) }).strict();
+async function lockCircleMembers(tx: { execute: (query: unknown) => Promise<unknown> }, pairs: Array<{ circleId: string; memberId: string }>) {
+  for (const { circleId, memberId } of [...new Map(pairs.map((pair) => [`${pair.circleId}:${pair.memberId}`, pair])).values()].sort((left, right) => `${left.circleId}:${left.memberId}`.localeCompare(`${right.circleId}:${right.memberId}`))) {
+    await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${circleId + ":" + memberId}, 0))`);
+  }
+}
 router.post("/safety/:kind", async (req, res): Promise<void> => {
   const kind = z.enum(["block", "mute", "restrict"]).safeParse(req.params.kind);
   const input = relationshipInput.safeParse(req.body);
@@ -60,6 +65,26 @@ router.post("/safety/:kind", async (req, res): Promise<void> => {
       await tx.delete(friendRequestsTable).where(and(eq(friendRequestsTable.memberAId, a), eq(friendRequestsTable.memberBId, b)));
       await tx.delete(friendshipsTable).where(and(eq(friendshipsTable.memberAId, a), eq(friendshipsTable.memberBId, b)));
       await tx.delete(followsTable).where(or(and(eq(followsTable.followerMemberId, member.id), eq(followsTable.followedMemberId, input.data.targetMemberId)), and(eq(followsTable.followerMemberId, input.data.targetMemberId), eq(followsTable.followedMemberId, member.id))));
+      const [myMemberships, theirMemberships] = await Promise.all([
+        tx.select({ circleId: circleMembersTable.circleId }).from(circleMembersTable).where(and(eq(circleMembersTable.memberId, member.id), eq(circleMembersTable.status, "active"))),
+        tx.select({ circleId: circleMembersTable.circleId }).from(circleMembersTable).where(and(eq(circleMembersTable.memberId, input.data.targetMemberId), eq(circleMembersTable.status, "active"))),
+      ]);
+      const theirCircleIds = new Set(theirMemberships.map((row) => row.circleId));
+      const sharedCircleIds = myMemberships.map((row) => row.circleId).filter((circleId) => theirCircleIds.has(circleId));
+      if (sharedCircleIds.length) {
+        await lockCircleMembers(tx, sharedCircleIds.flatMap((circleId) => [{ circleId, memberId: member.id }, { circleId, memberId: input.data.targetMemberId }]));
+        const owners = await tx.select({ circleId: circlesTable.id, ownerMemberId: circlesTable.ownerMemberId }).from(circlesTable).where(inArray(circlesTable.id, sharedCircleIds));
+        const ownerCircleIds = owners.filter((circle) => circle.ownerMemberId === member.id).map((circle) => circle.circleId);
+        const selfCircleIds = sharedCircleIds.filter((circleId) => !ownerCircleIds.includes(circleId));
+        if (ownerCircleIds.length) {
+          await tx.update(circleMembersTable).set({ status: "removed", removedAt: new Date() }).where(and(inArray(circleMembersTable.circleId, ownerCircleIds), eq(circleMembersTable.memberId, input.data.targetMemberId), eq(circleMembersTable.status, "active")));
+          await tx.update(circleHistoryGrantsTable).set({ status: "revoked", revokedAt: new Date() }).where(and(inArray(circleHistoryGrantsTable.circleId, ownerCircleIds), eq(circleHistoryGrantsTable.memberId, input.data.targetMemberId), eq(circleHistoryGrantsTable.status, "active")));
+        }
+        if (selfCircleIds.length) {
+          await tx.update(circleMembersTable).set({ status: "removed", removedAt: new Date() }).where(and(inArray(circleMembersTable.circleId, selfCircleIds), eq(circleMembersTable.memberId, member.id), eq(circleMembersTable.status, "active")));
+          await tx.update(circleHistoryGrantsTable).set({ status: "revoked", revokedAt: new Date() }).where(and(inArray(circleHistoryGrantsTable.circleId, selfCircleIds), eq(circleHistoryGrantsTable.memberId, member.id), eq(circleHistoryGrantsTable.status, "active")));
+        }
+      }
     }
     return [created] as const;
   });

@@ -166,15 +166,36 @@ export const ListThisIsMeCardsResponseItem = zod.object({
   "kind": zod.enum(['things_i_enjoy', 'music_i_love', 'experiences_i_want_to_share', 'how_i_like_to_communicate']),
   "text": zod.string(),
   "position": zod.number().int(),
-  "permissionAcknowledged": zod.boolean().optional()
+  "permissionAcknowledged": zod.boolean().optional(),
+  "mediaAssetIds": zod.array(zod.string()).optional(),
+  "mediaAssets": zod.array(zod.object({
+  "id": zod.string(),
+  "kind": zod.enum(['photo', 'audio']),
+  "contentType": zod.string().nullable(),
+  "byteSize": zod.number().int().nullable(),
+  "width": zod.number().int().nullable(),
+  "height": zod.number().int().nullable(),
+  "durationSeconds": zod.number().int().nullable(),
+  "status": zod.enum(['uploading', 'quarantined', 'held', 'ready', 'rejected', 'cancelled', 'cleanup_pending']),
+  "malwareState": zod.enum(['pending', 'allowed', 'blocked', 'unavailable', 'error']),
+  "abuseState": zod.enum(['pending', 'allowed', 'blocked', 'unavailable', 'error']),
+  "altText": zod.string().nullable(),
+  "transcript": zod.string().nullable(),
+  "limitation": zod.string().nullable()
+})).optional()
 })
 export const ListThisIsMeCardsResponse = zod.array(ListThisIsMeCardsResponseItem)
+
+
+export const createThisIsMeCardBodyMediaAssetIdsMax = 10;
+
 
 
 export const CreateThisIsMeCardBody = zod.object({
   "kind": zod.enum(['things_i_enjoy', 'music_i_love', 'experiences_i_want_to_share', 'how_i_like_to_communicate']),
   "text": zod.string(),
-  "permissionAcknowledged": zod.boolean().optional()
+  "permissionAcknowledged": zod.boolean().optional(),
+  "mediaAssetIds": zod.array(zod.string()).max(createThisIsMeCardBodyMediaAssetIdsMax).optional()
 })
 
 export const CreateThisIsMeCardResponse = zod.object({
@@ -182,7 +203,23 @@ export const CreateThisIsMeCardResponse = zod.object({
   "kind": zod.enum(['things_i_enjoy', 'music_i_love', 'experiences_i_want_to_share', 'how_i_like_to_communicate']),
   "text": zod.string(),
   "position": zod.number().int(),
-  "permissionAcknowledged": zod.boolean().optional()
+  "permissionAcknowledged": zod.boolean().optional(),
+  "mediaAssetIds": zod.array(zod.string()).optional(),
+  "mediaAssets": zod.array(zod.object({
+  "id": zod.string(),
+  "kind": zod.enum(['photo', 'audio']),
+  "contentType": zod.string().nullable(),
+  "byteSize": zod.number().int().nullable(),
+  "width": zod.number().int().nullable(),
+  "height": zod.number().int().nullable(),
+  "durationSeconds": zod.number().int().nullable(),
+  "status": zod.enum(['uploading', 'quarantined', 'held', 'ready', 'rejected', 'cancelled', 'cleanup_pending']),
+  "malwareState": zod.enum(['pending', 'allowed', 'blocked', 'unavailable', 'error']),
+  "abuseState": zod.enum(['pending', 'allowed', 'blocked', 'unavailable', 'error']),
+  "altText": zod.string().nullable(),
+  "transcript": zod.string().nullable(),
+  "limitation": zod.string().nullable()
+})).optional()
 })
 
 
@@ -190,9 +227,14 @@ export const UpdateThisIsMeCardParams = zod.object({
   "id": zod.coerce.string()
 })
 
+export const updateThisIsMeCardBodyMediaAssetIdsMax = 10;
+
+
+
 export const UpdateThisIsMeCardBody = zod.object({
   "text": zod.string().optional(),
-  "permissionAcknowledged": zod.boolean().optional()
+  "permissionAcknowledged": zod.boolean().optional(),
+  "mediaAssetIds": zod.array(zod.string()).max(updateThisIsMeCardBodyMediaAssetIdsMax).optional()
 })
 
 export const UpdateThisIsMeCardResponse = zod.unknown()
@@ -787,7 +829,8 @@ export const ListOwnPostsResponse = zod.object({
   "id": zod.string(),
   "authorMemberId": zod.string(),
   "body": zod.string().nullable(),
-  "audience": zod.enum(['only_me', 'friends', 'public']),
+  "audience": zod.enum(['only_me', 'friends', 'my_circle', 'public']),
+  "circleId": zod.string().nullish(),
   "responseLabel": zod.string().nullish(),
   "status": zod.enum(['draft', 'published', 'deleted']),
   "commentsOpen": zod.boolean(),
@@ -801,7 +844,22 @@ export const ListOwnPostsResponse = zod.object({
   "reactionCounts": zod.object({
 
 }).passthrough().nullish(),
-  "originalAvailable": zod.boolean().optional()
+  "originalAvailable": zod.boolean().optional(),
+  "mediaAssets": zod.array(zod.object({
+  "id": zod.string(),
+  "kind": zod.enum(['photo', 'audio']),
+  "contentType": zod.string().nullable(),
+  "byteSize": zod.number().int().nullable(),
+  "width": zod.number().int().nullable(),
+  "height": zod.number().int().nullable(),
+  "durationSeconds": zod.number().int().nullable(),
+  "status": zod.enum(['uploading', 'quarantined', 'held', 'ready', 'rejected', 'cancelled', 'cleanup_pending']),
+  "malwareState": zod.enum(['pending', 'allowed', 'blocked', 'unavailable', 'error']),
+  "abuseState": zod.enum(['pending', 'allowed', 'blocked', 'unavailable', 'error']),
+  "altText": zod.string().nullable(),
+  "transcript": zod.string().nullable(),
+  "limitation": zod.string().nullable()
+})).optional()
 })),
   "nextCursor": zod.string().nullable()
 })
@@ -811,23 +869,28 @@ export const createPostBodyBodyMax = 20000;
 
 export const createPostBodyCommentaryMax = 10000;
 
+export const createPostBodyMediaAssetIdsMax = 10;
+
 
 
 export const CreatePostBody = zod.object({
   "body": zod.string().max(createPostBodyBodyMax),
-  "audience": zod.enum(['only_me', 'friends', 'public']).optional(),
+  "audience": zod.enum(['only_me', 'friends', 'my_circle', 'public']).optional(),
+  "circleId": zod.string().nullish(),
   "responseLabel": zod.union([zod.literal('someone_to_listen'),zod.literal('shared_experiences'),zod.literal('practical_ideas'),zod.literal('something_uplifting'),zod.literal(null)]).nullish(),
   "commentsOpen": zod.boolean().optional(),
   "visibleReactionCounts": zod.boolean().optional(),
   "originalPostId": zod.string().optional(),
-  "commentary": zod.string().max(createPostBodyCommentaryMax).optional()
+  "commentary": zod.string().max(createPostBodyCommentaryMax).optional(),
+  "mediaAssetIds": zod.array(zod.string()).max(createPostBodyMediaAssetIdsMax).optional()
 })
 
 export const CreatePostResponse = zod.object({
   "id": zod.string(),
   "authorMemberId": zod.string(),
   "body": zod.string().nullable(),
-  "audience": zod.enum(['only_me', 'friends', 'public']),
+  "audience": zod.enum(['only_me', 'friends', 'my_circle', 'public']),
+  "circleId": zod.string().nullish(),
   "responseLabel": zod.string().nullish(),
   "status": zod.enum(['draft', 'published', 'deleted']),
   "commentsOpen": zod.boolean(),
@@ -841,7 +904,22 @@ export const CreatePostResponse = zod.object({
   "reactionCounts": zod.object({
 
 }).passthrough().nullish(),
-  "originalAvailable": zod.boolean().optional()
+  "originalAvailable": zod.boolean().optional(),
+  "mediaAssets": zod.array(zod.object({
+  "id": zod.string(),
+  "kind": zod.enum(['photo', 'audio']),
+  "contentType": zod.string().nullable(),
+  "byteSize": zod.number().int().nullable(),
+  "width": zod.number().int().nullable(),
+  "height": zod.number().int().nullable(),
+  "durationSeconds": zod.number().int().nullable(),
+  "status": zod.enum(['uploading', 'quarantined', 'held', 'ready', 'rejected', 'cancelled', 'cleanup_pending']),
+  "malwareState": zod.enum(['pending', 'allowed', 'blocked', 'unavailable', 'error']),
+  "abuseState": zod.enum(['pending', 'allowed', 'blocked', 'unavailable', 'error']),
+  "altText": zod.string().nullable(),
+  "transcript": zod.string().nullable(),
+  "limitation": zod.string().nullable()
+})).optional()
 })
 
 
@@ -853,7 +931,8 @@ export const GetPostResponse = zod.object({
   "id": zod.string(),
   "authorMemberId": zod.string(),
   "body": zod.string().nullable(),
-  "audience": zod.enum(['only_me', 'friends', 'public']),
+  "audience": zod.enum(['only_me', 'friends', 'my_circle', 'public']),
+  "circleId": zod.string().nullish(),
   "responseLabel": zod.string().nullish(),
   "status": zod.enum(['draft', 'published', 'deleted']),
   "commentsOpen": zod.boolean(),
@@ -867,7 +946,22 @@ export const GetPostResponse = zod.object({
   "reactionCounts": zod.object({
 
 }).passthrough().nullish(),
-  "originalAvailable": zod.boolean().optional()
+  "originalAvailable": zod.boolean().optional(),
+  "mediaAssets": zod.array(zod.object({
+  "id": zod.string(),
+  "kind": zod.enum(['photo', 'audio']),
+  "contentType": zod.string().nullable(),
+  "byteSize": zod.number().int().nullable(),
+  "width": zod.number().int().nullable(),
+  "height": zod.number().int().nullable(),
+  "durationSeconds": zod.number().int().nullable(),
+  "status": zod.enum(['uploading', 'quarantined', 'held', 'ready', 'rejected', 'cancelled', 'cleanup_pending']),
+  "malwareState": zod.enum(['pending', 'allowed', 'blocked', 'unavailable', 'error']),
+  "abuseState": zod.enum(['pending', 'allowed', 'blocked', 'unavailable', 'error']),
+  "altText": zod.string().nullable(),
+  "transcript": zod.string().nullable(),
+  "limitation": zod.string().nullable()
+})).optional()
 })
 
 
@@ -879,16 +973,20 @@ export const updatePostBodyBodyMax = 20000;
 
 export const updatePostBodyCommentaryMax = 10000;
 
+export const updatePostBodyMediaAssetIdsMax = 10;
+
 
 
 export const UpdatePostBody = zod.object({
   "body": zod.string().max(updatePostBodyBodyMax),
-  "audience": zod.enum(['only_me', 'friends', 'public']).optional(),
+  "audience": zod.enum(['only_me', 'friends', 'my_circle', 'public']).optional(),
+  "circleId": zod.string().nullish(),
   "responseLabel": zod.union([zod.literal('someone_to_listen'),zod.literal('shared_experiences'),zod.literal('practical_ideas'),zod.literal('something_uplifting'),zod.literal(null)]).nullish(),
   "commentsOpen": zod.boolean().optional(),
   "visibleReactionCounts": zod.boolean().optional(),
   "originalPostId": zod.string().optional(),
-  "commentary": zod.string().max(updatePostBodyCommentaryMax).optional()
+  "commentary": zod.string().max(updatePostBodyCommentaryMax).optional(),
+  "mediaAssetIds": zod.array(zod.string()).max(updatePostBodyMediaAssetIdsMax).optional()
 })
 
 export const UpdatePostResponse = zod.unknown()
@@ -925,7 +1023,8 @@ export const GetFeedResponse = zod.object({
   "id": zod.string(),
   "authorMemberId": zod.string(),
   "body": zod.string().nullable(),
-  "audience": zod.enum(['only_me', 'friends', 'public']),
+  "audience": zod.enum(['only_me', 'friends', 'my_circle', 'public']),
+  "circleId": zod.string().nullish(),
   "responseLabel": zod.string().nullish(),
   "status": zod.enum(['draft', 'published', 'deleted']),
   "commentsOpen": zod.boolean(),
@@ -939,7 +1038,22 @@ export const GetFeedResponse = zod.object({
   "reactionCounts": zod.object({
 
 }).passthrough().nullish(),
-  "originalAvailable": zod.boolean().optional()
+  "originalAvailable": zod.boolean().optional(),
+  "mediaAssets": zod.array(zod.object({
+  "id": zod.string(),
+  "kind": zod.enum(['photo', 'audio']),
+  "contentType": zod.string().nullable(),
+  "byteSize": zod.number().int().nullable(),
+  "width": zod.number().int().nullable(),
+  "height": zod.number().int().nullable(),
+  "durationSeconds": zod.number().int().nullable(),
+  "status": zod.enum(['uploading', 'quarantined', 'held', 'ready', 'rejected', 'cancelled', 'cleanup_pending']),
+  "malwareState": zod.enum(['pending', 'allowed', 'blocked', 'unavailable', 'error']),
+  "abuseState": zod.enum(['pending', 'allowed', 'blocked', 'unavailable', 'error']),
+  "altText": zod.string().nullable(),
+  "transcript": zod.string().nullable(),
+  "limitation": zod.string().nullable()
+})).optional()
 })),
   "nextCursor": zod.string().nullable()
 })
@@ -1069,7 +1183,8 @@ export const ListSavedPostsResponse = zod.object({
   "id": zod.string(),
   "authorMemberId": zod.string(),
   "body": zod.string().nullable(),
-  "audience": zod.enum(['only_me', 'friends', 'public']),
+  "audience": zod.enum(['only_me', 'friends', 'my_circle', 'public']),
+  "circleId": zod.string().nullish(),
   "responseLabel": zod.string().nullish(),
   "status": zod.enum(['draft', 'published', 'deleted']),
   "commentsOpen": zod.boolean(),
@@ -1083,9 +1198,398 @@ export const ListSavedPostsResponse = zod.object({
   "reactionCounts": zod.object({
 
 }).passthrough().nullish(),
-  "originalAvailable": zod.boolean().optional()
+  "originalAvailable": zod.boolean().optional(),
+  "mediaAssets": zod.array(zod.object({
+  "id": zod.string(),
+  "kind": zod.enum(['photo', 'audio']),
+  "contentType": zod.string().nullable(),
+  "byteSize": zod.number().int().nullable(),
+  "width": zod.number().int().nullable(),
+  "height": zod.number().int().nullable(),
+  "durationSeconds": zod.number().int().nullable(),
+  "status": zod.enum(['uploading', 'quarantined', 'held', 'ready', 'rejected', 'cancelled', 'cleanup_pending']),
+  "malwareState": zod.enum(['pending', 'allowed', 'blocked', 'unavailable', 'error']),
+  "abuseState": zod.enum(['pending', 'allowed', 'blocked', 'unavailable', 'error']),
+  "altText": zod.string().nullable(),
+  "transcript": zod.string().nullable(),
+  "limitation": zod.string().nullable()
+})).optional()
 })),
   "nextCursor": zod.string().nullable()
+})
+
+
+export const ListCirclesResponseItem = zod.object({
+  "id": zod.string(),
+  "ownerMemberId": zod.string(),
+  "name": zod.string(),
+  "description": zod.string().nullable(),
+  "status": zod.enum(['active', 'closed']),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date(),
+  "members": zod.array(zod.object({
+  "memberId": zod.string(),
+  "preferredName": zod.string(),
+  "role": zod.enum(['owner', 'admin', 'member']),
+  "joinedAt": zod.coerce.date(),
+  "historyAccess": zod.boolean()
+})),
+  "myRole": zod.union([zod.literal('owner'),zod.literal('admin'),zod.literal('member'),zod.literal(null)]).nullable(),
+  "historyAccess": zod.boolean()
+})
+export const ListCirclesResponse = zod.array(ListCirclesResponseItem)
+
+
+export const createCircleBodyNameMax = 120;
+
+export const createCircleBodyDescriptionMax = 1000;
+
+
+
+export const CreateCircleBody = zod.object({
+  "name": zod.string().min(1).max(createCircleBodyNameMax),
+  "description": zod.string().max(createCircleBodyDescriptionMax).optional()
+})
+
+export const CreateCircleResponse = zod.object({
+  "id": zod.string(),
+  "ownerMemberId": zod.string(),
+  "name": zod.string(),
+  "description": zod.string().nullable(),
+  "status": zod.enum(['active', 'closed']),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date(),
+  "members": zod.array(zod.object({
+  "memberId": zod.string(),
+  "preferredName": zod.string(),
+  "role": zod.enum(['owner', 'admin', 'member']),
+  "joinedAt": zod.coerce.date(),
+  "historyAccess": zod.boolean()
+})),
+  "myRole": zod.union([zod.literal('owner'),zod.literal('admin'),zod.literal('member'),zod.literal(null)]).nullable(),
+  "historyAccess": zod.boolean()
+})
+
+
+export const GetCircleParams = zod.object({
+  "circleId": zod.coerce.string()
+})
+
+export const GetCircleResponse = zod.object({
+  "id": zod.string(),
+  "ownerMemberId": zod.string(),
+  "name": zod.string(),
+  "description": zod.string().nullable(),
+  "status": zod.enum(['active', 'closed']),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date(),
+  "members": zod.array(zod.object({
+  "memberId": zod.string(),
+  "preferredName": zod.string(),
+  "role": zod.enum(['owner', 'admin', 'member']),
+  "joinedAt": zod.coerce.date(),
+  "historyAccess": zod.boolean()
+})),
+  "myRole": zod.union([zod.literal('owner'),zod.literal('admin'),zod.literal('member'),zod.literal(null)]).nullable(),
+  "historyAccess": zod.boolean()
+})
+
+
+export const CloseCircleParams = zod.object({
+  "circleId": zod.coerce.string()
+})
+
+export const CloseCircleResponse = zod.void()
+
+
+export const CreateCircleInvitationParams = zod.object({
+  "circleId": zod.coerce.string()
+})
+
+export const CreateCircleInvitationBody = zod.object({
+  "recipientMemberId": zod.string(),
+  "expiresAt": zod.coerce.date()
+})
+
+export const CreateCircleInvitationResponse = zod.object({
+  "id": zod.string(),
+  "circleId": zod.string(),
+  "recipientMemberId": zod.string(),
+  "invitedByMemberId": zod.string(),
+  "status": zod.enum(['pending', 'accepted', 'declined', 'revoked', 'expired']),
+  "expiresAt": zod.coerce.date(),
+  "createdAt": zod.coerce.date(),
+  "circleName": zod.string(),
+  "inviterName": zod.string()
+})
+
+
+export const ListCircleInvitationsResponseItem = zod.object({
+  "id": zod.string(),
+  "circleId": zod.string(),
+  "recipientMemberId": zod.string(),
+  "invitedByMemberId": zod.string(),
+  "status": zod.enum(['pending', 'accepted', 'declined', 'revoked', 'expired']),
+  "expiresAt": zod.coerce.date(),
+  "createdAt": zod.coerce.date(),
+  "circleName": zod.string(),
+  "inviterName": zod.string()
+})
+export const ListCircleInvitationsResponse = zod.array(ListCircleInvitationsResponseItem)
+
+
+export const AcceptCircleInvitationParams = zod.object({
+  "invitationId": zod.coerce.string()
+})
+
+export const AcceptCircleInvitationResponse = zod.object({
+  "id": zod.string(),
+  "ownerMemberId": zod.string(),
+  "name": zod.string(),
+  "description": zod.string().nullable(),
+  "status": zod.enum(['active', 'closed']),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date(),
+  "members": zod.array(zod.object({
+  "memberId": zod.string(),
+  "preferredName": zod.string(),
+  "role": zod.enum(['owner', 'admin', 'member']),
+  "joinedAt": zod.coerce.date(),
+  "historyAccess": zod.boolean()
+})),
+  "myRole": zod.union([zod.literal('owner'),zod.literal('admin'),zod.literal('member'),zod.literal(null)]).nullable(),
+  "historyAccess": zod.boolean()
+})
+
+
+export const DeclineCircleInvitationParams = zod.object({
+  "invitationId": zod.coerce.string()
+})
+
+export const DeclineCircleInvitationResponse = zod.void()
+
+
+export const UpdateCircleMemberParams = zod.object({
+  "circleId": zod.coerce.string(),
+  "memberId": zod.coerce.string()
+})
+
+export const UpdateCircleMemberBody = zod.object({
+  "role": zod.enum(['admin', 'member'])
+})
+
+export const UpdateCircleMemberResponse = zod.object({
+  "memberId": zod.string(),
+  "preferredName": zod.string(),
+  "role": zod.enum(['owner', 'admin', 'member']),
+  "joinedAt": zod.coerce.date(),
+  "historyAccess": zod.boolean()
+})
+
+
+export const RemoveCircleMemberParams = zod.object({
+  "circleId": zod.coerce.string(),
+  "memberId": zod.coerce.string()
+})
+
+export const RemoveCircleMemberResponse = zod.void()
+
+
+export const GrantCircleHistoryAccessParams = zod.object({
+  "circleId": zod.coerce.string()
+})
+
+export const GrantCircleHistoryAccessBody = zod.object({
+  "memberId": zod.string()
+})
+
+export const GrantCircleHistoryAccessResponse = zod.void()
+
+
+export const RevokeCircleHistoryAccessParams = zod.object({
+  "circleId": zod.coerce.string(),
+  "memberId": zod.coerce.string()
+})
+
+export const RevokeCircleHistoryAccessResponse = zod.void()
+
+
+export const LeaveCircleParams = zod.object({
+  "circleId": zod.coerce.string()
+})
+
+export const LeaveCircleResponse = zod.void()
+
+
+export const ListCirclePostsParams = zod.object({
+  "circleId": zod.coerce.string()
+})
+
+export const ListCirclePostsResponse = zod.object({
+  "items": zod.array(zod.object({
+  "id": zod.string(),
+  "authorMemberId": zod.string(),
+  "body": zod.string().nullable(),
+  "audience": zod.enum(['only_me', 'friends', 'my_circle', 'public']),
+  "circleId": zod.string().nullish(),
+  "responseLabel": zod.string().nullish(),
+  "status": zod.enum(['draft', 'published', 'deleted']),
+  "commentsOpen": zod.boolean(),
+  "visibleReactionCounts": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date(),
+  "authorId": zod.string().optional(),
+  "authorDisplayName": zod.string().optional(),
+  "myReactions": zod.array(zod.enum(['hear_you', 'thank_you_for_sharing'])).optional(),
+  "saved": zod.boolean().optional(),
+  "reactionCounts": zod.object({
+
+}).passthrough().nullish(),
+  "originalAvailable": zod.boolean().optional(),
+  "mediaAssets": zod.array(zod.object({
+  "id": zod.string(),
+  "kind": zod.enum(['photo', 'audio']),
+  "contentType": zod.string().nullable(),
+  "byteSize": zod.number().int().nullable(),
+  "width": zod.number().int().nullable(),
+  "height": zod.number().int().nullable(),
+  "durationSeconds": zod.number().int().nullable(),
+  "status": zod.enum(['uploading', 'quarantined', 'held', 'ready', 'rejected', 'cancelled', 'cleanup_pending']),
+  "malwareState": zod.enum(['pending', 'allowed', 'blocked', 'unavailable', 'error']),
+  "abuseState": zod.enum(['pending', 'allowed', 'blocked', 'unavailable', 'error']),
+  "altText": zod.string().nullable(),
+  "transcript": zod.string().nullable(),
+  "limitation": zod.string().nullable()
+})).optional()
+})),
+  "nextCursor": zod.string().nullable()
+})
+
+
+export const RequestMediaUploadHeader = zod.object({
+  "Idempotency-Key": zod.string().optional()
+})
+
+
+export const requestMediaUploadBodyClientIdempotencyKeyMax = 200;
+
+export const requestMediaUploadBodyAltTextMax = 1000;
+
+
+
+export const RequestMediaUploadBody = zod.object({
+  "kind": zod.enum(['photo', 'audio']),
+  "contentType": zod.string(),
+  "size": zod.number().int().min(1),
+  "clientIdempotencyKey": zod.string().min(1).max(requestMediaUploadBodyClientIdempotencyKeyMax),
+  "altText": zod.string().min(1).max(requestMediaUploadBodyAltTextMax).optional()
+})
+
+export const RequestMediaUploadResponse = zod.object({
+  "asset": zod.object({
+  "id": zod.string(),
+  "kind": zod.enum(['photo', 'audio']),
+  "contentType": zod.string().nullable(),
+  "byteSize": zod.number().int().nullable(),
+  "width": zod.number().int().nullable(),
+  "height": zod.number().int().nullable(),
+  "durationSeconds": zod.number().int().nullable(),
+  "status": zod.enum(['uploading', 'quarantined', 'held', 'ready', 'rejected', 'cancelled', 'cleanup_pending']),
+  "malwareState": zod.enum(['pending', 'allowed', 'blocked', 'unavailable', 'error']),
+  "abuseState": zod.enum(['pending', 'allowed', 'blocked', 'unavailable', 'error']),
+  "altText": zod.string().nullable(),
+  "transcript": zod.string().nullable(),
+  "limitation": zod.string().nullable()
+}),
+  "uploadURL": zod.string().url().nullable()
+})
+
+
+export const CompleteMediaUploadParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const CompleteMediaUploadResponse = zod.object({
+  "id": zod.string(),
+  "kind": zod.enum(['photo', 'audio']),
+  "contentType": zod.string().nullable(),
+  "byteSize": zod.number().int().nullable(),
+  "width": zod.number().int().nullable(),
+  "height": zod.number().int().nullable(),
+  "durationSeconds": zod.number().int().nullable(),
+  "status": zod.enum(['uploading', 'quarantined', 'held', 'ready', 'rejected', 'cancelled', 'cleanup_pending']),
+  "malwareState": zod.enum(['pending', 'allowed', 'blocked', 'unavailable', 'error']),
+  "abuseState": zod.enum(['pending', 'allowed', 'blocked', 'unavailable', 'error']),
+  "altText": zod.string().nullable(),
+  "transcript": zod.string().nullable(),
+  "limitation": zod.string().nullable()
+})
+
+
+export const RetryMediaUploadParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const RetryMediaUploadResponse = zod.object({
+  "asset": zod.object({
+  "id": zod.string(),
+  "kind": zod.enum(['photo', 'audio']),
+  "contentType": zod.string().nullable(),
+  "byteSize": zod.number().int().nullable(),
+  "width": zod.number().int().nullable(),
+  "height": zod.number().int().nullable(),
+  "durationSeconds": zod.number().int().nullable(),
+  "status": zod.enum(['uploading', 'quarantined', 'held', 'ready', 'rejected', 'cancelled', 'cleanup_pending']),
+  "malwareState": zod.enum(['pending', 'allowed', 'blocked', 'unavailable', 'error']),
+  "abuseState": zod.enum(['pending', 'allowed', 'blocked', 'unavailable', 'error']),
+  "altText": zod.string().nullable(),
+  "transcript": zod.string().nullable(),
+  "limitation": zod.string().nullable()
+}),
+  "uploadURL": zod.string().url().nullable()
+})
+
+
+export const CancelMediaUploadParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const CancelMediaUploadResponse = zod.void()
+
+
+export const DeliverMediaParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const DeliverMediaResponse = zod.unknown()
+
+
+export const UpdateMediaTranscriptParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const updateMediaTranscriptBodyTranscriptMax = 100000;
+
+
+
+export const UpdateMediaTranscriptBody = zod.object({
+  "transcript": zod.string().min(1).max(updateMediaTranscriptBodyTranscriptMax)
+})
+
+export const UpdateMediaTranscriptResponse = zod.object({
+  "id": zod.string(),
+  "kind": zod.enum(['photo', 'audio']),
+  "contentType": zod.string().nullable(),
+  "byteSize": zod.number().int().nullable(),
+  "width": zod.number().int().nullable(),
+  "height": zod.number().int().nullable(),
+  "durationSeconds": zod.number().int().nullable(),
+  "status": zod.enum(['uploading', 'quarantined', 'held', 'ready', 'rejected', 'cancelled', 'cleanup_pending']),
+  "malwareState": zod.enum(['pending', 'allowed', 'blocked', 'unavailable', 'error']),
+  "abuseState": zod.enum(['pending', 'allowed', 'blocked', 'unavailable', 'error']),
+  "altText": zod.string().nullable(),
+  "transcript": zod.string().nullable(),
+  "limitation": zod.string().nullable()
 })
 
 

@@ -1,9 +1,9 @@
 import { Router, type IRouter, type Request } from "express";
 import { randomUUID } from "node:crypto";
-import { and, asc, desc, eq, or } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, or } from "drizzle-orm";
 import { getAuth } from "@clerk/express";
 import { z } from "zod";
-import { db, membersTable, profilesTable, thisIsMeCardsTable, verificationRequestsTable, consentHistoryTable, friendRequestsTable, friendshipsTable, followsTable, discoverySettingsTable, postsTable, commentsTable, postReactionsTable, postSavesTable, postHidesTable } from "@workspace/db";
+import { circleHistoryGrantsTable, circleInvitationsTable, circleMembersTable, circlesTable, db, membersTable, mediaAssetsTable, profilesTable, thisIsMeCardsTable, verificationRequestsTable, consentHistoryTable, friendRequestsTable, friendshipsTable, followsTable, discoverySettingsTable, postsTable, commentsTable, postReactionsTable, postSavesTable, postHidesTable } from "@workspace/db";
 import { requireAuth } from "../middlewares/account-auth";
 import { PROFILE_FIELDS, defaultVisibility, visibleProfile, isAssistedAccessInput, isOwnedProfilePhotoPath, cardPayloadIsTextOnly } from "../lib/profile-policy";
 import { profilePhotoFile, requestProfilePhotoUpload } from "../lib/profile-photo-storage";
@@ -22,6 +22,15 @@ router.use("/profile/photo", requireAuth);
 async function ownMember(req: Request) {
   const userId = getAuth(req).userId!;
   return (await db.select().from(membersTable).where(eq(membersTable.clerkUserId, userId)).limit(1))[0];
+}
+async function cardMedia(card: typeof thisIsMeCardsTable.$inferSelect) {
+  if (!card.mediaAssetIds?.length) return [];
+  const assets = await db.select().from(mediaAssetsTable).where(inArray(mediaAssetsTable.id, card.mediaAssetIds));
+  return assets.filter((a) => a.status === "ready" || card.memberId === card.memberId).map((a) => ({
+    id: a.id, kind: a.kind, contentType: a.contentType, byteSize: a.byteSize, width: a.width, height: a.height,
+    durationSeconds: a.durationSeconds, status: a.status, altText: a.altText, transcript: a.transcript,
+    limitation: a.status === "held" ? (a.rejectionReason ?? "Media checks are pending") : null,
+  }));
 }
 const profileInput = z.object({
   preferredName: z.string().trim().min(1),
@@ -126,24 +135,31 @@ router.patch("/privacy", async (req, res): Promise<void> => {
 
 router.get("/this-is-me", async (req, res): Promise<void> => {
   const member = await ownMember(req); if (!member) { res.status(404).json({ error: "Onboarding required" }); return; }
-  res.json(await db.select().from(thisIsMeCardsTable).where(eq(thisIsMeCardsTable.memberId, member.id)).orderBy(asc(thisIsMeCardsTable.position)));
+  const cards = await db.select().from(thisIsMeCardsTable).where(eq(thisIsMeCardsTable.memberId, member.id)).orderBy(asc(thisIsMeCardsTable.position));
+  res.json(await Promise.all(cards.map(async (card) => ({ ...card, mediaAssets: await cardMedia(card) }))));
 });
 router.post("/this-is-me", async (req, res): Promise<void> => {
-  if (isAssistedAccessInput(req.body) || !cardPayloadIsTextOnly(req.body)) { res.status(400).json({ error: "Cards are text-only; photo, audio, and media cards wait until Phase 7" }); return; }
-  const parsed = z.object({ kind: z.enum(["things_i_enjoy", "music_i_love", "experiences_i_want_to_share", "how_i_like_to_communicate"]), text: z.string().trim().min(1).max(5000), permissionAcknowledged: z.boolean().default(false) }).strict().safeParse(req.body);
+  if (isAssistedAccessInput(req.body)) { res.status(400).json({ error: "Delegated or relative account identity is not supported" }); return; }
+  const parsed = z.object({ kind: z.enum(["things_i_enjoy", "music_i_love", "experiences_i_want_to_share", "how_i_like_to_communicate"]), text: z.string().trim().min(1).max(5000), permissionAcknowledged: z.boolean().default(false), mediaAssetIds: z.array(z.string()).max(10).default([]) }).strict().safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
   const member = await ownMember(req); if (!member) { res.status(404).json({ error: "Onboarding required" }); return; }
+  const media = parsed.data.mediaAssetIds.length ? await db.select().from(mediaAssetsTable).where(and(eq(mediaAssetsTable.ownerMemberId, member.id), inArray(mediaAssetsTable.id, parsed.data.mediaAssetIds))) : [];
+  if (media.length !== parsed.data.mediaAssetIds.length || media.some((asset) => asset.status !== "ready")) { res.status(409).json({ error: "All attached media must be ready" }); return; }
   const cards = await db.select().from(thisIsMeCardsTable).where(eq(thisIsMeCardsTable.memberId, member.id)).orderBy(desc(thisIsMeCardsTable.position));
   if (cards.some((card) => card.kind === parsed.data.kind)) { res.status(409).json({ error: "A card of this kind already exists" }); return; }
-  const [card] = await db.insert(thisIsMeCardsTable).values({ ...parsed.data, id: randomUUID(), memberId: member.id, position: (cards[0]?.position ?? -1) + 1 }).returning(); res.status(201).json(card);
+  const [card] = await db.insert(thisIsMeCardsTable).values({ ...parsed.data, id: randomUUID(), memberId: member.id, position: (cards[0]?.position ?? -1) + 1 }).returning(); res.status(201).json({ ...card, mediaAssets: await cardMedia(card) });
 });
 router.patch("/this-is-me/:id", async (req, res): Promise<void> => {
-  if (isAssistedAccessInput(req.body) || !cardPayloadIsTextOnly(req.body)) { res.status(400).json({ error: "Cards are text-only; media waits until Phase 7" }); return; }
+  if (isAssistedAccessInput(req.body)) { res.status(400).json({ error: "Delegated or relative account identity is not supported" }); return; }
   const member = await ownMember(req); if (!member) { res.status(404).json({ error: "Onboarding required" }); return; }
-  const parsed = z.object({ text: z.string().trim().min(1).max(5000), permissionAcknowledged: z.boolean().optional() }).strict().safeParse(req.body);
+  const parsed = z.object({ text: z.string().trim().min(1).max(5000), permissionAcknowledged: z.boolean().optional(), mediaAssetIds: z.array(z.string()).max(10).optional() }).strict().safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
+  if (parsed.data.mediaAssetIds) {
+    const media = await db.select().from(mediaAssetsTable).where(and(eq(mediaAssetsTable.ownerMemberId, member.id), inArray(mediaAssetsTable.id, parsed.data.mediaAssetIds)));
+    if (media.length !== parsed.data.mediaAssetIds.length || media.some((asset) => asset.status !== "ready")) { res.status(409).json({ error: "All attached media must be ready" }); return; }
+  }
   const [card] = await db.update(thisIsMeCardsTable).set(parsed.data).where(and(eq(thisIsMeCardsTable.id, String(req.params.id)), eq(thisIsMeCardsTable.memberId, member.id))).returning();
-  if (!card) { res.status(404).json({ error: "Card not found" }); return; } res.json(card);
+  if (!card) { res.status(404).json({ error: "Card not found" }); return; } res.json({ ...card, mediaAssets: await cardMedia(card) });
 });
 router.delete("/this-is-me/:id", async (req, res): Promise<void> => {
   const member = await ownMember(req); if (!member) { res.status(404).json({ error: "Onboarding required" }); return; }
@@ -160,5 +176,5 @@ router.post("/verification", async (req, res): Promise<void> => {
 router.get("/verification", async (req, res): Promise<void> => { const member = await ownMember(req); if (!member) { res.status(404).json({ error: "Onboarding required" }); return; } res.json(await db.select().from(verificationRequestsTable).where(eq(verificationRequestsTable.memberId, member.id)).orderBy(desc(verificationRequestsTable.createdAt))); });
 router.get("/consent", async (req, res): Promise<void> => { const member = await ownMember(req); if (!member) { res.status(404).json({ error: "Onboarding required" }); return; } res.json(await db.select().from(consentHistoryTable).where(eq(consentHistoryTable.memberId, member.id)).orderBy(desc(consentHistoryTable.recordedAt))); });
 router.post("/consent/revoke", async (req, res): Promise<void> => { const member = await ownMember(req); if (!member) { res.status(404).json({ error: "Onboarding required" }); return; } const parsed = z.object({ purpose: z.string(), version: z.string() }).safeParse(req.body); if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; } const [record] = await db.insert(consentHistoryTable).values({ id: randomUUID(), memberId: member.id, purpose: parsed.data.purpose, version: parsed.data.version, granted: false }).returning(); res.status(201).json(record); });
-router.get("/profile/export", async (req, res): Promise<void> => { const member = await ownMember(req); if (!member) { res.status(404).json({ error: "Onboarding required" }); return; } const profile = (await db.select().from(profilesTable).where(eq(profilesTable.memberId, member.id)).limit(1))[0]; const cards = await db.select().from(thisIsMeCardsTable).where(eq(thisIsMeCardsTable.memberId, member.id)); const consents = await db.select().from(consentHistoryTable).where(eq(consentHistoryTable.memberId, member.id)); const verification = await db.select().from(verificationRequestsTable).where(eq(verificationRequestsTable.memberId, member.id)); const friendRequests = await db.select().from(friendRequestsTable).where(or(eq(friendRequestsTable.requesterMemberId, member.id), eq(friendRequestsTable.recipientMemberId, member.id))); const friendships = await db.select().from(friendshipsTable).where(or(eq(friendshipsTable.memberAId, member.id), eq(friendshipsTable.memberBId, member.id))); const follows = await db.select().from(followsTable).where(or(eq(followsTable.followerMemberId, member.id), eq(followsTable.followedMemberId, member.id))); const settings = await db.select().from(discoverySettingsTable).where(eq(discoverySettingsTable.memberId, member.id)); const posts = await db.select().from(postsTable).where(eq(postsTable.authorMemberId, member.id)); const comments = await db.select().from(commentsTable).where(eq(commentsTable.authorMemberId, member.id)); const reactions = await db.select().from(postReactionsTable).where(eq(postReactionsTable.memberId, member.id)); const saves = await db.select().from(postSavesTable).where(eq(postSavesTable.memberId, member.id)); const hides = await db.select().from(postHidesTable).where(eq(postHidesTable.memberId, member.id)); res.json({ memberId: member.id, profile, cards, consents, verification, friendRequests, friendships, follows, settings, posts, comments, reactions, saves, hides, exportedAt: new Date().toISOString() }); });
+router.get("/profile/export", async (req, res): Promise<void> => { const member = await ownMember(req); if (!member) { res.status(404).json({ error: "Onboarding required" }); return; } const profile = (await db.select().from(profilesTable).where(eq(profilesTable.memberId, member.id)).limit(1))[0]; const cards = await db.select().from(thisIsMeCardsTable).where(eq(thisIsMeCardsTable.memberId, member.id)); const consents = await db.select().from(consentHistoryTable).where(eq(consentHistoryTable.memberId, member.id)); const verification = await db.select().from(verificationRequestsTable).where(eq(verificationRequestsTable.memberId, member.id)); const friendRequests = await db.select().from(friendRequestsTable).where(or(eq(friendRequestsTable.requesterMemberId, member.id), eq(friendRequestsTable.recipientMemberId, member.id))); const friendships = await db.select().from(friendshipsTable).where(or(eq(friendshipsTable.memberAId, member.id), eq(friendshipsTable.memberBId, member.id))); const follows = await db.select().from(followsTable).where(or(eq(followsTable.followerMemberId, member.id), eq(followsTable.followedMemberId, member.id))); const settings = await db.select().from(discoverySettingsTable).where(eq(discoverySettingsTable.memberId, member.id)); const posts = await db.select().from(postsTable).where(eq(postsTable.authorMemberId, member.id)); const comments = await db.select().from(commentsTable).where(eq(commentsTable.authorMemberId, member.id)); const reactions = await db.select().from(postReactionsTable).where(eq(postReactionsTable.memberId, member.id)); const saves = await db.select().from(postSavesTable).where(eq(postSavesTable.memberId, member.id)); const hides = await db.select().from(postHidesTable).where(eq(postHidesTable.memberId, member.id)); const circleMemberships = await db.select().from(circleMembersTable).where(eq(circleMembersTable.memberId, member.id)); const circleIds = circleMemberships.map((row) => row.circleId); const circles = circleIds.length ? await db.select().from(circlesTable).where(inArray(circlesTable.id, circleIds)) : []; const circleInvitations = await db.select().from(circleInvitationsTable).where(or(eq(circleInvitationsTable.recipientMemberId, member.id), eq(circleInvitationsTable.invitedByMemberId, member.id))); const historyAccess = await db.select().from(circleHistoryGrantsTable).where(eq(circleHistoryGrantsTable.memberId, member.id)); res.json({ memberId: member.id, profile, cards, consents, verification, friendRequests, friendships, follows, settings, posts, comments, reactions, saves, hides, circleMemberships, circles, circleInvitations, historyAccess, exportedAt: new Date().toISOString() }); });
 export default router;

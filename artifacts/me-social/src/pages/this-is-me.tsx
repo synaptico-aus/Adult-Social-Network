@@ -15,6 +15,10 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
+import { useMediaUploads } from "@/hooks/use-media-upload";
+import { MediaUploader } from "@/components/media/media-uploader";
+import { MediaAttachmentRenderer } from "@/components/media/media-renderer";
+import { v4 as uuidv4 } from "uuid";
 
 const CARD_KIND_LABELS: Record<ThisIsMeCardKind, string> = {
   things_i_enjoy: "Things I Enjoy",
@@ -41,30 +45,59 @@ export default function ThisIsMe() {
 
   const [creatingKind, setCreatingKind] = useState<ThisIsMeCardKind | null>(null);
 
+  const { items: mediaItems, setItems: setMediaItems, addPhoto, addAudio, updateItem, startUpload, cancel, remove, saveTranscript } = useMediaUploads();
+
   const handleEdit = (card: ThisIsMeCard) => {
     setEditingCardId(card.id);
     setEditText(card.text);
     setEditPermission(card.permissionAcknowledged || false);
     setCreatingKind(null);
+    if (card.mediaAssets && card.mediaAssets.length > 0) {
+      setMediaItems(card.mediaAssets.map(asset => ({
+        clientId: uuidv4(),
+        file: new Blob(), // Dummy blob for existing asset
+        kind: asset.kind,
+        altText: asset.altText || asset.transcript || '',
+        status: asset.status as any,
+        progress: 100,
+        asset,
+        clientIdempotencyKey: uuidv4(),
+        previewUrl: `/api/media/${asset.id}`
+      })));
+    } else {
+      setMediaItems([]);
+    }
   };
 
   const handleCancelEdit = () => {
     setEditingCardId(null);
     setCreatingKind(null);
+    setMediaItems([]);
   };
 
   const handleSaveUpdate = async (id: string) => {
-    if (!editText.trim()) {
+    if (!editText.trim() && mediaItems.length === 0) {
       toast({ title: "Error", description: "Card text cannot be empty.", variant: "destructive" });
       return;
     }
+
+    if (mediaItems.some(i => i.status !== 'ready')) {
+      toast({ title: "Media not ready", description: "Please wait for all media to finish uploading or resolve any issues.", variant: "destructive" });
+      return;
+    }
+
     try {
       await updateCard.mutateAsync({
         id,
-        data: { text: editText, permissionAcknowledged: editPermission }
+        data: {
+          text: editText,
+          permissionAcknowledged: editPermission,
+          mediaAssetIds: mediaItems.map(i => i.asset?.id).filter(Boolean) as string[],
+        }
       });
       queryClient.invalidateQueries({ queryKey: getListThisIsMeCardsQueryKey() });
       setEditingCardId(null);
+      setMediaItems([]);
       toast({ title: "Card updated" });
     } catch (err) {
       toast({ title: "Error updating card", variant: "destructive" });
@@ -72,16 +105,28 @@ export default function ThisIsMe() {
   };
 
   const handleCreate = async (kind: ThisIsMeCardKind) => {
-    if (!editText.trim()) {
+    if (!editText.trim() && mediaItems.length === 0) {
       toast({ title: "Error", description: "Card text cannot be empty.", variant: "destructive" });
       return;
     }
+
+    if (mediaItems.some(i => i.status !== 'ready')) {
+      toast({ title: "Media not ready", description: "Please wait for all media to finish uploading or resolve any issues.", variant: "destructive" });
+      return;
+    }
+
     try {
       await createCard.mutateAsync({
-        data: { kind, text: editText, permissionAcknowledged: editPermission }
+        data: {
+          kind,
+          text: editText,
+          permissionAcknowledged: editPermission,
+          mediaAssetIds: mediaItems.map(i => i.asset?.id).filter(Boolean) as string[],
+        }
       });
       queryClient.invalidateQueries({ queryKey: getListThisIsMeCardsQueryKey() });
       setCreatingKind(null);
+      setMediaItems([]);
       toast({ title: "Card created" });
     } catch (err) {
       toast({ title: "Error creating card", variant: "destructive" });
@@ -104,6 +149,7 @@ export default function ThisIsMe() {
     setEditingCardId(null);
     setEditText("");
     setEditPermission(false);
+    setMediaItems([]);
   };
 
   if (isLoading) {
@@ -152,6 +198,20 @@ export default function ThisIsMe() {
                   className="min-h-[150px] text-lg rounded-xl mb-6"
                 />
 
+                <div className="mb-6">
+                  <MediaUploader
+                    items={mediaItems}
+                    setItems={setMediaItems}
+                    addPhoto={addPhoto}
+                    addAudio={addAudio}
+                    updateItem={updateItem}
+                    startUpload={startUpload}
+                    cancel={cancel}
+                    remove={remove}
+                    saveTranscript={saveTranscript}
+                  />
+                </div>
+
                 <div className="flex items-start space-x-3 bg-secondary/30 p-4 rounded-xl mb-6 border border-border/50">
                   <Checkbox
                     id={`perm-${kind}`}
@@ -194,6 +254,13 @@ export default function ThisIsMe() {
                   </div>
                 </div>
                 <p className="text-lg text-muted-foreground whitespace-pre-wrap leading-relaxed">{card.text}</p>
+                {card.mediaAssets && card.mediaAssets.length > 0 && (
+                  <div className="mt-6 space-y-4">
+                    {card.mediaAssets.map(asset => (
+                      <MediaAttachmentRenderer key={asset.id} asset={asset} />
+                    ))}
+                  </div>
+                )}
               </div>
             );
           }

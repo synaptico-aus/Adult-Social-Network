@@ -11,4 +11,6 @@ export interface ThisIsMeCardInput {
   kind: ThisIsMeCardInputKind;
   text: string;
   permissionAcknowledged?: boolean;
+  /** @maxItems 10 */
+  mediaAssetIds?: string[];
 }

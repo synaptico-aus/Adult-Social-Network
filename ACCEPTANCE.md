@@ -249,3 +249,25 @@ Phase 3 is verified in development. Production release still depends on Phase 2 
 | Architecture review | Passed with no unresolved high or medium findings |
 | Browser journey | Passed for drafts, publish/edit, reactions, comments/replies, shares, reports, save/reload, audience and friendship revocation, and privacy-safe direct links |
 | Responsive check | Passed at 390×844 for feed, composer, and post detail |
+
+## My Circle acceptance
+
+- [x] Circles are invitation-only, use existing member identities, and do not
+  grant access from friendship, family labels, private messages, or learning
+  records.
+- [x] Invitations are recipient-bound, database-expiring, single-use, and denied
+  when a block exists with any active circle member.
+- [x] Members join with no historical access. Earlier circle posts require an
+  explicit history grant, and revocation immediately hides them from future
+  server reads.
+- [x] Owners can manage roles; owners and admins can invite, remove members, and
+  manage history. A member cannot remove themselves through the removal control.
+- [x] Removal, leaving, closure, and blocking revoke relevant circle access.
+  The interface explains that downloaded or redistributed copies cannot be
+  recalled.
+- [x] Circle posts retain existing moderation and private-media checks, cannot be
+  reshared outside their circle, and require current authorization for feed,
+  direct-link, comment, reaction, save, notification, and media paths.
+- [x] Circle exports contain the signed-in person’s own membership, invitation,
+  history-grant, and authored-post records without exposing another person’s
+  account material.
