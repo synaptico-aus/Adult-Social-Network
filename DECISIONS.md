@@ -63,3 +63,19 @@
 **Reason:** Retrofitting accessibility after complex social flows are built creates avoidable barriers and rework.
 
 **Consequence:** Each phase records keyboard, screen-reader semantics, contrast, text scaling, touch targets, reduced motion, errors, and cognitive load where applicable.
+
+## D-009: Simple View changes presentation only
+
+**Decision:** Simple View is an optional device-persisted presentation preference that enlarges controls and reduces visible choices while preserving essential functions.
+
+**Reason:** A simplified interface can reduce cognitive load, but it must never remove account rights or silently alter privacy and permissions.
+
+**Consequence:** Permission checks never read Simple View state. Essential navigation, a clear Home action, familiar contacts, and Understanding Dementia access remain available.
+
+## D-010: Planned destinations remain honest
+
+**Decision:** Navigation may expose the planned product structure, but incomplete destinations and Create actions must identify themselves as unavailable or planned.
+
+**Reason:** A clickable control that implies publishing, messaging, or discovery works would misrepresent the current implementation.
+
+**Consequence:** Phase 1 routes can orient users and preview states, but cannot fabricate member data or complete trust-critical actions.

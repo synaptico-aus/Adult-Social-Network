@@ -51,3 +51,50 @@ Fill this section only with checks actually performed.
 ## Phase 0 completion rule
 
 Phase 0 is **Verified** only when every applicable criterion above passes and the verification record contains actual results. Otherwise it remains **In progress** or **Blocked**.
+
+## Phase 1
+
+### Reusable interface
+
+- [x] Buttons, cards, forms, dialogs, media controls, and loading, empty, and error states use the crimson design language.
+- [x] Reusable controls have visible labels or accessible names and practical touch targets.
+- [x] Media does not autoplay.
+- [x] State is never communicated by colour alone.
+
+### Navigation and responsive layout
+
+- [x] Mobile primary navigation includes Home, Explore, Groups, Messages, and Me.
+- [x] Create is labelled and Understanding Dementia is easy to find.
+- [x] Desktop uses a sidebar, readable central column, and optional secondary content only when space permits.
+- [x] Layout remains usable at narrow phone widths, in landscape, and under desktop zoom.
+- [x] Safe-area insets and on-screen keyboard constraints are accounted for.
+- [x] Future features are presented as planned or unavailable rather than working controls.
+
+### Simple View and themes
+
+- [x] Simple View provides larger controls, fewer choices, an honest familiar-contacts empty state, and a clear Home action.
+- [x] All essential navigation and Understanding Dementia access remain available in Simple View.
+- [x] Simple View persists on the current device.
+- [x] Enabling Simple View does not change permissions or content audiences.
+- [x] Light and dark themes are available and persist on the current device.
+
+### Accessibility
+
+- [x] Semantic landmarks and screen-reader labels are present.
+- [x] Keyboard focus is visible and dialogs/forms use keyboard-accessible primitives.
+- [x] Reduced-motion preferences are respected.
+- [x] Text can scale without clipping essential controls.
+- [x] Gestures are not the only way to perform an action.
+
+### Verification record
+
+| Check | Platform or viewport | Result |
+| --- | --- | --- |
+| TypeScript typecheck | Web | Passed, 11 September 2026 |
+| Visual preview | 1440 × 1000 desktop | Passed, 11 September 2026 |
+| Visual preview and interactive journey | 320 × 700 narrow phone | Passed, 11 September 2026 |
+| Visual preview | 844 × 390 landscape | Passed, 11 September 2026 |
+| Browser console | Web | No errors during tested journey, 11 September 2026 |
+| Simple View persistence | Mobile web navigation and reload | Passed, 11 September 2026 |
+| Dark-theme persistence | Mobile web reload | Passed, 11 September 2026 |
+| Accessibility and preference source review | Web | Passed, 11 September 2026 |

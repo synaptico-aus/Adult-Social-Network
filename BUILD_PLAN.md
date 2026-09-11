@@ -70,11 +70,51 @@ None in Phase 0. No application tables are introduced.
 - Legal/privacy review for launch regions.
 - App Store and Play Store accounts and submission requirements.
 
-## Phase 1 — Authentication, consent, and private profiles
+## Phase 1 — Crimson design, navigation, and Simple View
 
-**Status: Not started**
+**Status: Verified**
 
-Server-enforced account creation, session handling, consent, profile visibility, account rights, and authorization tests.
+### Scope
+
+- Establish reusable buttons, cards, forms, dialogs, media controls, and loading, empty, and error states.
+- Add responsive mobile tabs and desktop navigation for Home, Explore, Groups, Messages, and Me.
+- Provide labelled Create and Understanding Dementia access without presenting future features as complete.
+- Add an optional, locally persisted Simple View with larger controls, fewer choices, familiar contacts, and a clear Home action.
+- Add light and dark themes without using colour as the only source of meaning.
+- Preserve all Phase 0 privacy and permission decisions.
+
+### Permission rules
+
+- Simple View is a presentation preference only.
+- Theme and Simple View preferences do not grant access, alter audiences, or change account rights.
+- Future destinations remain clearly identified as planned until their server-enforced features exist.
+
+### Planned checks
+
+- Web TypeScript typecheck.
+- Desktop, narrow-phone, and landscape visual previews.
+- Browser console review.
+- Source review for landmarks, labels, focus visibility, touch targets, safe-area handling, reduced motion, text scaling, and non-autoplay media.
+- Persistence review for Simple View and theme preferences.
+
+### Migrations
+
+None. Phase 1 presentation preferences are stored on the current device; no account permission or server data is changed.
+
+### External dependencies
+
+None for this presentation phase. Managed authentication exists separately but is not modified by this phase.
+
+### Results
+
+- Web TypeScript typecheck passed on 11 September 2026.
+- Desktop preview at 1440 × 1000, narrow-phone preview at 320 × 700, and landscape preview at 844 × 390 rendered successfully.
+- A browser journey at 320 × 700 confirmed all five tab labels remain visible, no fabricated people or posts appear, and planned Create behavior is truthful.
+- Simple View persisted across navigation and reload; familiar contacts remained an honest empty state.
+- Dark theme persisted across reload.
+- Home and Understanding Dementia remained accessible in Simple View.
+- Browser testing reported no console or page errors.
+- Source review confirmed labelled controls, semantic landmarks, safe-area insets, visible focus styles, reduced-motion handling, non-autoplay media controls, and flexible text/zoom layouts.
 
 ## Phase 2 — Connections, private posting, and feeds
 
