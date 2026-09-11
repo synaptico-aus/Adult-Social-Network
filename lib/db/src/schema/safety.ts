@@ -15,6 +15,7 @@ export const safetyRelationshipsTable = pgTable("safety_relationships", {
 export const reportsTable = pgTable("reports", {
   id: text("id").primaryKey(), reporterMemberId: text("reporter_member_id").references(() => membersTable.id, { onDelete: "set null" }),
   targetMemberId: text("target_member_id").references(() => membersTable.id, { onDelete: "set null" }),
+  contentTargetType: text("content_target_type"),
   contentId: text("content_id"), category: text("category", { enum: reportCategories }).notNull(), details: text("details"),
   status: text("status", { enum: moderationStates }).notNull().default("pending"), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [index("reports_reporter_idx").on(t.reporterMemberId, t.createdAt), index("reports_queue_idx").on(t.status, t.createdAt)]);

@@ -170,3 +170,22 @@ free-text sanction types are rejected at the API boundary.
 - Discoverability does not override field visibility: search and suggestions
   require a member-visible preferred name.
 - Content audience authorization has no publishing route in Phase 5; future content reads must call `canViewMemberContent`, which resolves live friendship/block state before applying audience policy.
+
+### Phase 6 decisions
+
+Retained evidence is immutable and policy-versioned; ordinary content is tombstoned on
+member deletion. Shares retain only a source ID and are reauthorized against the source
+on every read. Interaction authorization uses canonical pair advisory locking before
+post-row locking.
+
+- Currently enforceable post audiences are `only_me`, `friends`, and `public`.
+  Group and education filters remain unavailable until those modules have real
+  membership and content authorization.
+- Automated screening writes an explicit `allowed` or `held` result. A pending
+  member report does not hide allowed content; authorized staff decisions can.
+- Any published body change is re-screened in the same transaction as the edit,
+  so an old approval can never authorize new text.
+- Feed, saved, direct-link, internal-share, notification, and interaction access
+  always resolve current friendship, blocks, moderation, and source visibility.
+- Chronological pagination uses `(created_at, id)` keysets and continues scanning
+  across filtered rows; it does not rank by distress, conflict, or engagement.

@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { 
+import {
   useListOwnSafetyRelationships, getListOwnSafetyRelationshipsQueryKey,
   useCreateSafetyRelationship,
   useDeleteSafetyRelationship,
@@ -27,15 +27,15 @@ export default function SafetyPage() {
   const { data: relationships, isLoading: isLoadingRelationships } = useListOwnSafetyRelationships({
     query: { queryKey: getListOwnSafetyRelationshipsQueryKey() }
   });
-  
+
   const { data: reports, isLoading: isLoadingReports } = useListOwnReports({
     query: { queryKey: getListOwnReportsQueryKey() }
   });
-  
+
   const { data: appeals, isLoading: isLoadingAppeals } = useListOwnAppeals({
     query: { queryKey: getListOwnAppealsQueryKey() }
   });
-  
+
   const { data: supportContact, isError: supportContactError } = useGetSupportContact();
 
   const createRel = useCreateSafetyRelationship();
@@ -128,8 +128,8 @@ export default function SafetyPage() {
         <Link href="/me" className="inline-flex items-center text-primary font-semibold mb-6 hover:underline">
           <ArrowLeft className="w-5 h-5 mr-2" /> Back to Me
         </Link>
-        <PageHeader 
-          title="Safety & Support" 
+        <PageHeader
+          title="Safety & Support"
           description="Manage blocked accounts, submit reports, and review appeals."
         />
       </div>
@@ -176,11 +176,11 @@ export default function SafetyPage() {
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 mb-8">
-          <Input 
+          <Input
             aria-label="Target Member ID"
-            placeholder="Target Member ID" 
-            value={relTarget} 
-            onChange={e => setRelTarget(e.target.value)} 
+            placeholder="Target Member ID"
+            value={relTarget}
+            onChange={e => setRelTarget(e.target.value)}
             className="flex-1 bg-card rounded-xl"
             data-testid="input-relationship-target"
           />
@@ -246,26 +246,26 @@ export default function SafetyPage() {
               </SelectContent>
             </Select>
           </div>
-          
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label htmlFor="report-target" className="block text-sm font-medium mb-2 text-foreground">Target Member ID (Optional)</label>
-              <Input 
+              <Input
                 id="report-target"
-                value={reportTarget} 
-                onChange={e => setReportTarget(e.target.value)} 
-                placeholder="ID of the member" 
+                value={reportTarget}
+                onChange={e => setReportTarget(e.target.value)}
+                placeholder="ID of the member"
                 className="bg-card rounded-xl"
                 data-testid="input-report-target"
               />
             </div>
             <div>
               <label htmlFor="report-content" className="block text-sm font-medium mb-2 text-foreground">Content ID (Optional)</label>
-              <Input 
+              <Input
                 id="report-content"
-                value={reportContent} 
-                onChange={e => setReportContent(e.target.value)} 
-                placeholder="ID of the content" 
+                value={reportContent}
+                onChange={e => setReportContent(e.target.value)}
+                placeholder="ID of the content"
                 className="bg-card rounded-xl"
                 data-testid="input-report-content"
               />
@@ -274,11 +274,11 @@ export default function SafetyPage() {
 
           <div>
             <label htmlFor="report-details" className="block text-sm font-medium mb-2 text-foreground">Details (Optional)</label>
-            <Textarea 
+            <Textarea
               id="report-details"
-              value={reportDetails} 
-              onChange={e => setReportDetails(e.target.value)} 
-              placeholder="Provide context for our review team..." 
+              value={reportDetails}
+              onChange={e => setReportDetails(e.target.value)}
+              placeholder="Provide context for our review team..."
               className="bg-card rounded-xl min-h-[120px]"
               data-testid="input-report-details"
             />
@@ -294,7 +294,7 @@ export default function SafetyPage() {
         <h3 className="text-2xl font-display font-semibold flex items-center gap-3 mb-6">
           <Search className="w-6 h-6 text-primary" /> Report History & Appeals
         </h3>
-        
+
         <div className="space-y-8" aria-live="polite">
           <div>
             <h4 className="font-semibold text-xl mb-4">Your Reports</h4>
@@ -307,7 +307,7 @@ export default function SafetyPage() {
                     <div className="flex justify-between items-start mb-2">
                       <span className="font-medium capitalize text-lg">{item.report.category.replace('_', ' ')}</span>
                       <span className={`text-sm px-2 py-1 rounded-md font-semibold tracking-wider uppercase border ${
-                        item.moderationRecord?.state === 'pending' ? 'bg-secondary border-secondary-border text-secondary-foreground' : 
+                        item.moderationRecord?.state === 'pending' ? 'bg-secondary border-secondary-border text-secondary-foreground' :
                         item.moderationRecord?.state === 'removed' ? 'bg-destructive/10 border-destructive/20 text-destructive' :
                         'bg-muted border-border text-muted-foreground'
                       }`}>
@@ -315,7 +315,7 @@ export default function SafetyPage() {
                       </span>
                     </div>
                     {item.report.details && <p className="text-muted-foreground mt-2 italic">"{item.report.details}"</p>}
-                    
+
                     {item.moderationRecord?.id && (
                       <div className="mt-4 pt-4 border-t border-border/50 text-sm">
                         <span className="text-muted-foreground">Record ID: {item.moderationRecord.id}</span>
@@ -327,8 +327,8 @@ export default function SafetyPage() {
                         )}
                         {(item.moderationRecord.state === 'held' || item.moderationRecord.state === 'removed') && (
                           <div className="mt-3">
-                            <Button 
-                              variant="outline" 
+                            <Button
+                              variant="outline"
                               size="sm"
                               onClick={() => {
                                 setAppealRecordId(item.moderationRecord.id);
@@ -377,22 +377,22 @@ export default function SafetyPage() {
               <div className="space-y-4">
                 <div>
                   <label htmlFor="appeal-record-id" className="block text-sm font-medium mb-2">Moderation Record ID</label>
-                  <Input 
+                  <Input
                     id="appeal-record-id"
-                    value={appealRecordId} 
-                    onChange={e => setAppealRecordId(e.target.value)} 
-                    placeholder="ID of the record to appeal" 
+                    value={appealRecordId}
+                    onChange={e => setAppealRecordId(e.target.value)}
+                    placeholder="ID of the record to appeal"
                     className="bg-card rounded-xl"
                     data-testid="input-appeal-record-id"
                   />
                 </div>
                 <div>
                   <label htmlFor="appeal-statement" className="block text-sm font-medium mb-2">Appeal Statement</label>
-                  <Textarea 
+                  <Textarea
                     id="appeal-statement"
-                    value={appealStatement} 
-                    onChange={e => setAppealStatement(e.target.value)} 
-                    placeholder="Provide your reasoning for this appeal..." 
+                    value={appealStatement}
+                    onChange={e => setAppealStatement(e.target.value)}
+                    placeholder="Provide your reasoning for this appeal..."
                     className="bg-card rounded-xl min-h-[100px]"
                     data-testid="input-appeal-statement"
                   />

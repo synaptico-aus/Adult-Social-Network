@@ -3,9 +3,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useLocation } from "wouter";
-import { 
-  useGetOwnProfile, 
-  getGetOwnProfileQueryKey, 
+import {
+  useGetOwnProfile,
+  getGetOwnProfileQueryKey,
   useUpdateOwnProfile,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -92,9 +92,9 @@ export default function ProfileEdit() {
 
     try {
       const { objectPath, reminder } = await uploadPhoto(file);
-      
+
       const currentValues = form.getValues();
-      const interestsArray = currentValues.interests 
+      const interestsArray = currentValues.interests
         ? currentValues.interests.split(',').map(s => s.trim()).filter(Boolean)
         : [];
 
@@ -122,7 +122,7 @@ export default function ProfileEdit() {
 
   const onSubmit = async (values: z.infer<typeof profileSchema>) => {
     try {
-      const interestsArray = values.interests 
+      const interestsArray = values.interests
         ? values.interests.split(',').map(s => s.trim()).filter(Boolean)
         : [];
 
@@ -138,14 +138,14 @@ export default function ProfileEdit() {
           photoPath: profile?.photoPath || null,
         }
       });
-      
+
       queryClient.invalidateQueries({ queryKey: getGetOwnProfileQueryKey() });
-      
+
       toast({
         title: "Profile saved",
         description: "Your details have been updated successfully.",
       });
-      
+
       setLocation("/me");
     } catch (error) {
       toast({
@@ -173,8 +173,8 @@ export default function ProfileEdit() {
         <Link href="/me" className="inline-flex items-center text-primary font-semibold mb-6 hover:underline">
           <ArrowLeft className="w-5 h-5 mr-2" /> Back to Me
         </Link>
-        <PageHeader 
-          title="Edit Profile" 
+        <PageHeader
+          title="Edit Profile"
           description="Update your personal details. Visibility settings can be changed in Privacy."
         />
       </div>
@@ -190,15 +190,15 @@ export default function ProfileEdit() {
                 {profile?.preferredName?.[0]?.toUpperCase() || 'M'}
               </div>
             )}
-            
+
             <div className="flex flex-col gap-2">
               <div className="flex items-center gap-4">
                 <Button variant="outline" className="relative cursor-pointer" disabled={isUploading}>
                   {isUploading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Upload className="w-4 h-4 mr-2" />}
                   {isUploading ? "Uploading..." : "Upload new photo"}
-                  <input 
-                    type="file" 
-                    accept="image/jpeg, image/png, image/webp" 
+                  <input
+                    type="file"
+                    accept="image/jpeg, image/png, image/webp"
                     className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                     onChange={handleFileChange}
                     disabled={isUploading}
@@ -236,17 +236,17 @@ export default function ProfileEdit() {
                   <FormLabel className="text-lg">Biography</FormLabel>
                   <FormDescription>A little bit about yourself.</FormDescription>
                   <FormControl>
-                    <Textarea 
-                      {...field} 
-                      value={field.value || ''} 
-                      className="text-lg min-h-[120px] rounded-xl resize-y" 
+                    <Textarea
+                      {...field}
+                      value={field.value || ''}
+                      className="text-lg min-h-[120px] rounded-xl resize-y"
                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <FormField
                 control={form.control}

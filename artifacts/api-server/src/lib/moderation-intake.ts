@@ -2,12 +2,14 @@ import { randomUUID } from "node:crypto";
 import { db, moderationRecordsTable, screeningResultsTable } from "@workspace/db";
 import { deterministicTextScreening, type MediaScreening } from "./screening";
 
+type ModerationExecutor = { insert: (...args: any[]) => any };
 export async function intakeForModeration(input: {
   contentId: string;
   subjectMemberId?: string;
   text?: string;
   media?: { objectPath: string; contentType: string };
   requiredMediaScreening?: MediaScreening;
+  executor?: ModerationExecutor;
 }) {
   const textResult = input.text === undefined ? null : deterministicTextScreening(input.text);
   let mediaResult = null;
@@ -19,10 +21,12 @@ export async function intakeForModeration(input: {
     }
   }
   const held = textResult?.decision === "held" || mediaResult?.decision === "held";
-  return db.transaction(async (tx) => {
+  const write = async (tx: ModerationExecutor) => {
     if (textResult) await tx.insert(screeningResultsTable).values({ id: randomUUID(), contentId: input.contentId, kind: "text", result: textResult.decision, details: { reasons: textResult.reasons } });
     if (mediaResult) await tx.insert(screeningResultsTable).values({ id: randomUUID(), contentId: input.contentId, kind: "media", result: mediaResult.decision, details: { reasons: mediaResult.reasons } });
-    const [record] = await tx.insert(moderationRecordsTable).values({ id: randomUUID(), contentId: input.contentId, subjectMemberId: input.subjectMemberId, state: held ? "held" : "pending", reason: held ? (textResult?.reasons ?? mediaResult?.reasons ?? []).join(",") : null }).returning();
+    const [record] = await tx.insert(moderationRecordsTable).values({ id: randomUUID(), contentId: input.contentId, subjectMemberId: input.subjectMemberId, state: held ? "held" : "allowed", reason: held ? (textResult?.reasons ?? mediaResult?.reasons ?? []).join(",") : "automated screening allowed" }).returning();
     return record;
-  });
+  };
+  if (input.executor) return write(input.executor);
+  return db.transaction(write);
 }

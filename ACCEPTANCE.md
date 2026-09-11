@@ -216,3 +216,36 @@ Phase 3 is verified in development. Production release still depends on Phase 2 
 | API and policy suite | Passed: 45 tests |
 | Concurrency and revocation tests | Passed for crossed requests, block races, unfriend, follow-only access, and repeated block cleanup |
 | Browser journey | Passed for search, send request, follow, block, settings persistence, and database cleanup |
+
+## Phase 6 acceptance
+
+- [x] Text posts support drafts, edit, delete, moderated publish, audience choice,
+  explicit refresh, and bounded chronological pagination.
+- [x] Friends and All filters are active; Groups and Education are clearly
+  unavailable and contain no fabricated content.
+- [x] Authors can select a response label, close comments, and hide reaction
+  counts from other members.
+- [x] Supportive reactions, comments, one-level replies, own-comment editing and
+  deletion, saves, hides, and reports work through typed interfaces.
+- [x] Blocked members cannot view or interact with protected posts, even through
+  saved posts, internal shares, direct links, or known identifiers.
+- [x] Internal shares retain a source reference, cannot widen its audience, and
+  disappear when source authorization is revoked.
+- [x] Publishing and comment creation use explicit automated allowed/held
+  moderation states; body edits are re-screened in the same transaction.
+- [x] Report evidence is immutable under defined policy metadata and remains
+  capability/MFA gated and access-audited after user deletion.
+- [x] Moderation-aware notification events are stored internally for a future
+  notification phase and reauthorize before being returned.
+- [x] No feed ranking uses distress, conflict, or prolonged scrolling.
+
+### Phase 6 verification record
+
+| Check | Result |
+| --- | --- |
+| OpenAPI generation, schema push, workspace typecheck, diff check | Passed |
+| API and policy suite | Passed: 57 tests |
+| Phase 6 DB-backed HTTP gate | Passed: 12 scenarios with two members, blocked member, pagination, retention, and relationship/audience races |
+| Architecture review | Passed with no unresolved high or medium findings |
+| Browser journey | Passed for drafts, publish/edit, reactions, comments/replies, shares, reports, save/reload, audience and friendship revocation, and privacy-safe direct links |
+| Responsive check | Passed at 390×844 for feed, composer, and post detail |

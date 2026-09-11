@@ -1,6 +1,6 @@
 import { Link } from 'wouter';
-import { 
-  ShieldCheck, 
+import {
+  ShieldCheck,
   EyeOff,
   Users,
   HeartHandshake,
@@ -19,7 +19,7 @@ import {
 export default function Home() {
   return (
     <div className="min-h-[100dvh] flex flex-col w-full selection:bg-secondary selection:text-secondary-foreground">
-      
+
       {/* Navigation Shell */}
       <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto px-4 md:px-8 h-20 flex items-center justify-between">
@@ -29,7 +29,7 @@ export default function Home() {
             </div>
             <span className="font-display font-semibold text-xl text-foreground tracking-tight">Me</span>
           </div>
-          
+
           <nav className="hidden md:flex items-center gap-8 font-medium text-muted-foreground">
             <a href="#purpose" className="hover:text-foreground transition-colors py-2 px-3 min-h-[48px] flex items-center">Purpose</a>
             <a href="#audiences" className="hover:text-foreground transition-colors py-2 px-3 min-h-[48px] flex items-center">Who it's for</a>
@@ -44,29 +44,29 @@ export default function Home() {
       </header>
 
       <main className="flex-1 flex flex-col">
-        
+
         {/* Hero Section */}
         <section className="relative px-4 py-24 md:py-32 lg:py-48 flex flex-col items-center justify-center text-center overflow-hidden">
           {/* Subtle background decoration */}
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-secondary/50 via-background to-background -z-10" />
-          
+
           <div className="container max-w-4xl mx-auto flex flex-col items-center gap-8">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#7A0C1A] text-[#FFF9F7] text-sm font-medium shadow-sm">
               <Info className="w-4 h-4" />
               <span>Development Preview Phase</span>
             </div>
-            
+
             <h1 className="font-display text-5xl md:text-6xl lg:text-7xl font-bold text-foreground text-balance leading-[1.1]">
               Connection, <br className="hidden md:block" />
               <span className="text-primary">respectfully designed.</span>
             </h1>
-            
+
             <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl text-balance leading-relaxed">
               A private, calm social space being thoughtfully built for individuals and families navigating dementia globally.
             </p>
 
             <div className="mt-8 flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-              <a 
+              <a
                 href="#purpose"
                 className="inline-flex items-center justify-center gap-2 h-14 px-8 rounded-full bg-primary text-primary-foreground font-medium text-lg hover:bg-[#7A0C1A] transition-colors shadow-sm min-w-[200px]"
               >
@@ -277,7 +277,7 @@ export default function Home() {
                 A social connection space respectfully designed for people affected by dementia globally. Currently in phased development.
               </p>
             </div>
-            
+
             <div className="flex flex-col gap-4">
               <h4 className="font-display font-semibold text-lg">Product</h4>
               <nav className="flex flex-col gap-3">
@@ -295,7 +295,7 @@ export default function Home() {
               </nav>
             </div>
           </div>
-          
+
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-white/40">
             <p>&copy; {new Date().getFullYear()} Me Social Space. All rights reserved.</p>
             <p className="flex items-center gap-1">

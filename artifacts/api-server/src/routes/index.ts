@@ -5,6 +5,7 @@ import staffRouter from "./staff";
 import profileRouter from "./profile";
 import safetyRouter from "./safety";
 import relationshipsRouter from "./relationships";
+import postsRouter from "./posts";
 
 const router: IRouter = Router();
 
@@ -14,5 +15,6 @@ router.use(staffRouter);
 router.use(profileRouter);
 router.use(safetyRouter);
 router.use(relationshipsRouter);
+router.use(postsRouter);
 
 export default router;

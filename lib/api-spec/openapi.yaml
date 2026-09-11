@@ -438,8 +438,183 @@ paths:
       tags: [account]
       requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/AccountSettingsInput" } } } }
       responses: { "200": { description: Updated settings, content: { application/json: { schema: { $ref: "#/components/schemas/AccountSettings" } } } } }
+  /posts:
+    get:
+      operationId: listOwnPosts
+      tags: [posts]
+      parameters:
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 50, default: 20 } }
+        - { name: cursor, in: query, schema: { type: string } }
+        - { name: authorMemberId, in: query, schema: { type: string } }
+      responses: { "200": { description: Posts, content: { application/json: { schema: { $ref: "#/components/schemas/PaginatedPosts" } } } } }
+    post:
+      operationId: createPost
+      tags: [posts]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/PostInput" } } } }
+      responses: { "201": { description: Created post, content: { application/json: { schema: { $ref: "#/components/schemas/Post" } } } } }
+  /posts/{id}:
+    get:
+      operationId: getPost
+      tags: [posts]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses:
+        "200": { description: Post detail, content: { application/json: { schema: { $ref: "#/components/schemas/Post" } } } }
+        "404": { description: Post not found }
+    patch:
+      operationId: updatePost
+      tags: [posts]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/PostInput" } } } }
+      responses: { "200": { description: Updated post } }
+    delete:
+      operationId: deletePost
+      tags: [posts]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { "204": { description: Deleted } }
+  /posts/{id}/publish:
+    post:
+      operationId: publishPost
+      tags: [posts]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { "200": { description: Published post } }
+  /feed:
+    get:
+      operationId: getFeed
+      tags: [posts]
+      parameters:
+        - { name: filter, in: query, schema: { type: string, enum: [all, friends], default: all } }
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 50, default: 20 } }
+        - { name: cursor, in: query, schema: { type: string } }
+      responses: { "200": { description: Reverse chronological feed, content: { application/json: { schema: { $ref: "#/components/schemas/PaginatedPosts" } } } } }
+  /notifications:
+    get:
+      operationId: listNotificationEvents
+      tags: [notifications]
+      responses: { "200": { description: Reauthorized internal notification events, content: { application/json: { schema: { type: array, items: { type: object } } } } } }
+  /posts/{id}/reactions:
+    post:
+      operationId: togglePostReaction
+      tags: [posts]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/ReactionInput" } } } }
+      responses: { "200": { description: Reaction state } }
+  /posts/{id}/comments:
+    get:
+      operationId: listPostComments
+      tags: [posts]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { "200": { description: Comments, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Comment" } } } } } }
+    post:
+      operationId: createPostComment
+      tags: [posts]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/CommentInput" } } } }
+      responses: { "201": { description: Comment, content: { application/json: { schema: { $ref: "#/components/schemas/Comment" } } } } }
+  /comments/{id}:
+    patch:
+      operationId: updatePostComment
+      tags: [posts]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/CommentUpdateInput" } } } }
+      responses: { "200": { description: Updated comment } }
+    delete:
+      operationId: deletePostComment
+      tags: [posts]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { "204": { description: Deleted } }
+  /posts/{id}/save:
+    post:
+      operationId: savePost
+      tags: [posts]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { "204": { description: Saved } }
+    delete:
+      operationId: unsavePost
+      tags: [posts]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { "204": { description: Unsaved } }
+  /posts/{id}/hide:
+    post:
+      operationId: hidePost
+      tags: [posts]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { "204": { description: Hidden } }
+    delete:
+      operationId: unhidePost
+      tags: [posts]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { "204": { description: Unhidden } }
+  /saved:
+    get:
+      operationId: listSavedPosts
+      tags: [posts]
+      parameters:
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 50, default: 20 } }
+        - { name: cursor, in: query, schema: { type: string } }
+      responses: { "200": { description: Saved posts, content: { application/json: { schema: { $ref: "#/components/schemas/PaginatedPosts" } } } } }
 components:
   schemas:
+    PostInput:
+      type: object
+      required: [body]
+      properties:
+        body: { type: string, maxLength: 20000 }
+        audience: { type: string, enum: [only_me, friends, public] }
+        responseLabel: { type: ["string", "null"], enum: [someone_to_listen, shared_experiences, practical_ideas, something_uplifting, null] }
+        commentsOpen: { type: boolean }
+        visibleReactionCounts: { type: boolean }
+        originalPostId: { type: string }
+        commentary: { type: string, maxLength: 10000 }
+    Post:
+      type: object
+      required: [id, authorMemberId, body, audience, status, commentsOpen, visibleReactionCounts, createdAt, updatedAt]
+      properties:
+        id: { type: string }
+        authorMemberId: { type: string }
+        body: { type: ["string", "null"] }
+        audience: { type: string, enum: [only_me, friends, public] }
+        responseLabel: { type: ["string", "null"] }
+        status: { type: string, enum: [draft, published, deleted] }
+        commentsOpen: { type: boolean }
+        visibleReactionCounts: { type: boolean }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        authorId: { type: string }
+        authorDisplayName: { type: string }
+        myReactions: { type: array, items: { type: string, enum: [hear_you, thank_you_for_sharing] } }
+        saved: { type: boolean }
+        reactionCounts: { type: ["object", "null"] }
+        originalAvailable: { type: boolean }
+    PaginatedPosts:
+      type: object
+      required: [items, nextCursor]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/Post" } }
+        nextCursor: { type: ["string", "null"] }
+    ReactionInput:
+      type: object
+      required: [kind]
+      properties: { kind: { type: string, enum: [hear_you, thank_you_for_sharing] } }
+    CommentInput:
+      type: object
+      required: [body]
+      properties: { body: { type: string, maxLength: 10000 }, parentCommentId: { type: ["string", "null"] } }
+    CommentUpdateInput:
+      type: object
+      required: [body]
+      properties: { body: { type: string, maxLength: 10000 } }
+    Comment:
+      type: object
+      required: [id, postId, authorMemberId, body, status, createdAt, updatedAt]
+      properties:
+        id: { type: string }
+        postId: { type: string }
+        authorMemberId: { type: string }
+        parentCommentId: { type: ["string", "null"] }
+        body: { type: string }
+        status: { type: string, enum: [active, deleted] }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
     MemberTargetInput:
       type: object
       required: [targetMemberId]
@@ -575,6 +750,8 @@ components:
       properties:
         targetMemberId: { type: string }
         contentId: { type: string }
+        contentTargetType: { type: string, enum: [post, comment] }
+        contentTargetId: { type: string }
         category: { type: string, enum: [harassment, threats, exploitation, scams, impersonation, hateful_content, dangerous_medical_claims, distress_disclosure, respectful_disagreement] }
         details: { type: string, maxLength: 5000 }
     AppealInput:

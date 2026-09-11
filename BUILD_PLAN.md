@@ -214,12 +214,13 @@ Transactional friend requests and mutual friendships, directional follows,
 privacy-aware member search, opt-in voluntary-trait suggestions, connection
 controls, anti-spam limits, and block-aware access revocation.
 
-## Phase 6 — Media and private storage
+## Phase 6 — Feed, response-guided posts, and interactions
 
-**Status: Not started**
+**Status: Verified in development**
 
-Restricted-by-default posting and feeds, private uploads, signed access,
-metadata, deletion, accessibility descriptions, and privacy-aware media delivery.
+Persistent moderated text posts, drafts, chronological feeds, response guidance,
+comments and replies, supportive reactions, saves, hides, reports, and
+source-authorized internal shares. Private media storage remains a future phase.
 
 ## Phase 7 — Messaging and notifications
 
@@ -265,3 +266,18 @@ Security, accessibility, privacy, moderation, performance, operational, legal, a
 - Added responsive Discover, Friends, Requests, and Following interfaces plus
   persisted Connection Settings.
 - Verified with 45 API/library tests and a Clerk-authenticated browser journey.
+
+### Phase 6 implementation record
+
+- Added persistent drafts and moderated publishing with `only_me`, `friends`, and
+  `public` audiences. Groups and Education remain visibly unavailable.
+- Added an unranked reverse-chronological feed, explicit refresh, bounded keyset
+  pagination, direct links, own-post management, and live-authorized saved posts.
+- Added response labels, comment controls, one-level replies, supportive
+  reactions, optional visible counts, saves, hides, reports, and internal shares.
+- Internal shares retain only a source reference and never widen the original
+  audience. Feed, direct, saved, shared, and interaction paths reauthorize live.
+- Added immutable retained evidence, audited staff evidence access, account
+  export/deletion coverage, and moderation-aware internal notification events.
+- Verified with 57 API/policy tests, architecture review, and Clerk-authenticated
+  two-account, blocked-member, direct-link, saved-post, and mobile browser checks.

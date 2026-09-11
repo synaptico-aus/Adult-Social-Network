@@ -16,6 +16,10 @@ export const requireAuth: RequestHandler = (req, res, next) => {
 type Request = { userId?: string };
 
 const buckets = new Map<string, { count: number; resetAt: number }>();
+/** Test-only reset hook; never called by production request handling. */
+export function resetRateLimitBuckets(): void {
+  if (process.env.NODE_ENV === "test" || process.env.PHASE6_TEST === "1") buckets.clear();
+}
 /** Best-effort process-local limiter; keys contain no tokens or secrets. */
 export function sensitiveRateLimit(limit = 20, windowMs = 60_000): RequestHandler {
   return (req, res, next) => {

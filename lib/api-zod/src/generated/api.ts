@@ -362,6 +362,8 @@ export const createReportBodyDetailsMax = 5000;
 export const CreateReportBody = zod.object({
   "targetMemberId": zod.string().optional(),
   "contentId": zod.string().optional(),
+  "contentTargetType": zod.enum(['post', 'comment']).optional(),
+  "contentTargetId": zod.string().optional(),
   "category": zod.enum(['harassment', 'threats', 'exploitation', 'scams', 'impersonation', 'hateful_content', 'dangerous_medical_claims', 'distress_disclosure', 'respectful_disagreement']),
   "details": zod.string().max(createReportBodyDetailsMax).optional()
 })
@@ -766,6 +768,324 @@ export const UpdateAccountSettingsResponse = zod.object({
   "inboundFriendRequests": zod.boolean(),
   "inboundFollows": zod.boolean(),
   "suggestionsEnabled": zod.boolean()
+})
+
+
+export const listOwnPostsQueryLimitDefault = 20;
+export const listOwnPostsQueryLimitMax = 50;
+
+
+
+export const ListOwnPostsQueryParams = zod.object({
+  "limit": zod.coerce.number().int().min(1).max(listOwnPostsQueryLimitMax).default(listOwnPostsQueryLimitDefault),
+  "cursor": zod.coerce.string().optional(),
+  "authorMemberId": zod.coerce.string().optional()
+})
+
+export const ListOwnPostsResponse = zod.object({
+  "items": zod.array(zod.object({
+  "id": zod.string(),
+  "authorMemberId": zod.string(),
+  "body": zod.string().nullable(),
+  "audience": zod.enum(['only_me', 'friends', 'public']),
+  "responseLabel": zod.string().nullish(),
+  "status": zod.enum(['draft', 'published', 'deleted']),
+  "commentsOpen": zod.boolean(),
+  "visibleReactionCounts": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date(),
+  "authorId": zod.string().optional(),
+  "authorDisplayName": zod.string().optional(),
+  "myReactions": zod.array(zod.enum(['hear_you', 'thank_you_for_sharing'])).optional(),
+  "saved": zod.boolean().optional(),
+  "reactionCounts": zod.object({
+
+}).passthrough().nullish(),
+  "originalAvailable": zod.boolean().optional()
+})),
+  "nextCursor": zod.string().nullable()
+})
+
+
+export const createPostBodyBodyMax = 20000;
+
+export const createPostBodyCommentaryMax = 10000;
+
+
+
+export const CreatePostBody = zod.object({
+  "body": zod.string().max(createPostBodyBodyMax),
+  "audience": zod.enum(['only_me', 'friends', 'public']).optional(),
+  "responseLabel": zod.union([zod.literal('someone_to_listen'),zod.literal('shared_experiences'),zod.literal('practical_ideas'),zod.literal('something_uplifting'),zod.literal(null)]).nullish(),
+  "commentsOpen": zod.boolean().optional(),
+  "visibleReactionCounts": zod.boolean().optional(),
+  "originalPostId": zod.string().optional(),
+  "commentary": zod.string().max(createPostBodyCommentaryMax).optional()
+})
+
+export const CreatePostResponse = zod.object({
+  "id": zod.string(),
+  "authorMemberId": zod.string(),
+  "body": zod.string().nullable(),
+  "audience": zod.enum(['only_me', 'friends', 'public']),
+  "responseLabel": zod.string().nullish(),
+  "status": zod.enum(['draft', 'published', 'deleted']),
+  "commentsOpen": zod.boolean(),
+  "visibleReactionCounts": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date(),
+  "authorId": zod.string().optional(),
+  "authorDisplayName": zod.string().optional(),
+  "myReactions": zod.array(zod.enum(['hear_you', 'thank_you_for_sharing'])).optional(),
+  "saved": zod.boolean().optional(),
+  "reactionCounts": zod.object({
+
+}).passthrough().nullish(),
+  "originalAvailable": zod.boolean().optional()
+})
+
+
+export const GetPostParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const GetPostResponse = zod.object({
+  "id": zod.string(),
+  "authorMemberId": zod.string(),
+  "body": zod.string().nullable(),
+  "audience": zod.enum(['only_me', 'friends', 'public']),
+  "responseLabel": zod.string().nullish(),
+  "status": zod.enum(['draft', 'published', 'deleted']),
+  "commentsOpen": zod.boolean(),
+  "visibleReactionCounts": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date(),
+  "authorId": zod.string().optional(),
+  "authorDisplayName": zod.string().optional(),
+  "myReactions": zod.array(zod.enum(['hear_you', 'thank_you_for_sharing'])).optional(),
+  "saved": zod.boolean().optional(),
+  "reactionCounts": zod.object({
+
+}).passthrough().nullish(),
+  "originalAvailable": zod.boolean().optional()
+})
+
+
+export const UpdatePostParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const updatePostBodyBodyMax = 20000;
+
+export const updatePostBodyCommentaryMax = 10000;
+
+
+
+export const UpdatePostBody = zod.object({
+  "body": zod.string().max(updatePostBodyBodyMax),
+  "audience": zod.enum(['only_me', 'friends', 'public']).optional(),
+  "responseLabel": zod.union([zod.literal('someone_to_listen'),zod.literal('shared_experiences'),zod.literal('practical_ideas'),zod.literal('something_uplifting'),zod.literal(null)]).nullish(),
+  "commentsOpen": zod.boolean().optional(),
+  "visibleReactionCounts": zod.boolean().optional(),
+  "originalPostId": zod.string().optional(),
+  "commentary": zod.string().max(updatePostBodyCommentaryMax).optional()
+})
+
+export const UpdatePostResponse = zod.unknown()
+
+
+export const DeletePostParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const DeletePostResponse = zod.void()
+
+
+export const PublishPostParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const PublishPostResponse = zod.unknown()
+
+
+export const getFeedQueryFilterDefault = `all`;
+export const getFeedQueryLimitDefault = 20;
+export const getFeedQueryLimitMax = 50;
+
+
+
+export const GetFeedQueryParams = zod.object({
+  "filter": zod.enum(['all', 'friends']).default(getFeedQueryFilterDefault),
+  "limit": zod.coerce.number().int().min(1).max(getFeedQueryLimitMax).default(getFeedQueryLimitDefault),
+  "cursor": zod.coerce.string().optional()
+})
+
+export const GetFeedResponse = zod.object({
+  "items": zod.array(zod.object({
+  "id": zod.string(),
+  "authorMemberId": zod.string(),
+  "body": zod.string().nullable(),
+  "audience": zod.enum(['only_me', 'friends', 'public']),
+  "responseLabel": zod.string().nullish(),
+  "status": zod.enum(['draft', 'published', 'deleted']),
+  "commentsOpen": zod.boolean(),
+  "visibleReactionCounts": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date(),
+  "authorId": zod.string().optional(),
+  "authorDisplayName": zod.string().optional(),
+  "myReactions": zod.array(zod.enum(['hear_you', 'thank_you_for_sharing'])).optional(),
+  "saved": zod.boolean().optional(),
+  "reactionCounts": zod.object({
+
+}).passthrough().nullish(),
+  "originalAvailable": zod.boolean().optional()
+})),
+  "nextCursor": zod.string().nullable()
+})
+
+
+export const ListNotificationEventsResponseItem = zod.object({
+
+}).passthrough()
+export const ListNotificationEventsResponse = zod.array(ListNotificationEventsResponseItem)
+
+
+export const TogglePostReactionParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const TogglePostReactionBody = zod.object({
+  "kind": zod.enum(['hear_you', 'thank_you_for_sharing'])
+})
+
+export const TogglePostReactionResponse = zod.unknown()
+
+
+export const ListPostCommentsParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const ListPostCommentsResponseItem = zod.object({
+  "id": zod.string(),
+  "postId": zod.string(),
+  "authorMemberId": zod.string(),
+  "parentCommentId": zod.string().nullish(),
+  "body": zod.string(),
+  "status": zod.enum(['active', 'deleted']),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+export const ListPostCommentsResponse = zod.array(ListPostCommentsResponseItem)
+
+
+export const CreatePostCommentParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const createPostCommentBodyBodyMax = 10000;
+
+
+
+export const CreatePostCommentBody = zod.object({
+  "body": zod.string().max(createPostCommentBodyBodyMax),
+  "parentCommentId": zod.string().nullish()
+})
+
+export const CreatePostCommentResponse = zod.object({
+  "id": zod.string(),
+  "postId": zod.string(),
+  "authorMemberId": zod.string(),
+  "parentCommentId": zod.string().nullish(),
+  "body": zod.string(),
+  "status": zod.enum(['active', 'deleted']),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+export const UpdatePostCommentParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const updatePostCommentBodyBodyMax = 10000;
+
+
+
+export const UpdatePostCommentBody = zod.object({
+  "body": zod.string().max(updatePostCommentBodyBodyMax)
+})
+
+export const UpdatePostCommentResponse = zod.unknown()
+
+
+export const DeletePostCommentParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const DeletePostCommentResponse = zod.void()
+
+
+export const SavePostParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const SavePostResponse = zod.void()
+
+
+export const UnsavePostParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const UnsavePostResponse = zod.void()
+
+
+export const HidePostParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const HidePostResponse = zod.void()
+
+
+export const UnhidePostParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const UnhidePostResponse = zod.void()
+
+
+export const listSavedPostsQueryLimitDefault = 20;
+export const listSavedPostsQueryLimitMax = 50;
+
+
+
+export const ListSavedPostsQueryParams = zod.object({
+  "limit": zod.coerce.number().int().min(1).max(listSavedPostsQueryLimitMax).default(listSavedPostsQueryLimitDefault),
+  "cursor": zod.coerce.string().optional()
+})
+
+export const ListSavedPostsResponse = zod.object({
+  "items": zod.array(zod.object({
+  "id": zod.string(),
+  "authorMemberId": zod.string(),
+  "body": zod.string().nullable(),
+  "audience": zod.enum(['only_me', 'friends', 'public']),
+  "responseLabel": zod.string().nullish(),
+  "status": zod.enum(['draft', 'published', 'deleted']),
+  "commentsOpen": zod.boolean(),
+  "visibleReactionCounts": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date(),
+  "authorId": zod.string().optional(),
+  "authorDisplayName": zod.string().optional(),
+  "myReactions": zod.array(zod.enum(['hear_you', 'thank_you_for_sharing'])).optional(),
+  "saved": zod.boolean().optional(),
+  "reactionCounts": zod.object({
+
+}).passthrough().nullish(),
+  "originalAvailable": zod.boolean().optional()
+})),
+  "nextCursor": zod.string().nullable()
 })
 
 

@@ -6,10 +6,13 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { ReportInputCategory } from './reportInputCategory';
+import type { ReportInputContentTargetType } from './reportInputContentTargetType';
 
 export interface ReportInput {
   targetMemberId?: string;
   contentId?: string;
+  contentTargetType?: ReportInputContentTargetType;
+  contentTargetId?: string;
   category: ReportInputCategory;
   /** @maxLength 5000 */
   details?: string;

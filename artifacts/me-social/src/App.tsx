@@ -23,6 +23,9 @@ import Explore from '@/pages/explore';
 import Groups from '@/pages/groups';
 import Messages from '@/pages/messages';
 import MePage from '@/pages/me-profile';
+import MePosts from '@/pages/me-posts';
+import SavedPosts from '@/pages/saved-posts';
+import PostDetail from '@/pages/post-detail';
 import ProfileEdit from '@/pages/profile-edit';
 import ProfilePreview from '@/pages/profile-preview';
 import ThisIsMe from '@/pages/this-is-me';
@@ -132,6 +135,9 @@ function Router() {
                   <Route path="/groups"><RequireMember><Groups /></RequireMember></Route>
                   <Route path="/messages"><RequireMember><Messages /></RequireMember></Route>
                   <Route path="/me"><RequireMember><MePage /></RequireMember></Route>
+                  <Route path="/me/posts"><RequireMember><MePosts /></RequireMember></Route>
+                  <Route path="/saved"><RequireMember><SavedPosts /></RequireMember></Route>
+                  <Route path="/posts/:id"><RequireMember><PostDetail /></RequireMember></Route>
                   <Route path="/profile/edit"><RequireMember><ProfileEdit /></RequireMember></Route>
                   <Route path="/profile/preview"><RequireMember><ProfilePreview /></RequireMember></Route>
                   <Route path="/this-is-me"><RequireMember><ThisIsMe /></RequireMember></Route>

@@ -37,8 +37,8 @@ export default function ProfilePreview() {
         <Link href="/me" className="inline-flex items-center text-primary font-semibold mb-6 hover:underline">
           <ArrowLeft className="w-5 h-5 mr-2" /> Back to Me
         </Link>
-        <PageHeader 
-          title="Profile Preview" 
+        <PageHeader
+          title="Profile Preview"
           description="This is how other signed-in members see your profile based on your privacy settings."
         />
       </div>
@@ -46,21 +46,21 @@ export default function ProfilePreview() {
       <div className="bg-card border border-border rounded-[2rem] overflow-hidden shadow-sm">
         {/* Banner area */}
         <div className="h-32 bg-primary/10 w-full" />
-        
+
         <div className="px-8 pb-10">
           <div className="flex flex-col sm:flex-row gap-6 items-start -mt-16 mb-6">
             {profile.photoPath ? (
-              <img 
-                src={getPhotoUrl(profile.photoPath)} 
-                alt="Profile" 
-                className="w-32 h-32 rounded-full object-cover shadow-md border-4 border-card bg-card" 
+              <img
+                src={getPhotoUrl(profile.photoPath)}
+                alt="Profile"
+                className="w-32 h-32 rounded-full object-cover shadow-md border-4 border-card bg-card"
               />
             ) : (
               <div className="w-32 h-32 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-6xl font-display font-bold shadow-md border-4 border-card">
                 {profile.preferredName?.[0]?.toUpperCase() || 'M'}
               </div>
             )}
-            
+
             <div className="pt-16 sm:pt-16">
               <h2 className="text-3xl font-display font-bold text-foreground">{profile.preferredName}</h2>
               {profile.roles && profile.roles.length > 0 && (
@@ -100,7 +100,7 @@ export default function ProfilePreview() {
 
             <div className="space-y-6 bg-secondary/10 p-6 rounded-2xl border border-border/50 h-fit">
               <h3 className="text-lg font-display font-semibold text-foreground">Details</h3>
-              
+
               <ul className="space-y-4">
                 {profile.broadRegion && (
                   <li className="flex items-start gap-3">
@@ -111,7 +111,7 @@ export default function ProfilePreview() {
                     </div>
                   </li>
                 )}
-                
+
                 {profile.language && (
                   <li className="flex items-start gap-3">
                     <Globe className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
@@ -136,7 +136,7 @@ export default function ProfilePreview() {
           </div>
         </div>
       </div>
-      
+
       <div className="bg-secondary/30 p-6 rounded-[2rem] border border-border flex items-start gap-4">
         <ShieldAlert className="w-6 h-6 text-muted-foreground shrink-0 mt-1" />
         <p className="text-muted-foreground leading-relaxed">

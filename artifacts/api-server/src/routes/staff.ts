@@ -1,7 +1,7 @@
 import { Router, type IRouter, type Request, type Response } from "express";
 import { requireStaffCapability, requireStaffMfa } from "../middlewares/staff-auth";
 import { STAFF_ROLE_CAPABILITIES, roleHasCapability } from "../lib/staff-policy";
-import { db, appealsTable, evidenceAccessAuditTable, moderationRecordsTable, reportsTable, sensitiveActionAuditTable, staffRoleAssignmentsTable, verificationRequestsTable } from "@workspace/db";
+import { db, appealsTable, evidenceAccessAuditTable, moderationRecordsTable, reportsTable, retainedEvidenceTable, sensitiveActionAuditTable, staffRoleAssignmentsTable, verificationRequestsTable } from "@workspace/db";
 import { and, desc, eq, inArray, or } from "drizzle-orm";
 import { z } from "zod";
 import { getAuth } from "@clerk/express";
@@ -46,10 +46,16 @@ router.post("/staff/evidence/:evidenceId/access", requireStaffCapability("eviden
   const actor = getAuth(req).userId;
   if (!parsed.success || !actor) { res.status(400).json({ error: "A specific access reason is required" }); return; }
   const evidenceId = String(req.params.evidenceId);
-  const report = (await db.select().from(reportsTable).where(or(eq(reportsTable.id, evidenceId), eq(reportsTable.contentId, evidenceId))).limit(1))[0];
-  if (!report) { res.status(404).json({ error: "Evidence is not associated with a report" }); return; }
-  await db.insert(evidenceAccessAuditTable).values({ id: randomUUID(), actorClerkUserId: actor, evidenceId: report.id, reason: parsed.data.reason });
-  res.json({ allowed: true, report });
+  const evidence = (await db.select().from(retainedEvidenceTable).where(eq(retainedEvidenceTable.id, evidenceId)).limit(1))[0] ??
+    (await db.select().from(retainedEvidenceTable).where(eq(retainedEvidenceTable.contentId, evidenceId)).limit(1))[0];
+  if (!evidence) {
+    const report = (await db.select().from(reportsTable).where(or(eq(reportsTable.id, evidenceId), eq(reportsTable.contentId, evidenceId))).limit(1))[0];
+    if (!report) { res.status(404).json({ error: "Retained evidence is not associated with a report" }); return; }
+    await db.insert(evidenceAccessAuditTable).values({ id: randomUUID(), actorClerkUserId: actor, evidenceId: report.id, reason: parsed.data.reason });
+    res.json({ allowed: true, report }); return;
+  }
+  await db.insert(evidenceAccessAuditTable).values({ id: randomUUID(), actorClerkUserId: actor, evidenceId: evidence.id, reason: parsed.data.reason });
+  res.json({ allowed: true, evidence: { id: evidence.id, reportId: evidence.reportId, contentId: evidence.contentId, contentKind: evidence.contentKind, bodySnapshot: evidence.bodySnapshot, policyVersion: evidence.policyVersion, retentionReason: evidence.retentionReason, capturedAt: evidence.capturedAt } });
 });
 router.post("/staff/moderation/:id/decision", requireStaffCapability("moderation.decide"), async (req: Request, res: Response): Promise<void> => {
   const parsed = z.object({

@@ -90,3 +90,15 @@ opt-in and may use only voluntarily supplied, member-visible interests,
 language, and broad region. Pair mutations are transactionally serialized, all
 lists are bounded, and no address-book upload or automatic invitation flow is
 permitted.
+
+### Phase 6 content rules
+Text posts, drafts, chronological feeds, response guidance, comments/replies,
+supportive reactions, saves, hides, reports, and internal shares are implemented.
+Only `only_me`, `friends`, and `public` audiences are currently valid. Every
+feed, direct, saved, shared, notification, report, and interaction path must
+reauthorize current audience, friendship, either-direction blocks, moderation,
+and original-share visibility. Published body edits must be re-screened in the
+same transaction. Internal shares store only a source reference and cannot widen
+its audience. Retained evidence is immutable, policy-versioned, capability/MFA
+gated, and access-audited. Feed order is reverse chronological only; never rank
+for distress, conflict, engagement, or prolonged scrolling.

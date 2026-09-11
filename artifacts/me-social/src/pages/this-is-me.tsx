@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { 
+import {
   useListThisIsMeCards, getListThisIsMeCardsQueryKey,
-  useCreateThisIsMeCard, 
-  useUpdateThisIsMeCard, 
+  useCreateThisIsMeCard,
+  useUpdateThisIsMeCard,
   useDeleteThisIsMeCard,
   ThisIsMeCardKind,
   ThisIsMeCard
@@ -30,7 +30,7 @@ export default function ThisIsMe() {
 
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  
+
   const createCard = useCreateThisIsMeCard();
   const updateCard = useUpdateThisIsMeCard();
   const deleteCard = useDeleteThisIsMeCard();
@@ -128,8 +128,8 @@ export default function ThisIsMe() {
         <Link href="/me" className="inline-flex items-center text-primary font-semibold mb-6 hover:underline">
           <ArrowLeft className="w-5 h-5 mr-2" /> Back to Me
         </Link>
-        <PageHeader 
-          title="This is Me" 
+        <PageHeader
+          title="This is Me"
           description="Create personal introduction cards to share who you are with the community."
         />
       </div>
@@ -144,19 +144,19 @@ export default function ThisIsMe() {
             return (
               <div key={kind} className="bg-card border-2 border-primary/20 p-6 md:p-8 rounded-[2rem] shadow-sm">
                 <h3 className="text-2xl font-display font-semibold mb-4 text-foreground">{label}</h3>
-                
-                <Textarea 
+
+                <Textarea
                   value={editText}
                   onChange={e => setEditText(e.target.value)}
                   placeholder={`Write about ${label.toLowerCase()}...`}
                   className="min-h-[150px] text-lg rounded-xl mb-6"
                 />
-                
+
                 <div className="flex items-start space-x-3 bg-secondary/30 p-4 rounded-xl mb-6 border border-border/50">
-                  <Checkbox 
-                    id={`perm-${kind}`} 
-                    checked={editPermission} 
-                    onCheckedChange={c => setEditPermission(!!c)} 
+                  <Checkbox
+                    id={`perm-${kind}`}
+                    checked={editPermission}
+                    onCheckedChange={c => setEditPermission(!!c)}
                     className="mt-1"
                   />
                   <label htmlFor={`perm-${kind}`} className="text-muted-foreground cursor-pointer leading-relaxed">
@@ -166,8 +166,8 @@ export default function ThisIsMe() {
 
                 <div className="flex gap-4 justify-end border-t border-border pt-6">
                   <Button variant="outline" onClick={handleCancelEdit} size="lg" className="rounded-xl">Cancel</Button>
-                  <Button 
-                    onClick={() => isEditing ? handleSaveUpdate(card.id) : handleCreate(kind)} 
+                  <Button
+                    onClick={() => isEditing ? handleSaveUpdate(card.id) : handleCreate(kind)}
                     disabled={updateCard.isPending || createCard.isPending}
                     size="lg"
                     className="rounded-xl px-8"

@@ -23,3 +23,5 @@ export * from "./deletion-requests";
 export * from "./profiles";
 export * from "./safety";
 export * from "./relationships";
+export * from "./posts";
+export * from "./content-events";

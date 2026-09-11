@@ -1,59 +1,134 @@
-import { PageHeader } from "@/components/shared/page-header"
-import { EmptyState } from "@/components/shared/empty-state"
-import { useSimpleView } from "@/lib/simple-view"
-import { Info, Heart, ShieldCheck } from "lucide-react"
-import { Link } from "wouter"
+import { useState, useEffect } from "react";
+import { PageHeader } from "@/components/shared/page-header";
+import { PostComposer } from "@/components/posts/post-composer";
+import { PostCard } from "@/components/posts/post-card";
+import { Button } from "@/components/ui/button";
+import { Loader2, RefreshCw, Users, BookOpen } from "lucide-react";
+import { useGetFeed, getGetFeedQueryKey, Post } from "@workspace/api-client-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 
-function StandardHomeView() {
-  return (
-    <div className="space-y-8">
-      <EmptyState 
-        icon={Info}
-        title="Development Preview"
-        description="Secure accounts, private profiles, and safety controls are available in this Phase 4 development preview. Member publishing and connections are still planned and are not active."
-      />
-    </div>
-  )
-}
-
-function SimpleHomeView() {
-  return (
-    <div className="space-y-6 md:space-y-8">
-      <div className="bg-card border border-border rounded-[2rem] p-8 md:p-12 text-center shadow-sm">
-         <div className="w-20 h-20 mx-auto rounded-full bg-secondary flex items-center justify-center text-primary mb-6 shadow-sm">
-           <Info className="w-10 h-10" aria-hidden="true" />
-         </div>
-         <h3 className="font-display font-semibold text-2xl md:text-3xl text-foreground mb-4">Welcome to Me</h3>
-         <p className="text-xl text-muted-foreground max-w-lg mx-auto leading-relaxed">
-           This space is currently being built. While connections are not yet active, you can explore our resources and privacy commitments.
-         </p>
-      </div>
-      
-      <div className="grid grid-cols-1 gap-6">
-        <Link href="/understanding-dementia" className="flex items-center w-full h-auto py-8 text-2xl md:text-3xl font-display justify-start px-8 rounded-[2rem] shadow-sm border border-secondary-border bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors">
-          <Heart className="w-10 h-10 mr-6 text-primary shrink-0" aria-hidden="true" />
-          <span>Understanding Dementia</span>
-        </Link>
-        <Link href="/about" className="flex items-center w-full h-auto py-8 text-2xl md:text-3xl font-display justify-start px-8 rounded-[2rem] shadow-sm border border-secondary-border bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors">
-          <ShieldCheck className="w-10 h-10 mr-6 text-primary shrink-0" aria-hidden="true" />
-          <span>Our Privacy Baseline</span>
-        </Link>
-      </div>
-    </div>
-  )
-}
+import { invalidatePhase6 } from "@/lib/invalidation";
 
 export default function HomeFeed() {
-  const { isSimpleView } = useSimpleView()
-  
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const [filter, setFilter] = useState<"all" | "friends">("all");
+  const [cursor, setCursor] = useState<string | undefined>(undefined);
+  const [allPosts, setAllPosts] = useState<Post[]>([]);
+
+  const { data: feedData, isLoading, isFetching, refetch } = useGetFeed(
+    { filter, cursor },
+    {
+      query: {
+        queryKey: getGetFeedQueryKey({ filter, cursor }),
+      }
+    }
+  );
+
+  useEffect(() => {
+    if (feedData?.items) {
+      if (!cursor) {
+        setAllPosts(feedData.items);
+      } else {
+        setAllPosts(prev => {
+          const newPosts = feedData.items.filter(p => !prev.some(existing => existing.id === p.id));
+          return [...prev, ...newPosts];
+        });
+      }
+    }
+  }, [feedData, cursor]);
+
+  const handleRefresh = async () => {
+    setCursor(undefined);
+    invalidatePhase6(queryClient);
+    refetch();
+  };
+
+  const handleLoadMore = () => {
+    if (feedData?.nextCursor) {
+      setCursor(feedData.nextCursor);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-8 md:gap-10 animate-in fade-in duration-500">
-      <PageHeader 
-        title={isSimpleView ? "Hello." : "Good morning."} 
-        description={isSimpleView ? "Here is what is available." : "Welcome to the Phase 4 development preview."}
-      />
-      
-      {isSimpleView ? <SimpleHomeView /> : <StandardHomeView />}
+      <div className="flex items-end justify-between">
+        <PageHeader
+          title="Home"
+          description="Your space for connection."
+        />
+        <Button variant="ghost" size="icon" onClick={handleRefresh} aria-label="Refresh feed" className="mb-2">
+          <RefreshCw className={`w-5 h-5 ${isFetching ? 'animate-spin' : ''}`} />
+        </Button>
+      </div>
+
+      <PostComposer onSuccess={handleRefresh} isStandalone />
+
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
+        <div className="flex items-center gap-2">
+          <Button
+            variant={filter === "all" ? "default" : "outline"}
+            className="rounded-full px-6"
+            onClick={() => { setFilter("all"); setCursor(undefined); }}
+            data-testid="filter-all"
+          >
+            All
+          </Button>
+          <Button
+            variant={filter === "friends" ? "default" : "outline"}
+            className="rounded-full px-6"
+            onClick={() => { setFilter("friends"); setCursor(undefined); }}
+            data-testid="filter-friends"
+          >
+            Friends
+          </Button>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="secondary" className="rounded-full px-4 h-10 opacity-60 cursor-not-allowed" title="Groups (Coming Soon)">
+            <Users className="w-4 h-4 mr-2" />
+            Groups <span className="ml-1 text-[10px] uppercase tracking-wider">(Soon)</span>
+          </Button>
+          <Button variant="secondary" className="rounded-full px-4 h-10 opacity-60 cursor-not-allowed" title="Education (Coming Soon)">
+            <BookOpen className="w-4 h-4 mr-2" />
+            Education <span className="ml-1 text-[10px] uppercase tracking-wider">(Soon)</span>
+          </Button>
+        </div>
+      </div>
+
+      <div className="space-y-6">
+        {isLoading && !allPosts.length ? (
+          <div className="py-12 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-muted-foreground" /></div>
+        ) : !allPosts.length ? (
+          <div className="py-12 text-center text-muted-foreground bg-card border border-border rounded-3xl p-8">
+            No posts to show right now.
+          </div>
+        ) : (
+          allPosts.map((post: Post) => (
+            <PostCard
+              key={post.id}
+              post={post}
+              onDeleted={() => setAllPosts(prev => prev.filter(p => p.id !== post.id))}
+              onHidden={() => setAllPosts(prev => prev.filter(p => p.id !== post.id))}
+            />
+          ))
+        )}
+      </div>
+
+      {feedData?.nextCursor && (
+        <div className="flex justify-center pt-4">
+          <Button
+            variant="outline"
+            className="rounded-xl px-8"
+            onClick={handleLoadMore}
+            disabled={isFetching}
+            data-testid="button-load-more"
+          >
+            {isFetching ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
+            Load more
+          </Button>
+        </div>
+      )}
     </div>
-  )
+  );
 }

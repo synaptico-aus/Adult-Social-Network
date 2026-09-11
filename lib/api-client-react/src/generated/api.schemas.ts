@@ -5,6 +5,144 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+export type PostInputAudience = typeof PostInputAudience[keyof typeof PostInputAudience];
+
+
+export const PostInputAudience = {
+  only_me: 'only_me',
+  friends: 'friends',
+  public: 'public',
+} as const;
+
+/**
+ * @nullable
+ */
+export type PostInputResponseLabel = typeof PostInputResponseLabel[keyof typeof PostInputResponseLabel] | null;
+
+
+export const PostInputResponseLabel = {
+  someone_to_listen: 'someone_to_listen',
+  shared_experiences: 'shared_experiences',
+  practical_ideas: 'practical_ideas',
+  something_uplifting: 'something_uplifting',
+} as const;
+
+export interface PostInput {
+  /** @maxLength 20000 */
+  body: string;
+  audience?: PostInputAudience;
+  /** @nullable */
+  responseLabel?: PostInputResponseLabel;
+  commentsOpen?: boolean;
+  visibleReactionCounts?: boolean;
+  originalPostId?: string;
+  /** @maxLength 10000 */
+  commentary?: string;
+}
+
+export type PostAudience = typeof PostAudience[keyof typeof PostAudience];
+
+
+export const PostAudience = {
+  only_me: 'only_me',
+  friends: 'friends',
+  public: 'public',
+} as const;
+
+export type PostStatus = typeof PostStatus[keyof typeof PostStatus];
+
+
+export const PostStatus = {
+  draft: 'draft',
+  published: 'published',
+  deleted: 'deleted',
+} as const;
+
+export type PostMyReactionsItem = typeof PostMyReactionsItem[keyof typeof PostMyReactionsItem];
+
+
+export const PostMyReactionsItem = {
+  hear_you: 'hear_you',
+  thank_you_for_sharing: 'thank_you_for_sharing',
+} as const;
+
+/**
+ * @nullable
+ */
+export type PostReactionCounts = { [key: string]: unknown } | null;
+
+export interface Post {
+  id: string;
+  authorMemberId: string;
+  /** @nullable */
+  body: string | null;
+  audience: PostAudience;
+  /** @nullable */
+  responseLabel?: string | null;
+  status: PostStatus;
+  commentsOpen: boolean;
+  visibleReactionCounts: boolean;
+  createdAt: string;
+  updatedAt: string;
+  authorId?: string;
+  authorDisplayName?: string;
+  myReactions?: PostMyReactionsItem[];
+  saved?: boolean;
+  /** @nullable */
+  reactionCounts?: PostReactionCounts;
+  originalAvailable?: boolean;
+}
+
+export interface PaginatedPosts {
+  items: Post[];
+  /** @nullable */
+  nextCursor: string | null;
+}
+
+export type ReactionInputKind = typeof ReactionInputKind[keyof typeof ReactionInputKind];
+
+
+export const ReactionInputKind = {
+  hear_you: 'hear_you',
+  thank_you_for_sharing: 'thank_you_for_sharing',
+} as const;
+
+export interface ReactionInput {
+  kind: ReactionInputKind;
+}
+
+export interface CommentInput {
+  /** @maxLength 10000 */
+  body: string;
+  /** @nullable */
+  parentCommentId?: string | null;
+}
+
+export interface CommentUpdateInput {
+  /** @maxLength 10000 */
+  body: string;
+}
+
+export type CommentStatus = typeof CommentStatus[keyof typeof CommentStatus];
+
+
+export const CommentStatus = {
+  active: 'active',
+  deleted: 'deleted',
+} as const;
+
+export interface Comment {
+  id: string;
+  postId: string;
+  authorMemberId: string;
+  /** @nullable */
+  parentCommentId?: string | null;
+  body: string;
+  status: CommentStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface MemberTargetInput {
   /** @minLength 1 */
   targetMemberId: string;
@@ -233,6 +371,14 @@ export interface SafetyRelationship {
   createdAt: string;
 }
 
+export type ReportInputContentTargetType = typeof ReportInputContentTargetType[keyof typeof ReportInputContentTargetType];
+
+
+export const ReportInputContentTargetType = {
+  post: 'post',
+  comment: 'comment',
+} as const;
+
 export type ReportInputCategory = typeof ReportInputCategory[keyof typeof ReportInputCategory];
 
 
@@ -251,6 +397,8 @@ export const ReportInputCategory = {
 export interface ReportInput {
   targetMemberId?: string;
   contentId?: string;
+  contentTargetType?: ReportInputContentTargetType;
+  contentTargetId?: string;
   category: ReportInputCategory;
   /** @maxLength 5000 */
   details?: string;
@@ -676,5 +824,44 @@ cursor?: string;
  * @maximum 50
  */
 limit?: number;
+};
+
+export type ListOwnPostsParams = {
+/**
+ * @minimum 1
+ * @maximum 50
+ */
+limit?: number;
+cursor?: string;
+authorMemberId?: string;
+};
+
+export type GetFeedParams = {
+filter?: GetFeedFilter;
+/**
+ * @minimum 1
+ * @maximum 50
+ */
+limit?: number;
+cursor?: string;
+};
+
+export type GetFeedFilter = typeof GetFeedFilter[keyof typeof GetFeedFilter];
+
+
+export const GetFeedFilter = {
+  all: 'all',
+  friends: 'friends',
+} as const;
+
+export type ListNotificationEvents200Item = { [key: string]: unknown };
+
+export type ListSavedPostsParams = {
+/**
+ * @minimum 1
+ * @maximum 50
+ */
+limit?: number;
+cursor?: string;
 };
 

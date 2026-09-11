@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { 
+import {
   useGetOwnProfile, getGetOwnProfileQueryKey,
   useUpdatePrivacySettings,
   useGetOwnVerificationRequests, getGetOwnVerificationRequestsQueryKey,
@@ -199,8 +199,8 @@ export default function ProfilePrivacy() {
         <Link href="/me" className="inline-flex items-center text-primary font-semibold mb-6 hover:underline">
           <ArrowLeft className="w-5 h-5 mr-2" /> Back to Me
         </Link>
-        <PageHeader 
-          title="Privacy & Data" 
+        <PageHeader
+          title="Privacy & Data"
           description="Control your visibility, verify your account, and manage your data exports."
         />
       </div>
@@ -213,12 +213,12 @@ export default function ProfilePrivacy() {
               <Globe className="w-6 h-6 text-primary" /> Profile Discoverability
             </h3>
             <p className="text-muted-foreground mt-3 text-lg leading-relaxed">
-              When enabled, your profile can be found by other members when searching or browsing the community. 
+              When enabled, your profile can be found by other members when searching or browsing the community.
               If disabled, your profile will not appear in future member discovery surfaces.
             </p>
           </div>
           <div className="flex shrink-0">
-            <Switch 
+            <Switch
               checked={!!profile?.discoverable}
               onCheckedChange={handleDiscoverabilityChange}
               disabled={updatePrivacy.isPending}
@@ -309,8 +309,8 @@ export default function ProfilePrivacy() {
           }).map(([field, label]) => (
             <div key={field} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl border border-border/50 bg-secondary/10">
               <span className="text-lg font-medium">{label}</span>
-              <Select 
-                value={visibility[field]} 
+              <Select
+                value={visibility[field]}
                 onValueChange={(val) => setVisibility(prev => ({...prev, [field]: val}))}
               >
                 <SelectTrigger className="w-full sm:w-48 bg-card">
@@ -364,27 +364,27 @@ export default function ProfilePrivacy() {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-2">Scope of Verification</label>
-                <Input 
-                  value={verificationScope} 
-                  onChange={e => setVerificationScope(e.target.value)} 
+                <Input
+                  value={verificationScope}
+                  onChange={e => setVerificationScope(e.target.value)}
                   placeholder="e.g. Identity, Professional credential"
                   className="rounded-xl bg-card"
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2">Evidence URL (Optional)</label>
-                <Input 
-                  value={verificationEvidence} 
-                  onChange={e => setVerificationEvidence(e.target.value)} 
+                <Input
+                  value={verificationEvidence}
+                  onChange={e => setVerificationEvidence(e.target.value)}
                   placeholder="Link to credential or proof"
                   className="rounded-xl bg-card"
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2">Additional Notes</label>
-                <Textarea 
-                  value={verificationNotes} 
-                  onChange={e => setVerificationNotes(e.target.value)} 
+                <Textarea
+                  value={verificationNotes}
+                  onChange={e => setVerificationNotes(e.target.value)}
                   placeholder="Any context for staff..."
                   className="rounded-xl min-h-[100px] bg-card"
                 />
@@ -435,7 +435,7 @@ export default function ProfilePrivacy() {
             Download a JSON copy of your personal profile data. This export only includes your own information.
           </p>
         </div>
-        <Button 
+        <Button
           onClick={handleExportData}
           size="lg"
           className="rounded-xl px-8 whitespace-nowrap h-12"
