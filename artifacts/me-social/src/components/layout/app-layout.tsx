@@ -119,7 +119,7 @@ function RightPanel() {
           <div className="w-14 h-14 rounded-2xl bg-secondary flex items-center justify-center mb-5">
             <Info className="w-7 h-7 text-primary" />
           </div>
-          <h3 className="font-display font-semibold text-2xl mb-3 text-foreground">Welcome to Phase 1</h3>
+          <h3 className="font-display font-semibold text-2xl mb-3 text-foreground">Welcome to Phase 3</h3>
           <p className="text-foreground/80 text-base leading-relaxed">
             You are exploring the foundational design of Me. While some features are not yet active, you can preview the layout, accessibility settings, and calm interface designed for dignity.
           </p>
@@ -143,7 +143,15 @@ function RightPanel() {
 }
 
 function MobileFAB() {
+  const [location] = useLocation()
   const [open, setOpen] = useState(false)
+  const isProfileOrAccount =
+    location === "/me" ||
+    location === "/this-is-me" ||
+    location.startsWith("/profile/") ||
+    location.startsWith("/account/")
+
+  if (isProfileOrAccount) return null
   
   return (
     <>

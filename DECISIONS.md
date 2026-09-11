@@ -79,3 +79,43 @@
 **Reason:** A clickable control that implies publishing, messaging, or discovery works would misrepresent the current implementation.
 
 **Consequence:** Phase 1 routes can orient users and preview states, but cannot fabricate member data or complete trust-critical actions.
+
+## D-011: Account eligibility is server-owned and data-minimal
+
+**Decision:** A local member is provisioned only after Clerk confirms an
+authenticated, verified email session and the server confirms current-version
+acceptance of Terms, Privacy, and Community Guidelines plus 18+ eligibility.
+
+**Reason:** Client checks and profile labels are not authorization controls.
+Birth dates are unnecessary for the decision and create avoidable privacy risk.
+
+**Consequence:** Store only eligibility result, method, policy version, and
+timestamp. A family relationship never grants account access. Suspected
+underage cases require a documented, staffed review process before launch.
+
+## D-012: Clerk owns recovery and session identity
+
+**Decision:** Clerk issues/redeems recovery tokens and manages browser sessions;
+the application uses cookie-based web auth and never stores raw tokens.
+
+**Reason:** Reimplementing recovery would create a second security boundary and
+could accidentally let recovery confer access to a relative's account.
+
+**Consequence:** The product exposes honest entry points to Clerk MFA/recovery,
+server-gates staff actions, and only stores local deletion-request state.
+
+## D-013: Phase 3 profile privacy and authority boundaries
+
+Profile fields are private by default with explicit audience values, discoverability is opt-in, and view-as previews use the ordinary signed-in member policy. Descriptive roles never confer authority; verification is separate, pending until staff review, and exports are scoped to the authenticated account. Consent changes are append-only.
+
+**Reason:** Profile information can disclose health context, location, relationships, or professional claims. A visible label or client-side setting is not an authorization boundary.
+
+**Consequence:** All filtering, ownership, discoverability, export scope, and verification decisions are enforced by the API. Assisted access remains unavailable until a separate revocable, reviewed delegation design exists.
+
+## D-014: Profile media remains private and account-owned
+
+Phase 3 permits one private profile photo but keeps This is Me cards text-only until Phase 7. Profile photos use owner-scoped private object paths and authenticated delivery rather than public URLs.
+
+**Reason:** Card media needs the broader authorization, accessibility, moderation, and deletion model planned for Phase 7.
+
+**Consequence:** The server rejects photo, audio, media, and attachment fields on This is Me cards. Profile photo upload and serving validate account ownership, file type, and size.

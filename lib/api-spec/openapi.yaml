@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: account
+    description: Authenticated account lifecycle
 paths:
   /healthz:
     get:
@@ -24,6 +26,212 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /account/onboarding:
+    post:
+      operationId: completeOnboarding
+      tags: [account]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OnboardingInput"
+      responses:
+        "200":
+          description: Onboarding state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountSummary"
+        "400": { description: Invalid or ineligible onboarding }
+        "401": { description: Unauthorized }
+  /account:
+    get:
+      operationId: getAccountSummary
+      tags: [account]
+      responses:
+        "200":
+          description: Account summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountSummary"
+        "401": { description: Unauthorized }
+  /account/sessions:
+    get:
+      operationId: listAccountSessions
+      tags: [account]
+      responses:
+        "200":
+          description: Active sessions
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/AccountSession" }
+        "401": { description: Unauthorized }
+  /account/sessions/{sessionId}:
+    delete:
+      operationId: revokeAccountSession
+      tags: [account]
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "204": { description: Revoked }
+        "401": { description: Unauthorized }
+        "403": { description: Not owned by current member }
+  /account/sessions/others:
+    delete:
+      operationId: revokeOtherAccountSessions
+      tags: [account]
+      responses:
+        "204": { description: Revoked }
+        "401": { description: Unauthorized }
+  /account/deletion:
+    get:
+      operationId: getDeletionStatus
+      tags: [account]
+      responses:
+        "200":
+          description: Deletion status
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DeletionStatus" }
+        "401": { description: Unauthorized }
+    post:
+      operationId: initiateDeletion
+      tags: [account]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/DeletionInput" }
+      responses:
+        "202":
+          description: Pending manual/worker processing
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DeletionStatus" }
+        "401": { description: Unauthorized }
+        "403": { description: Fresh Clerk reauthentication required }
+    delete:
+      operationId: cancelDeletion
+      tags: [account]
+      responses:
+        "204": { description: Cancelled }
+        "401": { description: Unauthorized }
+  /profile:
+    get:
+      operationId: getOwnProfile
+      tags: [profile]
+      responses:
+        "200": { description: Own profile, content: { application/json: { schema: { $ref: "#/components/schemas/Profile" } } } }
+    put:
+      operationId: updateOwnProfile
+      tags: [profile]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/ProfileInput" } } }
+      responses:
+        "200": { description: Updated profile, content: { application/json: { schema: { $ref: "#/components/schemas/Profile" } } } }
+  /profile/view-as-member:
+    get:
+      operationId: previewProfileAsMember
+      tags: [profile]
+      responses:
+        "200": { description: Visibility-filtered preview, content: { application/json: { schema: { $ref: "#/components/schemas/Profile" } } } }
+  /privacy:
+    patch:
+      operationId: updatePrivacySettings
+      tags: [privacy]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/PrivacySettings" } } }
+      responses:
+        "200": { description: Privacy settings }
+  /this-is-me:
+    get:
+      operationId: listThisIsMeCards
+      tags: [profile]
+      responses:
+        "200": { description: Cards, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/ThisIsMeCard" } } } } }
+    post:
+      operationId: createThisIsMeCard
+      tags: [profile]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/ThisIsMeCardInput" } } }
+      responses:
+        "201": { description: Created card, content: { application/json: { schema: { $ref: "#/components/schemas/ThisIsMeCard" } } } }
+  /this-is-me/{id}:
+    patch:
+      operationId: updateThisIsMeCard
+      tags: [profile]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/ThisIsMeCardUpdate" } } }
+      responses: { "200": { description: Updated card } }
+    delete:
+      operationId: deleteThisIsMeCard
+      tags: [profile]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { "204": { description: Deleted } }
+  /verification:
+    get:
+      operationId: getOwnVerificationRequests
+      tags: [verification]
+      responses: { "200": { description: Verification requests } }
+    post:
+      operationId: submitVerificationRequest
+      tags: [verification]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/VerificationRequestInput" } } }
+      responses: { "201": { description: Submitted } }
+  /consent:
+    get:
+      operationId: getConsentHistory
+      tags: [consent]
+      responses: { "200": { description: Append-only consent history } }
+  /profile/export:
+    get:
+      operationId: exportOwnProfile
+      tags: [profile]
+      responses: { "200": { description: Authenticated JSON export } }
+  /profile/photo/upload-url:
+    post:
+      operationId: requestProfilePhotoUpload
+      tags: [profile]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/ProfilePhotoUploadInput" } } }
+      responses: { "200": { description: Private upload URL, content: { application/json: { schema: { $ref: "#/components/schemas/ProfilePhotoUpload" } } } } }
+  /profile/photo/{memberId}/{photoId}:
+    get:
+      operationId: serveProfilePhoto
+      tags: [profile]
+      parameters:
+        - { name: memberId, in: path, required: true, schema: { type: string } }
+        - { name: photoId, in: path, required: true, schema: { type: string } }
+      responses: { "200": { description: Private image bytes } }
+  /staff/verification-requests:
+    get:
+      operationId: listVerificationRequestsForStaff
+      tags: [verification]
+      responses: { "200": { description: Staff-only verification queue } }
+  /staff/verification-requests/{id}:
+    patch:
+      operationId: reviewVerificationRequest
+      tags: [verification]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/VerificationReviewInput" } } }
+      responses: { "200": { description: Reviewed request } }
 components:
   schemas:
     HealthStatus:
@@ -33,4 +241,128 @@ components:
           type: string
       required:
         - status
+    OnboardingInput:
+      type: object
+      required: [ageEligible, ageEligibilityMethod, agePolicyVersion, acceptedDocuments]
+      properties:
+        ageEligible: { type: boolean }
+        ageEligibilityMethod: { type: string, minLength: 1 }
+        agePolicyVersion: { type: string, minLength: 1 }
+        acceptedDocuments:
+          type: array
+          minItems: 3
+          items:
+            type: object
+            required: [document, version]
+            properties:
+              document: { type: string, enum: [terms, privacy, community_guidelines] }
+              version: { type: string, minLength: 1 }
+    AccountSummary:
+      type: object
+      required: [memberId, emailVerified, ageEligible, acceptedDocuments]
+      properties:
+        memberId: { type: string }
+        emailVerified: { type: boolean }
+        ageEligible: { type: ["boolean", "null"] }
+        acceptedDocuments:
+          type: array
+          items: { type: string }
+    AccountSession:
+      type: object
+      required: [id, status, isCurrent]
+      properties:
+        id: { type: string }
+        status: { type: string }
+        isCurrent: { type: boolean }
+        lastActiveAt: { type: ["string", "null"], format: date-time }
+        deviceName: { type: ["string", "null"] }
+    DeletionInput:
+      type: object
+    DeletionStatus:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string, enum: [none, pending, cancelled] }
+        requestedAt: { type: ["string", "null"], format: date-time }
+    Profile:
+      type: object
+      required: [id, preferredName]
+      properties:
+        id: { type: string }
+        memberId: { type: ["string", "null"] }
+        preferredName: { type: string }
+        photoPath: { type: ["string", "null"] }
+        biography: { type: ["string", "null"] }
+        language: { type: ["string", "null"] }
+        broadRegion: { type: ["string", "null"] }
+        interests: { type: array, items: { type: string } }
+        dementiaConnection: { type: ["string", "null"] }
+        roles: { type: array, items: { type: string } }
+        discoverable: { type: ["boolean", "null"] }
+        visibility: { type: object, additionalProperties: { type: string, enum: [private, connections, members] } }
+    ProfileInput:
+      type: object
+      required: [preferredName]
+      properties:
+        preferredName: { type: string, minLength: 1 }
+        photoPath: { type: ["string", "null"] }
+        biography: { type: ["string", "null"] }
+        language: { type: ["string", "null"] }
+        broadRegion: { type: ["string", "null"] }
+        interests: { type: array, items: { type: string } }
+        dementiaConnection: { type: ["string", "null"] }
+        roles: { type: array, items: { type: string } }
+        discoverable: { type: boolean }
+        visibility: { type: object, additionalProperties: { type: string, enum: [private, connections, members] } }
+    PrivacySettings:
+      type: object
+      properties:
+        discoverable: { type: boolean }
+        visibility: { type: object, additionalProperties: { type: string, enum: [private, connections, members] } }
+    ThisIsMeCard:
+      type: object
+      required: [id, kind, text, position]
+      properties:
+        id: { type: string }
+        kind: { type: string, enum: [things_i_enjoy, music_i_love, experiences_i_want_to_share, how_i_like_to_communicate] }
+        text: { type: string }
+        position: { type: integer }
+        permissionAcknowledged: { type: boolean }
+    ThisIsMeCardInput:
+      type: object
+      required: [kind, text]
+      properties:
+        kind: { type: string, enum: [things_i_enjoy, music_i_love, experiences_i_want_to_share, how_i_like_to_communicate] }
+        text: { type: string }
+        permissionAcknowledged: { type: boolean }
+    ThisIsMeCardUpdate:
+      type: object
+      properties:
+        text: { type: string }
+        permissionAcknowledged: { type: boolean }
+    VerificationRequestInput:
+      type: object
+      required: [scope]
+      properties:
+        scope: { type: string }
+        evidence: { type: string }
+        notes: { type: string }
+    VerificationReviewInput:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string, enum: [approved, rejected] }
+    ProfilePhotoUploadInput:
+      type: object
+      required: [contentType, size]
+      properties:
+        contentType: { type: string, enum: [image/jpeg, image/png, image/webp] }
+        size: { type: integer, minimum: 1, maximum: 5242880 }
+    ProfilePhotoUpload:
+      type: object
+      required: [uploadURL, objectPath, reminder]
+      properties:
+        uploadURL: { type: string, format: uri }
+        objectPath: { type: string }
+        reminder: { type: string }
 

@@ -38,7 +38,13 @@ A privacy-first adult social product for people affected by dementia globally.
 
 ## Product
 
-Phase 0 establishes the responsive product foundation and documents privacy, accessibility, permissions, and the cross-platform architecture. Social features remain planned until later phases.
+Phase 2 adds server-enforced accounts and lifecycle controls. Phase 3 adds
+server-enforced profiles, This is Me cards, privacy, consent history, exports,
+and separate verification requests. Clerk owns
+authentication, browser cookies, sessions, MFA, and recovery issuance. The local
+server provisions members only after verified email, current consent versions,
+and an 18+ eligibility decision. Birth dates and raw recovery tokens are never
+stored. Social features remain planned until their later phases.
 
 ## User preferences
 
@@ -48,7 +54,15 @@ _Populate as you build — explicit user instructions worth remembering across s
 
 - Implement one numbered phase at a time and preserve verified work.
 - Never imply incomplete features or integrations are production-ready.
+- Age-assurance vendor integration and a staffed suspected-underage review
+  process are launch dependencies; self-declared eligibility is not a vendor
+  assurance result.
+- Future Expo clients will use Clerk's token cache backed by
+  `expo-secure-store`; no native client is currently implemented.
 - Apply audience rules to search, feeds, media, notifications, exports, and shared links.
+- Phase 3 profile fields use private/connections/members audiences with server-side filtering. Discoverability is opt-in and must be changed through the privacy route so consent history remains append-only.
+- Self-described roles are never authorization or verification. Staff-reviewed professional or organisation status is stored separately and requires the existing staff MFA gate.
+- Phase 3 allows an owner-scoped private profile photo only. This is Me photo/audio cards remain disabled until Phase 7, and assisted account access remains disabled pending a separate revocable, reviewed delegation system.
 
 ## Pointers
 

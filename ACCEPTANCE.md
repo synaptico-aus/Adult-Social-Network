@@ -98,3 +98,66 @@ Phase 0 is **Verified** only when every applicable criterion above passes and th
 | Simple View persistence | Mobile web navigation and reload | Passed, 11 September 2026 |
 | Dark-theme persistence | Mobile web reload | Passed, 11 September 2026 |
 | Accessibility and preference source review | Web | Passed, 11 September 2026 |
+
+## Phase 2 — Accounts and lifecycle
+
+- [x] Clerk managed-tenant proxy/client wiring, branded sign-in/sign-up, and
+  full Wouter callback paths are configured.
+- [x] Server rejects unauthenticated, unverified-email, incomplete-consent, and
+  under-18 requests; no birth date is persisted.
+- [x] Account summary, session list/revocation, logout, and MFA/recovery entry
+  points are accessible and server-authorized.
+- [x] Staff operations require a server-controlled role and verified Clerk MFA;
+  profile labels never grant staff access.
+- [x] Deletion initiation requires fresh reauthentication evidence, supports
+  cancellation/status, and remains honestly pending until all registered hooks
+  and an approved worker/process complete.
+- [x] Sensitive routes are rate limited without retaining secrets or raw tokens.
+- [x] Automated tests cover unauthorized access, underage rejection, session
+  revocation authorization, deletion reauthentication, and expired/reused
+  recovery-token policy logic. Clerk remains the production recovery-token
+  issuer/redeemer.
+
+Phase 2 remains **Blocked** until Clerk dashboard MFA/email/rate-limit settings,
+age-assurance vendor integration, and a staffed suspected-underage review
+process are confirmed for the launch environment.
+
+### Phase 2 verification record
+
+| Check | Result |
+| --- | --- |
+| Full workspace typecheck | Passed via `pnpm run typecheck` |
+| Account policy/security tests | Passed: 8 tests via `pnpm --filter @workspace/api-server test` |
+| API health check | Passed: `GET /api/healthz` returned 200 |
+| Unauthorised account and staff access | Passed: both endpoints returned 401 without a Clerk session |
+| Browser account journey | Passed after one hook-order fix: verified-email sign-in, 18+ onboarding, current document acceptance, account page, sessions, MFA/recovery, deletion status, and logout rendered |
+| Responsive preview | Public desktop at 1440 × 1000 and branded sign-in at 390 × 844 rendered |
+| API route integration tests | Not claimed; the current automated suite is policy-level and does not replace Clerk/database integration coverage |
+
+### Phase 2 launch dependencies
+
+Age-assurance vendor integration and a staffed suspected-underage review process
+must be approved before launch. Expo secure token storage with
+`expo-secure-store` is documented future work, not an implemented mobile flow.
+
+## Phase 3 — Profiles, This is Me, privacy, and verification
+
+- [x] Profile and card APIs are authenticated and account-owned; delegated or relative identity input is rejected.
+- [x] Profile fields and sensitive dementia connection default to private, discoverability requires explicit opt-in, and view-as never reveals private fields.
+- [x] Roles are descriptive only and cannot grant authority or a verification badge.
+- [x] This is Me cards accept exactly four text-only kinds; media payloads are rejected pending Phase 7.
+- [x] Verification requests remain separate, allow one pending request, and cannot be self-approved.
+- [x] Consent history is append-only with explicit revocation records; exports are authenticated and account-scoped JSON.
+
+### Phase 3 verification results
+
+| Check | Result |
+| --- | --- |
+| Development schema push | Passed, including unique member/card-kind and card-order constraints |
+| Full workspace typecheck | Passed |
+| Account and profile policy tests | Passed: 18 tests |
+| Authenticated browser journey | Passed: profile save, private photo upload/render, privacy defaults, discoverability, view-as filtering, card create/edit/delete, verification request, consent history, and own JSON export |
+| Responsive preview | Passed at 1280 × 720 and 390 × 844; the planned Create Post control was removed from profile/account screens to avoid covering settings |
+| Formal Clerk/database route integration suite | Not claimed; current evidence combines policy tests with one real development browser journey |
+
+Phase 3 is verified in development. Production release still depends on Phase 2 launch requirements, production App Storage verification, staffed verification operations, and an approved retention/pseudonymisation process. No public object URL or delegated access is supported.

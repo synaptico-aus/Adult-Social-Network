@@ -10,7 +10,7 @@ function StandardHomeView() {
       <EmptyState 
         icon={Info}
         title="Development Preview"
-        description="This is the Phase 1 foundational design of Me. No posts or connections are active yet, as we focus entirely on establishing privacy and a calm architecture first."
+        description="Secure adult accounts and private profiles are now available in this Phase 3 development preview. Posts and connections are still planned and are not active."
       />
     </div>
   )
@@ -50,7 +50,7 @@ export default function HomeFeed() {
     <div className="flex flex-col gap-8 md:gap-10 animate-in fade-in duration-500">
       <PageHeader 
         title={isSimpleView ? "Hello." : "Good morning."} 
-        description={isSimpleView ? "Here is what is available." : "Welcome to the Phase 1 development preview."}
+        description={isSimpleView ? "Here is what is available." : "Welcome to the Phase 3 development preview."}
       />
       
       {isSimpleView ? <SimpleHomeView /> : <StandardHomeView />}

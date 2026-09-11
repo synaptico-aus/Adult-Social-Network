@@ -1,0 +1,1 @@
+- [Clerk verification ages](clerk-verification-ages.md) — treat fva entries as minutes since factor verification and return Clerk’s structured hint for reverification UI.
