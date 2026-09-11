@@ -168,7 +168,7 @@ Profiles, restricted field visibility, explicit discoverability, ordinary-member
 
 ## Phase 4 — Privacy, safety, and staff foundation
 
-**Status: Verified in development except published support contact**
+**Status: Verified in development**
 
 Restricted-by-default audience policy, member safety controls, reporting and appeals,
 staff moderation roles, scoped evidence access, auditing, and fail-closed screening
@@ -192,12 +192,15 @@ interfaces. Member publishing remains disabled.
 - Member Safety and Support and capability-scoped staff moderation interfaces use
   the generated API contract. Queue responses exclude private evidence until a
   separately authorised, reason-audited evidence request succeeds.
+- The published support contact is runtime-configured for development and
+  production through the shared SUPPORT_CONTACT_EMAIL environment setting.
 
 ### Checks
 
 - OpenAPI code generation, database schema push, shared library typecheck, and
   API-server typecheck passed after final route edits.
-- API policy, moderation-intake, and direct HTTP route tests passed (32 tests).
+- API policy, moderation-intake, sanction, and direct HTTP route tests passed
+  (33 tests).
 - Direct HTTP authorization tests passed for member safety/report
   authentication, staff capability and fresh-MFA gates, education-editor
   restrictions, account scoping, queue redaction, evidence reason/scope/audit

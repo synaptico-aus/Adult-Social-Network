@@ -20,6 +20,7 @@ export * from './evidenceAccessInput';
 export * from './evidenceAccessResponse';
 export * from './healthStatus';
 export * from './moderationDecisionInput';
+export * from './moderationDecisionInputSanction';
 export * from './moderationDecisionInputState';
 export * from './moderationRecord';
 export * from './moderationRecordState';

@@ -170,9 +170,8 @@ Phase 3 is verified in development. Production release still depends on Phase 2 
   possible only when content explicitly selects public.
 - [x] Authenticated member safety relationships, reports/history, and appeals
   are account-scoped.
-- [ ] A real published support contact is configured. The endpoint and interface
-  are implemented but return an explicit unavailable state until
-  SUPPORT_CONTACT_EMAIL is supplied.
+- [x] A real published support contact is configured through
+  SUPPORT_CONTACT_EMAIL and returned by the authenticated support endpoint.
 - [x] Staff queue, urgent queue, evidence access, moderation decisions, and
   appeal review routes require fresh Clerk MFA and server capability checks;
   profile roles do not grant access.
@@ -190,6 +189,6 @@ Phase 3 is verified in development. Production release still depends on Phase 2 
 | OpenAPI code generation | Passed |
 | Shared database library typecheck | Passed |
 | API-server typecheck | Passed |
-| Full API suite | Passed: 32 policy, screening, and direct HTTP route tests |
+| Full API suite | Passed: 33 policy, screening, sanction, and direct HTTP route tests |
 | Development schema push | Passed after Phase 4 safety retention changes |
 | Direct HTTP route authorization tests | Passed: 7 direct HTTP scenarios via `pnpm --filter @workspace/api-server test` |

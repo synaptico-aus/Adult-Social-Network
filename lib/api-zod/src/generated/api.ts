@@ -483,9 +483,9 @@ export const DecideModerationParams = zod.object({
 
 
 export const DecideModerationBody = zod.object({
-  "state": zod.enum(['pending', 'allowed', 'held', 'removed', 'appealed']),
+  "state": zod.enum(['allowed', 'held', 'removed']),
   "decision": zod.string().optional(),
-  "sanction": zod.string().optional(),
+  "sanction": zod.enum(['warning', 'content_removal', 'temporary_restriction', 'suspension', 'permanent_removal']).optional(),
   "reason": zod.string().min(1)
 })
 

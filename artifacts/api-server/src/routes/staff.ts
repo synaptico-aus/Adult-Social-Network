@@ -6,7 +6,7 @@ import { and, desc, eq, inArray, or } from "drizzle-orm";
 import { z } from "zod";
 import { getAuth } from "@clerk/express";
 import { randomUUID } from "node:crypto";
-import { canTransitionModeration, urgentCategory } from "../lib/moderation-policy";
+import { canTransitionModeration, MODERATION_SANCTIONS, urgentCategory } from "../lib/moderation-policy";
 
 const router: IRouter = Router();
 router.get("/staff/capabilities", requireStaffMfa, async (req: Request, res: Response): Promise<void> => {
@@ -52,7 +52,12 @@ router.post("/staff/evidence/:evidenceId/access", requireStaffCapability("eviden
   res.json({ allowed: true, report });
 });
 router.post("/staff/moderation/:id/decision", requireStaffCapability("moderation.decide"), async (req: Request, res: Response): Promise<void> => {
-  const parsed = z.object({ state: z.enum(["pending", "allowed", "held", "removed", "appealed"]), decision: z.string().optional(), sanction: z.string().optional(), reason: z.string().min(1) }).strict().safeParse(req.body);
+  const parsed = z.object({
+    state: z.enum(["allowed", "held", "removed"]),
+    decision: z.string().trim().max(5000).optional(),
+    sanction: z.enum(MODERATION_SANCTIONS).optional(),
+    reason: z.string().trim().min(1).max(5000),
+  }).strict().safeParse(req.body);
   const actor = getAuth(req).userId;
   if (!parsed.success || !actor) { res.status(400).json({ error: "Invalid moderation decision" }); return; }
   const result = await db.transaction(async (tx) => {

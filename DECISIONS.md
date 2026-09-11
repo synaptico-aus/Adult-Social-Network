@@ -149,3 +149,12 @@ deliberate narrowing); there is no wildcard or profile/private-metadata fallback
 **Consequence:** Administrator, moderator, and education_editor remain distinct,
 and role changes are auditable database operations rather than claims in a
 profile or legacy Clerk metadata.
+
+## D-018: Sanctions use a controlled vocabulary
+
+**Decision:** Staff moderation sanctions are limited to warning, content removal,
+temporary restriction, suspension, and permanent removal. Every sanction requires
+a reason and remains subject to appeal.
+
+**Consequence:** Staff actions and audits use consistent labels; arbitrary
+free-text sanction types are rejected at the API boundary.

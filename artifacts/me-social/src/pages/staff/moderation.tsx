@@ -19,6 +19,7 @@ import {
   useDecideModeration,
   useReviewStaffAppeal,
   ModerationDecisionInputState,
+  ModerationDecisionInputSanction,
   QueueItem,
   Appeal,
   StaffCapabilities,
@@ -35,9 +36,9 @@ function QueueItemCard({ item, caps }: { item: QueueItem; caps: StaffCapabilitie
   const [evidenceReason, setEvidenceReason] = useState("");
   const accessEvidence = useAccessReportedEvidence();
 
-  const [decisionState, setDecisionState] = useState<ModerationDecisionInputState>("pending");
+  const [decisionState, setDecisionState] = useState<ModerationDecisionInputState>("held");
   const [decisionText, setDecisionText] = useState("");
-  const [decisionSanction, setDecisionSanction] = useState("");
+  const [decisionSanction, setDecisionSanction] = useState<ModerationDecisionInputSanction | "">("");
   const [decisionReason, setDecisionReason] = useState("");
   const decideModeration = useDecideModeration();
 
@@ -139,7 +140,18 @@ function QueueItemCard({ item, caps }: { item: QueueItem; caps: StaffCapabilitie
                 </div>
                 <div>
                   <label htmlFor={`decision-sanction-${item.reportId}`} className="block text-xs font-medium mb-1">Sanction (Optional)</label>
-                  <Input id={`decision-sanction-${item.reportId}`} value={decisionSanction} onChange={e => setDecisionSanction(e.target.value)} placeholder="e.g. 7_day_ban" className="bg-card" data-testid={`input-decision-sanction-${item.reportId}`} />
+                  <Select value={decisionSanction} onValueChange={(value) => setDecisionSanction(value as ModerationDecisionInputSanction)}>
+                    <SelectTrigger id={`decision-sanction-${item.reportId}`} className="bg-card" data-testid={`select-decision-sanction-${item.reportId}`}>
+                      <SelectValue placeholder="No sanction" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.values(ModerationDecisionInputSanction).map((sanction) => (
+                        <SelectItem key={sanction} value={sanction}>
+                          {sanction.replaceAll("_", " ")}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               <div>

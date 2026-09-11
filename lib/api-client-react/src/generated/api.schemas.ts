@@ -62,17 +62,26 @@ export type ModerationDecisionInputState = typeof ModerationDecisionInputState[k
 
 
 export const ModerationDecisionInputState = {
-  pending: 'pending',
   allowed: 'allowed',
   held: 'held',
   removed: 'removed',
-  appealed: 'appealed',
+} as const;
+
+export type ModerationDecisionInputSanction = typeof ModerationDecisionInputSanction[keyof typeof ModerationDecisionInputSanction];
+
+
+export const ModerationDecisionInputSanction = {
+  warning: 'warning',
+  content_removal: 'content_removal',
+  temporary_restriction: 'temporary_restriction',
+  suspension: 'suspension',
+  permanent_removal: 'permanent_removal',
 } as const;
 
 export interface ModerationDecisionInput {
   state: ModerationDecisionInputState;
   decision?: string;
-  sanction?: string;
+  sanction?: ModerationDecisionInputSanction;
   /** @minLength 1 */
   reason: string;
 }

@@ -5,12 +5,13 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { ModerationDecisionInputSanction } from './moderationDecisionInputSanction';
 import type { ModerationDecisionInputState } from './moderationDecisionInputState';
 
 export interface ModerationDecisionInput {
   state: ModerationDecisionInputState;
   decision?: string;
-  sanction?: string;
+  sanction?: ModerationDecisionInputSanction;
   /** @minLength 1 */
   reason: string;
 }

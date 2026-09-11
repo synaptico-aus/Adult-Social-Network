@@ -10,9 +10,7 @@ export type ModerationDecisionInputState = typeof ModerationDecisionInputState[k
 
 
 export const ModerationDecisionInputState = {
-  pending: 'pending',
   allowed: 'allowed',
   held: 'held',
   removed: 'removed',
-  appealed: 'appealed',
 } as const;
