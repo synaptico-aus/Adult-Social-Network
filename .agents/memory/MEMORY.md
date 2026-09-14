@@ -2,3 +2,5 @@
 - [Relationship identity contracts](relationship-identity-contracts.md) — relationship actions need member and pending-request IDs; profile IDs cannot substitute.
 - [Content moderation transactions](content-moderation-transactions.md) — approvals attach to exact text revisions; reporting review is separate from publication state.
 - [Circle membership epochs](circle-membership-epochs.md) — history grants end when membership ends, and database time defines the join/history cutoff.
+- [Group block and host boundaries](group-block-host-boundaries.md) — group entry checks blocks against every member; welcome access needs independent training and exact assignment.
+- [Messaging authority locks](messaging-authority-locks.md) — lock pair before group before conversation; notification creation shares the same live-authority boundary.

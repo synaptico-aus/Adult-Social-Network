@@ -3,7 +3,7 @@ import {
   getGetFeedQueryKey,
   getListOwnPostsQueryKey,
   getListSavedPostsQueryKey,
-  getListNotificationEventsQueryKey,
+  getListNotificationsQueryKey,
   getGetPostQueryKey,
   getListPostCommentsQueryKey
 } from "@workspace/api-client-react";
@@ -19,7 +19,7 @@ export function invalidatePhase6(queryClient: QueryClient, postId?: string) {
   queryClient.invalidateQueries({ queryKey: getListSavedPostsQueryKey() });
   
   // Invalidate notifications
-  queryClient.invalidateQueries({ queryKey: getListNotificationEventsQueryKey() });
+  queryClient.invalidateQueries({ queryKey: getListNotificationsQueryKey() });
 
   if (postId) {
     // Invalidate detail view

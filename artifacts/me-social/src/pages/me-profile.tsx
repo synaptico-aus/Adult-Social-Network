@@ -2,15 +2,37 @@ import { PageHeader } from "@/components/shared/page-header"
 import { useSimpleView } from "@/lib/simple-view"
 import { useTheme } from "@/components/theme-provider"
 import { Switch } from "@/components/ui/switch"
-import { ArrowRight, Info, Heart, Layers, Edit, FileText, Shield, Eye, Settings, FileBox, Bookmark } from "lucide-react"
-import { Link } from "wouter"
-import { useGetOwnProfile, getGetOwnProfileQueryKey } from "@workspace/api-client-react"
+import { ArrowRight, Info, Heart, Layers, Edit, FileText, Shield, Eye, Settings, FileBox, Bookmark, LogOut } from "lucide-react"
+import { Link, useLocation } from "wouter"
+import { useGetOwnProfile, getGetOwnProfileQueryKey, useRevokeCurrentNotificationDevice, getListNotificationsQueryKey } from "@workspace/api-client-react"
 import { getPhotoUrl } from "@/hooks/use-profile-photo"
+import { useClerk } from "@clerk/react"
+import { useQueryClient } from "@tanstack/react-query"
+import { Button } from "@/components/ui/button"
 
 export default function MePage() {
   const { isSimpleView, toggleSimpleView } = useSimpleView()
   const { theme, setTheme } = useTheme()
   const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+  const { signOut } = useClerk()
+  const [, setLocation] = useLocation()
+  const queryClient = useQueryClient()
+  const revokeMut = useRevokeCurrentNotificationDevice()
+
+  const handleSignOut = async () => {
+    // Best-effort revoke before sign out
+    try {
+      await revokeMut.mutateAsync()
+    } catch {
+      // Ignore failure
+    }
+
+    // Clear cache immediately to prevent stale private data
+    queryClient.clear()
+
+    await signOut()
+    setLocation("/")
+  }
 
   const { data: profile, isLoading } = useGetOwnProfile({
     query: { queryKey: getGetOwnProfileQueryKey() }
@@ -177,6 +199,18 @@ export default function MePage() {
             </div>
             <ArrowRight className="w-8 h-8 text-muted-foreground hidden sm:block" aria-hidden="true" />
           </Link>
+
+          <button onClick={handleSignOut} className="w-full flex items-center justify-between group p-4 rounded-xl hover:bg-destructive/10 transition-colors text-left">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center text-destructive shrink-0">
+                <LogOut className="w-6 h-6" aria-hidden="true" />
+              </div>
+              <div>
+                <h3 className="text-2xl font-semibold text-destructive group-hover:text-destructive transition-colors">Sign Out</h3>
+                <p className="text-muted-foreground mt-1 text-lg">Log out securely.</p>
+              </div>
+            </div>
+          </button>
         </div>
       </div>
     </div>

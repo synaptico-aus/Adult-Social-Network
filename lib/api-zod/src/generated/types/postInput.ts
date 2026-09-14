@@ -15,6 +15,9 @@ export interface PostInput {
   /** @nullable */
   circleId?: string | null;
   /** @nullable */
+  groupId?: string | null;
+  isIntroduction?: boolean;
+  /** @nullable */
   responseLabel?: PostInputResponseLabel;
   commentsOpen?: boolean;
   visibleReactionCounts?: boolean;

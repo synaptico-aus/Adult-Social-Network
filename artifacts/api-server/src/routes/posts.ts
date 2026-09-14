@@ -2,15 +2,16 @@ import { Router, type Request } from "express";
 import { and, asc, desc, eq, gt, inArray, lt, ne, or, sql } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
-import { circleHistoryGrantsTable, circleMembersTable, circlesTable, db, commentsTable, friendshipsTable, membersTable, mediaAssetsTable, moderationRecordsTable, notificationEventsTable, postHidesTable, postReactionsTable, postSavesTable, postsTable, profilesTable, safetyRelationshipsTable } from "@workspace/db";
+import { circleHistoryGrantsTable, circleMembersTable, circlesTable, db, commentsTable, friendshipsTable, membersTable, mediaAssetsTable, moderationRecordsTable, notificationEventsTable, postHidesTable, postReactionsTable, postSavesTable, postsTable, profilesTable, safetyRelationshipsTable, groupMembersTable, groupsTable } from "@workspace/db";
 import { getAuth } from "@clerk/express";
 import { requireAuth, memberRateLimit } from "../middlewares/account-auth";
 import { intakeForModeration } from "../lib/moderation-intake";
 import "../lib/posts-deletion-hook";
+import { activeGroupMembership as liveActiveGroupMembership, canUseGroup as liveCanUseGroup, canViewGroupPost as liveCanViewGroupPost } from "../lib/group-access";
 
 const router = Router();
-router.use(["/posts", "/feed", "/notifications"], requireAuth);
-const postInput = z.object({ body: z.string().max(20000), audience: z.enum(["only_me", "friends", "my_circle", "public"]).optional(), circleId: z.string().min(1).max(200).nullable().optional(), responseLabel: z.enum(["someone_to_listen", "shared_experiences", "practical_ideas", "something_uplifting"]).nullable().optional(), commentsOpen: z.boolean().optional(), visibleReactionCounts: z.boolean().optional(), originalPostId: z.string().optional(), commentary: z.string().max(10000).optional(), mediaAssetIds: z.array(z.string()).max(10).optional() }).strict();
+router.use(["/posts", "/feed"], requireAuth);
+const postInput = z.object({ body: z.string().max(20000), audience: z.enum(["only_me", "friends", "my_circle", "this_group", "public"]).optional(), circleId: z.string().min(1).max(200).nullable().optional(), groupId: z.string().min(1).max(200).nullable().optional(), isIntroduction: z.boolean().optional(), responseLabel: z.enum(["someone_to_listen", "shared_experiences", "practical_ideas", "something_uplifting"]).nullable().optional(), commentsOpen: z.boolean().optional(), visibleReactionCounts: z.boolean().optional(), originalPostId: z.string().optional(), commentary: z.string().max(10000).optional(), mediaAssetIds: z.array(z.string()).max(10).optional() }).strict();
 async function ownedReadyMedia(memberId: string, ids: string[] | undefined, source: QuerySource = db) {
   if (!ids?.length) return true;
   const assets = await source.select().from(mediaAssetsTable).where(and(eq(mediaAssetsTable.ownerMemberId, memberId), inArray(mediaAssetsTable.id, ids)));
@@ -59,6 +60,15 @@ async function canUseCircle(circleId: string | null | undefined, memberId: strin
   ]);
   return !!circle[0] && !!membership;
 }
+async function activeGroupMembership(groupId: string, memberId: string, source: QuerySource = db) {
+  return liveActiveGroupMembership(groupId, memberId, source);
+}
+async function canUseGroup(groupId: string | null | undefined, memberId: string, source: QuerySource = db) {
+  return liveCanUseGroup(groupId, memberId, source);
+}
+async function canViewGroupPost(post: typeof postsTable.$inferSelect, viewer: string, source: QuerySource = db) {
+  return liveCanViewGroupPost(post, viewer, source);
+}
 async function canViewCirclePost(post: typeof postsTable.$inferSelect, viewer: string, source: QuerySource = db) {
   if (!post.circleId || !(await canUseCircle(post.circleId, viewer, source))) return false;
   const membership = await activeCircleMembership(post.circleId, viewer, source);
@@ -68,6 +78,10 @@ async function canViewCirclePost(post: typeof postsTable.$inferSelect, viewer: s
   return !!(await source.select({ id: circleHistoryGrantsTable.id }).from(circleHistoryGrantsTable).where(and(eq(circleHistoryGrantsTable.circleId, post.circleId), eq(circleHistoryGrantsTable.memberId, viewer), eq(circleHistoryGrantsTable.status, "active"))).limit(1))[0];
 }
 export async function visiblePost(post: typeof postsTable.$inferSelect, viewer: string, source: QuerySource = db) {
+  if (post.groupId) {
+    const group = (await source.select().from(groupsTable).where(and(eq(groupsTable.id, post.groupId), eq(groupsTable.status, "active"))).limit(1))[0];
+    if (!group || !(await activeGroupMembership(group.id, post.authorMemberId, source))) return false;
+  }
   if (post.status !== "published") return post.authorMemberId === viewer && post.status !== "deleted";
   if (post.originalPostId) {
     const original = (await source.select().from(postsTable).where(eq(postsTable.id, post.originalPostId)).limit(1))[0];
@@ -78,6 +92,7 @@ export async function visiblePost(post: typeof postsTable.$inferSelect, viewer: 
   if (moderation && ["held", "removed", "appealed"].includes(moderation.state) && post.authorMemberId !== viewer) return false;
   if (await blocked(post.authorMemberId, viewer, source)) return false;
   if (post.audience === "my_circle") return canViewCirclePost(post, viewer, source);
+  if (post.audience === "this_group") return canViewGroupPost(post, viewer, source);
   if (post.authorMemberId === viewer || post.audience === "public") return true;
   if (post.audience === "friends") return friendship(post.authorMemberId, viewer, source);
   return false;
@@ -104,30 +119,19 @@ export async function response(post: typeof postsTable.$inferSelect, viewer: str
   const profile = (await db.select({ preferredName: profilesTable.preferredName }).from(profilesTable).where(eq(profilesTable.memberId, post.authorMemberId)).limit(1))[0];
   return { ...post, body: post.status === "deleted" ? null : post.body, authorId: post.authorMemberId, authorDisplayName: profile?.preferredName ?? "Member", myReactions: mine.map((x) => x.kind), saved, reactionCounts: counts ? Object.fromEntries(rows.map((r) => [r.kind, Number(r.count)])) : null, originalAvailable: !post.originalPostId || true, mediaAssets: await mediaAttachments(post, viewer) };
 }
-router.get("/notifications", async (req, res): Promise<void> => {
-  const m = await member(req); if (!m) { res.status(401).end(); return; }
-  const events = await db.select().from(notificationEventsTable).where(eq(notificationEventsTable.recipientMemberId, m.id)).orderBy(desc(notificationEventsTable.createdAt)).limit(100);
-  const visibleEvents = (await Promise.all(events.map(async (event) => {
-    if (event.postId) {
-      const post = (await db.select().from(postsTable).where(eq(postsTable.id, event.postId)).limit(1))[0];
-      if (!post || !(await visiblePost(post, m.id))) return undefined;
-    }
-    if (event.actorMemberId && await blocked(event.actorMemberId, m.id)) return undefined;
-    return event;
-  }))).filter(Boolean);
-  res.json(visibleEvents);
-});
 router.post("/posts", memberRateLimit(30, 60_000, "post-mutation"), async (req, res): Promise<void> => {
   const m = await member(req); const p = postInput.safeParse(req.body);
   if (!m || !p.success) { res.status(400).json({ error: "Invalid post" }); return; }
   if (!(await ownedReadyMedia(m.id, p.data.mediaAssetIds))) { res.status(409).json({ error: "All attached media must be ready" }); return; }
   if (p.data.audience === "my_circle" && !(await canUseCircle(p.data.circleId, m.id))) { res.status(404).json({ error: "Circle not found" }); return; }
+  if (p.data.audience === "this_group" && !(await canUseGroup(p.data.groupId, m.id))) { res.status(404).json({ error: "Group not found" }); return; }
   if (p.data.audience !== "my_circle" && p.data.circleId) { res.status(400).json({ error: "A circle can only be used with a circle post" }); return; }
+  if (p.data.audience !== "this_group" && p.data.groupId) { res.status(400).json({ error: "A group can only be used with a group post" }); return; }
   let original: typeof postsTable.$inferSelect | undefined;
   if (p.data.originalPostId) {
     original = (await db.select().from(postsTable).where(eq(postsTable.id, p.data.originalPostId)).limit(1))[0];
     if (!original || !(await visiblePost(original, m.id))) { res.status(404).json({ error: "Original post is unavailable" }); return; }
-    if (original.audience === "my_circle" || p.data.audience === "my_circle") { res.status(400).json({ error: "Circle posts cannot be reshared outside their circle" }); return; }
+    if (original.audience === "my_circle" || p.data.audience === "my_circle" || original.audience === "this_group" || p.data.audience === "this_group") { res.status(400).json({ error: "Group and circle posts cannot be reshared outside their space" }); return; }
     const rank = { only_me: 0, friends: 1, public: 2 } as const;
     if (rank[p.data.audience ?? "only_me"] > rank[original.audience as keyof typeof rank]) { res.status(400).json({ error: "Share audience cannot widen the original audience" }); return; }
   }
@@ -145,12 +149,13 @@ router.post("/posts", memberRateLimit(30, 60_000, "post-mutation"), async (req, 
         cursorId = ancestor?.originalPostId ?? null;
       }
       if (cursorId) throw new Error("Original post chain is too deep");
-      if (live.audience === "my_circle" || p.data.audience === "my_circle") throw new Error("Share audience cannot widen the original audience");
+      if (live.audience === "my_circle" || p.data.audience === "my_circle" || live.audience === "this_group" || p.data.audience === "this_group") throw new Error("Share audience cannot widen the original audience");
       const rank = { only_me: 0, friends: 1, public: 2 } as const;
       if (rank[p.data.audience ?? "only_me"] > rank[live.audience as keyof typeof rank]) throw new Error("Share audience cannot widen the original audience");
     }
     if (p.data.audience === "my_circle" && !(await canUseCircle(p.data.circleId, m.id, tx))) return [];
-     return tx.insert(postsTable).values({ id: randomUUID(), authorMemberId: m.id, body: p.data.body, audience: p.data.audience ?? "only_me", circleId: p.data.circleId ?? null, responseLabel: p.data.responseLabel, commentsOpen: p.data.commentsOpen ?? true, visibleReactionCounts: p.data.visibleReactionCounts ?? true, originalPostId: p.data.originalPostId, commentary: p.data.commentary, mediaAssetIds: p.data.mediaAssetIds ?? [] }).returning();
+    if (p.data.audience === "this_group" && !(await canUseGroup(p.data.groupId, m.id, tx))) return [];
+     return tx.insert(postsTable).values({ id: randomUUID(), authorMemberId: m.id, body: p.data.body, audience: p.data.audience ?? "only_me", circleId: p.data.circleId ?? null, groupId: p.data.groupId ?? null, isIntroduction: p.data.isIntroduction ?? false, responseLabel: p.data.responseLabel, commentsOpen: p.data.commentsOpen ?? true, visibleReactionCounts: p.data.visibleReactionCounts ?? true, originalPostId: p.data.originalPostId, commentary: p.data.commentary, mediaAssetIds: p.data.mediaAssetIds ?? [] }).returning();
   }).catch((error: unknown) => {
     if (error instanceof Error && /unavailable|cyclic|too deep/.test(error.message)) return [] as typeof postsTable.$inferSelect[];
     throw error;
@@ -229,12 +234,12 @@ router.patch("/posts/:id", memberRateLimit(30, 60_000, "post-mutation"), async (
     const [old] = await tx.select().from(postsTable).where(and(eq(postsTable.id, String(req.params.id)), eq(postsTable.authorMemberId, m.id))).for("update");
     if (!old || old.status === "deleted") return [];
      if (p.data.mediaAssetIds !== undefined && !(await ownedReadyMedia(m.id, p.data.mediaAssetIds, tx))) return [];
-     const audience = p.data.audience ?? old.audience; const circleId = p.data.circleId === undefined ? old.circleId : p.data.circleId;
-     if ((audience === "my_circle" && !(await canUseCircle(circleId, m.id, tx))) || (audience !== "my_circle" && circleId)) return [];
+     const audience = p.data.audience ?? old.audience; const circleId = p.data.circleId === undefined ? old.circleId : p.data.circleId; const groupId = p.data.groupId === undefined ? old.groupId : p.data.groupId;
+     if ((audience === "my_circle" && !(await canUseCircle(circleId, m.id, tx))) || (audience !== "my_circle" && circleId) || (audience === "this_group" && !(await canUseGroup(groupId, m.id, tx))) || (audience !== "this_group" && groupId)) return [];
     if (p.data.originalPostId !== undefined && p.data.originalPostId !== old.originalPostId) return [];
     if (p.data.audience && old.originalPostId) {
       const [source] = await tx.select().from(postsTable).where(eq(postsTable.id, old.originalPostId)).for("update");
-      if (p.data.audience === "my_circle" || source?.audience === "my_circle") return [];
+      if (p.data.audience === "my_circle" || source?.audience === "my_circle" || p.data.audience === "this_group" || source?.audience === "this_group") return [];
       const rank = { only_me: 0, friends: 1, public: 2 } as const;
       if (!source || !(await visiblePost(source, m.id, tx)) || rank[p.data.audience] > rank[source.audience as keyof typeof rank]) return [];
     }
@@ -255,7 +260,7 @@ router.post("/posts/:id/publish", memberRateLimit(10, 60_000, "post-publish"), a
      const attached = old.mediaAssetIds?.length ? await tx.select({ status: mediaAssetsTable.status }).from(mediaAssetsTable).where(and(eq(mediaAssetsTable.ownerMemberId, m.id), inArray(mediaAssetsTable.id, old.mediaAssetIds))) : [];
      if (attached.length !== (old.mediaAssetIds?.length ?? 0) || attached.some((asset) => asset.status !== "ready")) return undefined;
     const moderation = await intakeForModeration({ contentId: old.id, subjectMemberId: m.id, text: old.body, executor: tx });
-    if (old.audience === "my_circle" && !(await canUseCircle(old.circleId, m.id, tx))) return undefined;
+    if ((old.audience === "my_circle" && !(await canUseCircle(old.circleId, m.id, tx)) || old.audience === "this_group" && !(await canUseGroup(old.groupId, m.id, tx)))) return undefined;
     const [row] = await tx.update(postsTable).set({ status: "published", publishedAt: sql`now()` }).where(and(eq(postsTable.id, old.id), eq(postsTable.status, "draft"))).returning();
     return row ? { row, moderation } : undefined;
   });

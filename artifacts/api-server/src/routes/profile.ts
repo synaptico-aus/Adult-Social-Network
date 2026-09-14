@@ -1,14 +1,16 @@
 import { Router, type IRouter, type Request } from "express";
 import { randomUUID } from "node:crypto";
-import { and, asc, desc, eq, inArray, or } from "drizzle-orm";
+import { and, asc, desc, eq, gt, inArray, isNull, or } from "drizzle-orm";
 import { getAuth } from "@clerk/express";
 import { z } from "zod";
-import { circleHistoryGrantsTable, circleInvitationsTable, circleMembersTable, circlesTable, db, membersTable, mediaAssetsTable, profilesTable, thisIsMeCardsTable, verificationRequestsTable, consentHistoryTable, friendRequestsTable, friendshipsTable, followsTable, discoverySettingsTable, postsTable, commentsTable, postReactionsTable, postSavesTable, postHidesTable } from "@workspace/db";
+import { circleHistoryGrantsTable, circleInvitationsTable, circleMembersTable, circlesTable, db, membersTable, mediaAssetsTable, profilesTable, thisIsMeCardsTable, verificationRequestsTable, consentHistoryTable, friendRequestsTable, friendshipsTable, followsTable, discoverySettingsTable, postsTable, commentsTable, postReactionsTable, postSavesTable, postHidesTable, groupMembersTable, groupsTable, groupMembershipRequestsTable, groupHostAssignmentsTable, groupWelcomeRequestsTable, reportsTable, communityHostTrainingTable, conversationsTable, conversationMembersTable, messagesTable, messageMemberRemovalsTable, messageRequestsTable, messageContactSettingsTable, notificationPreferencesTable, deviceRegistrationsTable, messageReportsTable } from "@workspace/db";
 import { requireAuth } from "../middlewares/account-auth";
+import { liveConversationMember } from "../lib/conversation-access";
 import { PROFILE_FIELDS, defaultVisibility, visibleProfile, isAssistedAccessInput, isOwnedProfilePhotoPath, cardPayloadIsTextOnly } from "../lib/profile-policy";
 import { profilePhotoFile, requestProfilePhotoUpload } from "../lib/profile-photo-storage";
 import { Readable } from "node:stream";
 import "../lib/profile-deletion-hook";
+import { visiblePost } from "./posts";
 
 const router: IRouter = Router();
 router.use("/profile", requireAuth);
@@ -176,5 +178,57 @@ router.post("/verification", async (req, res): Promise<void> => {
 router.get("/verification", async (req, res): Promise<void> => { const member = await ownMember(req); if (!member) { res.status(404).json({ error: "Onboarding required" }); return; } res.json(await db.select().from(verificationRequestsTable).where(eq(verificationRequestsTable.memberId, member.id)).orderBy(desc(verificationRequestsTable.createdAt))); });
 router.get("/consent", async (req, res): Promise<void> => { const member = await ownMember(req); if (!member) { res.status(404).json({ error: "Onboarding required" }); return; } res.json(await db.select().from(consentHistoryTable).where(eq(consentHistoryTable.memberId, member.id)).orderBy(desc(consentHistoryTable.recordedAt))); });
 router.post("/consent/revoke", async (req, res): Promise<void> => { const member = await ownMember(req); if (!member) { res.status(404).json({ error: "Onboarding required" }); return; } const parsed = z.object({ purpose: z.string(), version: z.string() }).safeParse(req.body); if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; } const [record] = await db.insert(consentHistoryTable).values({ id: randomUUID(), memberId: member.id, purpose: parsed.data.purpose, version: parsed.data.version, granted: false }).returning(); res.status(201).json(record); });
-router.get("/profile/export", async (req, res): Promise<void> => { const member = await ownMember(req); if (!member) { res.status(404).json({ error: "Onboarding required" }); return; } const profile = (await db.select().from(profilesTable).where(eq(profilesTable.memberId, member.id)).limit(1))[0]; const cards = await db.select().from(thisIsMeCardsTable).where(eq(thisIsMeCardsTable.memberId, member.id)); const consents = await db.select().from(consentHistoryTable).where(eq(consentHistoryTable.memberId, member.id)); const verification = await db.select().from(verificationRequestsTable).where(eq(verificationRequestsTable.memberId, member.id)); const friendRequests = await db.select().from(friendRequestsTable).where(or(eq(friendRequestsTable.requesterMemberId, member.id), eq(friendRequestsTable.recipientMemberId, member.id))); const friendships = await db.select().from(friendshipsTable).where(or(eq(friendshipsTable.memberAId, member.id), eq(friendshipsTable.memberBId, member.id))); const follows = await db.select().from(followsTable).where(or(eq(followsTable.followerMemberId, member.id), eq(followsTable.followedMemberId, member.id))); const settings = await db.select().from(discoverySettingsTable).where(eq(discoverySettingsTable.memberId, member.id)); const posts = await db.select().from(postsTable).where(eq(postsTable.authorMemberId, member.id)); const comments = await db.select().from(commentsTable).where(eq(commentsTable.authorMemberId, member.id)); const reactions = await db.select().from(postReactionsTable).where(eq(postReactionsTable.memberId, member.id)); const saves = await db.select().from(postSavesTable).where(eq(postSavesTable.memberId, member.id)); const hides = await db.select().from(postHidesTable).where(eq(postHidesTable.memberId, member.id)); const circleMemberships = await db.select().from(circleMembersTable).where(eq(circleMembersTable.memberId, member.id)); const circleIds = circleMemberships.map((row) => row.circleId); const circles = circleIds.length ? await db.select().from(circlesTable).where(inArray(circlesTable.id, circleIds)) : []; const circleInvitations = await db.select().from(circleInvitationsTable).where(or(eq(circleInvitationsTable.recipientMemberId, member.id), eq(circleInvitationsTable.invitedByMemberId, member.id))); const historyAccess = await db.select().from(circleHistoryGrantsTable).where(eq(circleHistoryGrantsTable.memberId, member.id)); res.json({ memberId: member.id, profile, cards, consents, verification, friendRequests, friendships, follows, settings, posts, comments, reactions, saves, hides, circleMemberships, circles, circleInvitations, historyAccess, exportedAt: new Date().toISOString() }); });
+router.get("/profile/export", async (req, res): Promise<void> => {
+  const member = await ownMember(req);
+  if (!member) { res.status(404).json({ error: "Onboarding required" }); return; }
+  const profile = (await db.select().from(profilesTable).where(eq(profilesTable.memberId, member.id)).limit(1))[0];
+  const cards = await db.select().from(thisIsMeCardsTable).where(eq(thisIsMeCardsTable.memberId, member.id));
+  const consents = await db.select().from(consentHistoryTable).where(eq(consentHistoryTable.memberId, member.id));
+  const verification = await db.select().from(verificationRequestsTable).where(eq(verificationRequestsTable.memberId, member.id));
+  const friendRequests = await db.select().from(friendRequestsTable).where(or(eq(friendRequestsTable.requesterMemberId, member.id), eq(friendRequestsTable.recipientMemberId, member.id)));
+  const friendships = await db.select().from(friendshipsTable).where(or(eq(friendshipsTable.memberAId, member.id), eq(friendshipsTable.memberBId, member.id)));
+  const follows = await db.select().from(followsTable).where(or(eq(followsTable.followerMemberId, member.id), eq(followsTable.followedMemberId, member.id)));
+  const settings = await db.select().from(discoverySettingsTable).where(eq(discoverySettingsTable.memberId, member.id));
+  const allPosts = await db.select().from(postsTable).where(eq(postsTable.authorMemberId, member.id));
+  // A group post is exportable only when the live group policy still grants
+  // access.  Membership/request/welcome rows below remain the member's own
+  // accountability history, but never restore access to group content.
+  const posts = (await Promise.all(allPosts.map(async (post) => post.groupId && post.audience === "this_group" ? (await visiblePost(post, member.id) ? post : undefined) : post))).filter(Boolean) as typeof allPosts;
+  const postIds = new Set(posts.map((post) => post.id));
+  const comments = (await db.select().from(commentsTable).where(eq(commentsTable.authorMemberId, member.id))).filter((comment) => postIds.has(comment.postId));
+  const reactions = (await db.select().from(postReactionsTable).where(eq(postReactionsTable.memberId, member.id))).filter((reaction) => postIds.has(reaction.postId));
+  const saves = (await db.select().from(postSavesTable).where(eq(postSavesTable.memberId, member.id))).filter((save) => postIds.has(save.postId));
+  const hides = (await db.select().from(postHidesTable).where(eq(postHidesTable.memberId, member.id))).filter((hide) => postIds.has(hide.postId));
+  const circleMemberships = await db.select().from(circleMembersTable).where(eq(circleMembersTable.memberId, member.id));
+  const circleIds = circleMemberships.map((row) => row.circleId);
+  const circles = circleIds.length ? await db.select().from(circlesTable).where(inArray(circlesTable.id, circleIds)) : [];
+  const circleInvitations = await db.select().from(circleInvitationsTable).where(or(eq(circleInvitationsTable.recipientMemberId, member.id), eq(circleInvitationsTable.invitedByMemberId, member.id)));
+  const historyAccess = await db.select().from(circleHistoryGrantsTable).where(eq(circleHistoryGrantsTable.memberId, member.id));
+  const groupMemberships = await db.select().from(groupMembersTable).where(eq(groupMembersTable.memberId, member.id));
+  const groupIds = groupMemberships.map((row) => row.groupId);
+  const allGroups = groupIds.length ? await db.select().from(groupsTable).where(inArray(groupsTable.id, groupIds)) : [];
+  const groups = (await Promise.all(allGroups.map(async (g) => (await db.select({ id: groupMembersTable.id }).from(groupMembersTable).where(and(eq(groupMembersTable.groupId, g.id), eq(groupMembersTable.memberId, member.id), eq(groupMembersTable.status, "active"))).limit(1))[0] && g.status === "active" ? g : undefined))).filter(Boolean);
+  const groupRequests = await db.select().from(groupMembershipRequestsTable).where(eq(groupMembershipRequestsTable.memberId, member.id));
+  const groupHosts = await db.select().from(groupHostAssignmentsTable).where(eq(groupHostAssignmentsTable.hostMemberId, member.id));
+  const welcomeRequests = await db.select().from(groupWelcomeRequestsTable).where(eq(groupWelcomeRequestsTable.memberId, member.id));
+  const hostTraining = await db.select().from(communityHostTrainingTable).where(eq(communityHostTrainingTable.memberId, member.id));
+  const reports = await db.select().from(reportsTable).where(eq(reportsTable.reporterMemberId, member.id));
+  const conversationMemberships = await db.select().from(conversationMembersTable).where(eq(conversationMembersTable.memberId, member.id));
+  const liveConversationMemberships = (await Promise.all(conversationMemberships.filter((row) => row.status === "active").map(async (row) => await liveConversationMember(row.conversationId, member.id) ?? undefined))).filter(Boolean) as typeof conversationMemberships;
+  const conversationIds = liveConversationMemberships.map((row) => row.conversationId);
+  const conversations = conversationIds.length ? await db.select().from(conversationsTable).where(and(inArray(conversationsTable.id, conversationIds), eq(conversationsTable.status, "active"))) : [];
+  const allMessages = conversationIds.length ? await db.select().from(messagesTable).where(inArray(messagesTable.conversationId, conversationIds)) : [];
+  const removals = allMessages.length ? await db.select().from(messageMemberRemovalsTable).where(and(eq(messageMemberRemovalsTable.memberId, member.id), inArray(messageMemberRemovalsTable.messageId, allMessages.map((row) => row.id)))) : [];
+  const removedMessageIds = new Set(removals.map((row) => row.messageId));
+  const messages = allMessages.filter((row) => {
+    const membership = liveConversationMemberships.find((item) => item.conversationId === row.conversationId);
+    return !!membership && row.createdAt >= membership.joinedAt && !removedMessageIds.has(row.id);
+  }).map((row) => row.deletedForEveryoneAt ? { ...row, body: null, mediaAssetIds: [] } : row);
+  const messageRequests = await db.select().from(messageRequestsTable).where(or(eq(messageRequestsTable.senderMemberId, member.id), eq(messageRequestsTable.recipientMemberId, member.id)));
+  const messageContactSettings = await db.select().from(messageContactSettingsTable).where(eq(messageContactSettingsTable.memberId, member.id));
+  const notificationPreferences = await db.select().from(notificationPreferencesTable).where(eq(notificationPreferencesTable.memberId, member.id));
+  const deviceRegistrations = (await db.select().from(deviceRegistrationsTable).where(and(eq(deviceRegistrationsTable.memberId, member.id), eq(deviceRegistrationsTable.active, true), or(isNull(deviceRegistrationsTable.expiresAt), gt(deviceRegistrationsTable.expiresAt, new Date()))))).map((row) => ({ ...row, tokenOrEndpoint: `${row.tokenOrEndpoint.slice(0, 4)}…${row.tokenOrEndpoint.slice(-4)}` }));
+  const messageReports = await db.select().from(messageReportsTable).where(eq(messageReportsTable.reporterMemberId, member.id));
+  res.json({ memberId: member.id, profile, cards, consents, verification, friendRequests, friendships, follows, settings, posts, comments, reactions, saves, hides, circleMemberships, circles, circleInvitations, historyAccess, groupMemberships, groups, groupRequests, groupHosts, hostTraining, welcomeRequests, reports, conversations, conversationMemberships, messages, messageRequests, messageContactSettings, notificationPreferences, deviceRegistrations, messageReports, exportedAt: new Date().toISOString() });
+});
 export default router;

@@ -19,8 +19,10 @@ import { v4 as uuidv4 } from "uuid";
 
 const formSchema = z.object({
   body: z.string().min(1, "Post cannot be empty").max(20000, "Post is too long"),
-  audience: z.enum(["only_me", "friends", "my_circle", "public"]),
+  audience: z.enum(["only_me", "friends", "my_circle", "this_group", "public"]),
   circleId: z.string().optional(),
+  groupId: z.string().optional(),
+  isIntroduction: z.boolean().optional(),
   responseLabel: z.enum([
     "someone_to_listen", 
     "shared_experiences", 
@@ -39,9 +41,10 @@ export interface PostComposerProps {
   onSuccess?: () => void;
   isStandalone?: boolean;
   circleId?: string;
+  groupId?: string;
 }
 
-export function PostComposer({ post, onSuccess, isStandalone = false, circleId }: PostComposerProps) {
+export function PostComposer({ post, onSuccess, isStandalone = false, circleId, groupId }: PostComposerProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
@@ -49,8 +52,10 @@ export function PostComposer({ post, onSuccess, isStandalone = false, circleId }
     resolver: zodResolver(formSchema),
     defaultValues: {
       body: post?.body || "",
-      audience: circleId ? "my_circle" : (post?.audience || "friends"),
+      audience: groupId ? "this_group" : circleId ? "my_circle" : (post?.audience || "friends"),
       circleId: circleId ?? post?.circleId ?? undefined,
+      groupId: groupId ?? post?.groupId ?? undefined,
+      isIntroduction: post?.isIntroduction ?? false,
       responseLabel: (post?.responseLabel as any) || "none",
       commentsOpen: post?.commentsOpen ?? true,
       visibleReactionCounts: post?.visibleReactionCounts ?? true,
@@ -100,6 +105,8 @@ export function PostComposer({ post, onSuccess, isStandalone = false, circleId }
         visibleReactionCounts: values.visibleReactionCounts,
         mediaAssetIds: mediaItems.map(i => i.asset?.id).filter(Boolean) as string[],
         circleId: values.audience === "my_circle" ? values.circleId : null,
+        groupId: values.audience === "this_group" ? values.groupId : null,
+        isIntroduction: values.audience === "this_group" ? values.isIntroduction : false,
       };
 
       if (post) {
@@ -151,6 +158,8 @@ export function PostComposer({ post, onSuccess, isStandalone = false, circleId }
         visibleReactionCounts: values.visibleReactionCounts,
         mediaAssetIds: mediaItems.map(i => i.asset?.id).filter(Boolean) as string[],
         circleId: values.audience === "my_circle" ? values.circleId : null,
+        groupId: values.audience === "this_group" ? values.groupId : null,
+        isIntroduction: values.audience === "this_group" ? values.isIntroduction : false,
       };
 
       if (post) {
@@ -241,6 +250,25 @@ export function PostComposer({ post, onSuccess, isStandalone = false, circleId }
                 </FormItem>
               )}
             />
+            {groupId && (
+              <FormField
+                control={form.control}
+                name="isIntroduction"
+                render={({ field }) => (
+                  <FormItem className="flex items-center justify-between gap-4">
+                    <Label htmlFor="switch-is-introduction" className="leading-snug">This is my introduction</Label>
+                    <FormControl>
+                      <Switch
+                        id="switch-is-introduction"
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        data-testid="switch-is-introduction"
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            )}
           </div>
 
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-border/50">
@@ -257,11 +285,17 @@ export function PostComposer({ post, onSuccess, isStandalone = false, circleId }
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {circleId ? <SelectItem value="my_circle"><div className="flex items-center gap-2"><Users className="w-4 h-4"/>This circle</div></SelectItem> : <>
-                          <SelectItem value="public"><div className="flex items-center gap-2"><Globe className="w-4 h-4"/>Public</div></SelectItem>
-                          <SelectItem value="friends"><div className="flex items-center gap-2"><Users className="w-4 h-4"/>Friends</div></SelectItem>
-                          <SelectItem value="only_me"><div className="flex items-center gap-2"><Lock className="w-4 h-4"/>Only Me</div></SelectItem>
-                        </>}
+                        {groupId ? (
+                          <SelectItem value="this_group"><div className="flex items-center gap-2"><Users className="w-4 h-4"/>This group</div></SelectItem>
+                        ) : circleId ? (
+                          <SelectItem value="my_circle"><div className="flex items-center gap-2"><Users className="w-4 h-4"/>This circle</div></SelectItem>
+                        ) : (
+                          <>
+                            <SelectItem value="public"><div className="flex items-center gap-2"><Globe className="w-4 h-4"/>Public</div></SelectItem>
+                            <SelectItem value="friends"><div className="flex items-center gap-2"><Users className="w-4 h-4"/>Friends</div></SelectItem>
+                            <SelectItem value="only_me"><div className="flex items-center gap-2"><Lock className="w-4 h-4"/>Only Me</div></SelectItem>
+                          </>
+                        )}
                       </SelectContent>
                     </Select>
                   </FormItem>

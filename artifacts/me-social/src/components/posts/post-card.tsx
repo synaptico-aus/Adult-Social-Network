@@ -38,6 +38,8 @@ export interface PostCardProps {
 const AudienceIcon = ({ audience }: { audience: string }) => {
   if (audience === "public") return <Globe className="w-4 h-4" aria-label="Public" />;
   if (audience === "only_me") return <Lock className="w-4 h-4" aria-label="Only me" />;
+  if (audience === "my_circle") return <Users className="w-4 h-4" aria-label="Circle" />;
+  if (audience === "this_group") return <Users className="w-4 h-4" aria-label="Group" />;
   return <Users className="w-4 h-4" aria-label="Friends" />;
 };
 
@@ -200,12 +202,19 @@ export function PostCard({ post, isDetail = false, onEdit, onDeleted, onHidden, 
         </DropdownMenu>
       </div>
 
-      {guidanceLabel && (
-        <div className="mb-4 inline-flex items-center px-3 py-1.5 rounded-full bg-secondary/60 text-secondary-foreground text-sm font-medium border border-secondary-border">
-          <MessageSquare className="w-4 h-4 mr-2 opacity-70" />
-          {guidanceLabel}
-        </div>
-      )}
+      <div className="flex flex-wrap gap-2 mb-4">
+        {post.isIntroduction && (
+          <div className="inline-flex items-center px-3 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-semibold border border-primary/20">
+            Introduction
+          </div>
+        )}
+        {guidanceLabel && (
+          <div className="inline-flex items-center px-3 py-1.5 rounded-full bg-secondary/60 text-secondary-foreground text-sm font-medium border border-secondary-border">
+            <MessageSquare className="w-4 h-4 mr-2 opacity-70" />
+            {guidanceLabel}
+          </div>
+        )}
+      </div>
 
       {post.originalAvailable === false && (
         <div className="mb-4 p-3 rounded-xl bg-muted/30 border border-border text-muted-foreground text-sm italic">
@@ -279,6 +288,7 @@ export function PostCard({ post, isDetail = false, onEdit, onDeleted, onHidden, 
         isOpen={reportOpen}
         onOpenChange={setReportOpen}
         postId={post.id}
+        groupId={post.groupId}
         targetMemberId={post.authorMemberId}
       />
       <ShareDialog

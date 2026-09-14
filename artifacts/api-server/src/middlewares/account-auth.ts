@@ -1,12 +1,19 @@
 import { getAuth } from "@clerk/express";
 import type { RequestHandler } from "express";
 import { withinRateLimit } from "../lib/account-policy";
+import { db, membersTable } from "@workspace/db";
+import { eq } from "drizzle-orm";
 
-export const requireAuth: RequestHandler = (req, res, next) => {
+export const requireAuth: RequestHandler = async (req, res, next) => {
   const auth = getAuth(req);
   const userId = auth?.userId;
   if (!userId) {
     res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+  const member = (await db.select({ active: membersTable.active }).from(membersTable).where(eq(membersTable.clerkUserId, userId)).limit(1))[0];
+  if (member && !member.active) {
+    res.status(403).json({ error: "Account authority is inactive" });
     return;
   }
   (req as unknown as Request & { userId: string }).userId = userId;

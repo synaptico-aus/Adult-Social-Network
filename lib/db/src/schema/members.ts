@@ -11,6 +11,8 @@ export const membersTable = pgTable("members", {
   ageEligibilityMethod: text("age_eligibility_method"),
   agePolicyVersion: text("age_policy_version"),
   ageCheckedAt: timestamp("age_checked_at", { withTimezone: true }),
+  active: boolean("active").notNull().default(true),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 });

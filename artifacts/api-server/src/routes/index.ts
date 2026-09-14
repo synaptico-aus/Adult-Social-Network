@@ -8,6 +8,9 @@ import relationshipsRouter from "./relationships";
 import postsRouter from "./posts";
 import mediaRouter from "./media";
 import circlesRouter from "./circles";
+import groupsRouter from "./groups";
+import messagesRouter from "./messages";
+import notificationsRouter from "./notifications";
 
 const router: IRouter = Router();
 
@@ -20,5 +23,8 @@ router.use(relationshipsRouter);
 router.use(postsRouter);
 router.use(mediaRouter);
 router.use(circlesRouter);
+router.use(groupsRouter);
+router.use(notificationsRouter);
+router.use(messagesRouter);
 
 export default router;

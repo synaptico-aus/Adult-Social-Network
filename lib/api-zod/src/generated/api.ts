@@ -15,11 +15,6 @@ import * as zod from 'zod';
 export const HealthCheckResponse = zod.object({
   "status": zod.string()
 })
-
-
-
-
-
 export const completeOnboardingBodyAcceptedDocumentsMin = 3;
 
 
@@ -403,6 +398,7 @@ export const createReportBodyDetailsMax = 5000;
 
 export const CreateReportBody = zod.object({
   "targetMemberId": zod.string().optional(),
+  "groupId": zod.string().optional(),
   "contentId": zod.string().optional(),
   "contentTargetType": zod.enum(['post', 'comment']).optional(),
   "contentTargetId": zod.string().optional(),
@@ -829,8 +825,10 @@ export const ListOwnPostsResponse = zod.object({
   "id": zod.string(),
   "authorMemberId": zod.string(),
   "body": zod.string().nullable(),
-  "audience": zod.enum(['only_me', 'friends', 'my_circle', 'public']),
+  "audience": zod.enum(['only_me', 'friends', 'my_circle', 'this_group', 'public']),
   "circleId": zod.string().nullish(),
+  "groupId": zod.string().nullish(),
+  "isIntroduction": zod.boolean().optional(),
   "responseLabel": zod.string().nullish(),
   "status": zod.enum(['draft', 'published', 'deleted']),
   "commentsOpen": zod.boolean(),
@@ -875,8 +873,10 @@ export const createPostBodyMediaAssetIdsMax = 10;
 
 export const CreatePostBody = zod.object({
   "body": zod.string().max(createPostBodyBodyMax),
-  "audience": zod.enum(['only_me', 'friends', 'my_circle', 'public']).optional(),
+  "audience": zod.enum(['only_me', 'friends', 'my_circle', 'this_group', 'public']).optional(),
   "circleId": zod.string().nullish(),
+  "groupId": zod.string().nullish(),
+  "isIntroduction": zod.boolean().optional(),
   "responseLabel": zod.union([zod.literal('someone_to_listen'),zod.literal('shared_experiences'),zod.literal('practical_ideas'),zod.literal('something_uplifting'),zod.literal(null)]).nullish(),
   "commentsOpen": zod.boolean().optional(),
   "visibleReactionCounts": zod.boolean().optional(),
@@ -889,8 +889,10 @@ export const CreatePostResponse = zod.object({
   "id": zod.string(),
   "authorMemberId": zod.string(),
   "body": zod.string().nullable(),
-  "audience": zod.enum(['only_me', 'friends', 'my_circle', 'public']),
+  "audience": zod.enum(['only_me', 'friends', 'my_circle', 'this_group', 'public']),
   "circleId": zod.string().nullish(),
+  "groupId": zod.string().nullish(),
+  "isIntroduction": zod.boolean().optional(),
   "responseLabel": zod.string().nullish(),
   "status": zod.enum(['draft', 'published', 'deleted']),
   "commentsOpen": zod.boolean(),
@@ -931,8 +933,10 @@ export const GetPostResponse = zod.object({
   "id": zod.string(),
   "authorMemberId": zod.string(),
   "body": zod.string().nullable(),
-  "audience": zod.enum(['only_me', 'friends', 'my_circle', 'public']),
+  "audience": zod.enum(['only_me', 'friends', 'my_circle', 'this_group', 'public']),
   "circleId": zod.string().nullish(),
+  "groupId": zod.string().nullish(),
+  "isIntroduction": zod.boolean().optional(),
   "responseLabel": zod.string().nullish(),
   "status": zod.enum(['draft', 'published', 'deleted']),
   "commentsOpen": zod.boolean(),
@@ -979,8 +983,10 @@ export const updatePostBodyMediaAssetIdsMax = 10;
 
 export const UpdatePostBody = zod.object({
   "body": zod.string().max(updatePostBodyBodyMax),
-  "audience": zod.enum(['only_me', 'friends', 'my_circle', 'public']).optional(),
+  "audience": zod.enum(['only_me', 'friends', 'my_circle', 'this_group', 'public']).optional(),
   "circleId": zod.string().nullish(),
+  "groupId": zod.string().nullish(),
+  "isIntroduction": zod.boolean().optional(),
   "responseLabel": zod.union([zod.literal('someone_to_listen'),zod.literal('shared_experiences'),zod.literal('practical_ideas'),zod.literal('something_uplifting'),zod.literal(null)]).nullish(),
   "commentsOpen": zod.boolean().optional(),
   "visibleReactionCounts": zod.boolean().optional(),
@@ -1023,8 +1029,10 @@ export const GetFeedResponse = zod.object({
   "id": zod.string(),
   "authorMemberId": zod.string(),
   "body": zod.string().nullable(),
-  "audience": zod.enum(['only_me', 'friends', 'my_circle', 'public']),
+  "audience": zod.enum(['only_me', 'friends', 'my_circle', 'this_group', 'public']),
   "circleId": zod.string().nullish(),
+  "groupId": zod.string().nullish(),
+  "isIntroduction": zod.boolean().optional(),
   "responseLabel": zod.string().nullish(),
   "status": zod.enum(['draft', 'published', 'deleted']),
   "commentsOpen": zod.boolean(),
@@ -1057,12 +1065,6 @@ export const GetFeedResponse = zod.object({
 })),
   "nextCursor": zod.string().nullable()
 })
-
-
-export const ListNotificationEventsResponseItem = zod.object({
-
-}).passthrough()
-export const ListNotificationEventsResponse = zod.array(ListNotificationEventsResponseItem)
 
 
 export const TogglePostReactionParams = zod.object({
@@ -1183,8 +1185,10 @@ export const ListSavedPostsResponse = zod.object({
   "id": zod.string(),
   "authorMemberId": zod.string(),
   "body": zod.string().nullable(),
-  "audience": zod.enum(['only_me', 'friends', 'my_circle', 'public']),
+  "audience": zod.enum(['only_me', 'friends', 'my_circle', 'this_group', 'public']),
   "circleId": zod.string().nullish(),
+  "groupId": zod.string().nullish(),
+  "isIntroduction": zod.boolean().optional(),
   "responseLabel": zod.string().nullish(),
   "status": zod.enum(['draft', 'published', 'deleted']),
   "commentsOpen": zod.boolean(),
@@ -1430,8 +1434,10 @@ export const ListCirclePostsResponse = zod.object({
   "id": zod.string(),
   "authorMemberId": zod.string(),
   "body": zod.string().nullable(),
-  "audience": zod.enum(['only_me', 'friends', 'my_circle', 'public']),
+  "audience": zod.enum(['only_me', 'friends', 'my_circle', 'this_group', 'public']),
   "circleId": zod.string().nullish(),
+  "groupId": zod.string().nullish(),
+  "isIntroduction": zod.boolean().optional(),
   "responseLabel": zod.string().nullish(),
   "status": zod.enum(['draft', 'published', 'deleted']),
   "commentsOpen": zod.boolean(),
@@ -1463,6 +1469,628 @@ export const ListCirclePostsResponse = zod.object({
 })).optional()
 })),
   "nextCursor": zod.string().nullable()
+})
+
+
+export const ListGroupsQueryParams = zod.object({
+  "q": zod.coerce.string().optional()
+})
+
+export const ListGroupsResponse = zod.object({
+  "items": zod.array(zod.object({
+  "id": zod.string(),
+  "ownerMemberId": zod.string(),
+  "name": zod.string(),
+  "description": zod.string().nullish(),
+  "category": zod.string(),
+  "rules": zod.string().nullish(),
+  "suggestionTags": zod.array(zod.string()).optional(),
+  "discoverability": zod.enum(['public', 'private']),
+  "contentVisibility": zod.enum(['public', 'members']),
+  "joinPolicy": zod.enum(['open', 'approval', 'closed']),
+  "welcomeEnabled": zod.boolean().optional(),
+  "welcomeAvailabilityText": zod.union([zod.enum(['Welcome requests are open when a trained host is available.', 'Trained hosts are limited; response timing is not provided.', 'No trained active welcome host is currently available.']),zod.null()]).optional(),
+  "status": zod.enum(['active', 'closed']),
+  "memberCount": zod.number().int(),
+  "myMemberId": zod.string().nullable(),
+  "myMuted": zod.boolean(),
+  "createdAt": zod.coerce.date().optional(),
+  "updatedAt": zod.coerce.date().optional()
+}))
+})
+
+
+export const createGroupBodyNameMax = 120;
+
+
+
+export const CreateGroupBody = zod.object({
+  "name": zod.string().min(1).max(createGroupBodyNameMax),
+  "description": zod.string().nullish(),
+  "category": zod.string(),
+  "rules": zod.string().nullish(),
+  "suggestionTags": zod.array(zod.string()).optional(),
+  "discoverability": zod.enum(['public', 'private']).optional(),
+  "contentVisibility": zod.enum(['public', 'members']).optional(),
+  "joinPolicy": zod.enum(['open', 'approval', 'closed']).optional(),
+  "welcomeEnabled": zod.boolean().optional(),
+  "welcomeAvailabilityText": zod.union([zod.enum(['Welcome requests are open when a trained host is available.', 'Trained hosts are limited; response timing is not provided.', 'No trained active welcome host is currently available.']),zod.null()]).optional()
+})
+
+export const CreateGroupResponse = zod.object({
+  "id": zod.string(),
+  "ownerMemberId": zod.string(),
+  "name": zod.string(),
+  "description": zod.string().nullish(),
+  "category": zod.string(),
+  "rules": zod.string().nullish(),
+  "suggestionTags": zod.array(zod.string()).optional(),
+  "discoverability": zod.enum(['public', 'private']),
+  "contentVisibility": zod.enum(['public', 'members']),
+  "joinPolicy": zod.enum(['open', 'approval', 'closed']),
+  "welcomeEnabled": zod.boolean().optional(),
+  "welcomeAvailabilityText": zod.union([zod.enum(['Welcome requests are open when a trained host is available.', 'Trained hosts are limited; response timing is not provided.', 'No trained active welcome host is currently available.']),zod.null()]).optional(),
+  "status": zod.enum(['active', 'closed']),
+  "memberCount": zod.number().int(),
+  "myMemberId": zod.string().nullable(),
+  "myMuted": zod.boolean(),
+  "createdAt": zod.coerce.date().optional(),
+  "updatedAt": zod.coerce.date().optional()
+})
+
+
+export const ListGroupCategoriesResponseItem = zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "developmentOnly": zod.boolean()
+})
+export const ListGroupCategoriesResponse = zod.array(ListGroupCategoriesResponseItem)
+
+
+export const ListGroupSuggestionsResponseItem = zod.object({
+  "id": zod.string(),
+  "ownerMemberId": zod.string(),
+  "name": zod.string(),
+  "description": zod.string().nullish(),
+  "category": zod.string(),
+  "rules": zod.string().nullish(),
+  "suggestionTags": zod.array(zod.string()).optional(),
+  "discoverability": zod.enum(['public', 'private']),
+  "contentVisibility": zod.enum(['public', 'members']),
+  "joinPolicy": zod.enum(['open', 'approval', 'closed']),
+  "welcomeEnabled": zod.boolean().optional(),
+  "welcomeAvailabilityText": zod.union([zod.enum(['Welcome requests are open when a trained host is available.', 'Trained hosts are limited; response timing is not provided.', 'No trained active welcome host is currently available.']),zod.null()]).optional(),
+  "status": zod.enum(['active', 'closed']),
+  "memberCount": zod.number().int(),
+  "myMemberId": zod.string().nullable(),
+  "myMuted": zod.boolean(),
+  "createdAt": zod.coerce.date().optional(),
+  "updatedAt": zod.coerce.date().optional()
+}).and(zod.object({
+  "matchedChoices": zod.array(zod.string())
+}))
+export const ListGroupSuggestionsResponse = zod.array(ListGroupSuggestionsResponseItem)
+
+
+export const GetGroupParams = zod.object({
+  "groupId": zod.coerce.string()
+})
+
+export const GetGroupResponse = zod.object({
+  "id": zod.string(),
+  "ownerMemberId": zod.string(),
+  "name": zod.string(),
+  "description": zod.string().nullish(),
+  "category": zod.string(),
+  "rules": zod.string().nullish(),
+  "suggestionTags": zod.array(zod.string()).optional(),
+  "discoverability": zod.enum(['public', 'private']),
+  "contentVisibility": zod.enum(['public', 'members']),
+  "joinPolicy": zod.enum(['open', 'approval', 'closed']),
+  "welcomeEnabled": zod.boolean().optional(),
+  "welcomeAvailabilityText": zod.union([zod.enum(['Welcome requests are open when a trained host is available.', 'Trained hosts are limited; response timing is not provided.', 'No trained active welcome host is currently available.']),zod.null()]).optional(),
+  "status": zod.enum(['active', 'closed']),
+  "memberCount": zod.number().int(),
+  "myMemberId": zod.string().nullable(),
+  "myMuted": zod.boolean(),
+  "createdAt": zod.coerce.date().optional(),
+  "updatedAt": zod.coerce.date().optional()
+})
+
+
+export const UpdateGroupSettingsParams = zod.object({
+  "groupId": zod.coerce.string()
+})
+
+export const updateGroupSettingsBodyNameMax = 120;
+
+
+
+export const UpdateGroupSettingsBody = zod.object({
+  "name": zod.string().min(1).max(updateGroupSettingsBodyNameMax).optional(),
+  "description": zod.string().nullish(),
+  "rules": zod.string().nullish(),
+  "discoverability": zod.enum(['public', 'private']).optional(),
+  "contentVisibility": zod.enum(['public', 'members']).optional(),
+  "joinPolicy": zod.enum(['open', 'approval', 'closed']).optional(),
+  "welcomeEnabled": zod.boolean().optional(),
+  "welcomeAvailabilityText": zod.union([zod.enum(['Welcome requests are open when a trained host is available.', 'Trained hosts are limited; response timing is not provided.', 'No trained active welcome host is currently available.']),zod.null()]).optional(),
+  "suggestionTags": zod.array(zod.string()).optional()
+})
+
+export const UpdateGroupSettingsResponse = zod.object({
+  "id": zod.string(),
+  "ownerMemberId": zod.string(),
+  "name": zod.string(),
+  "description": zod.string().nullish(),
+  "category": zod.string(),
+  "rules": zod.string().nullish(),
+  "suggestionTags": zod.array(zod.string()).optional(),
+  "discoverability": zod.enum(['public', 'private']),
+  "contentVisibility": zod.enum(['public', 'members']),
+  "joinPolicy": zod.enum(['open', 'approval', 'closed']),
+  "welcomeEnabled": zod.boolean().optional(),
+  "welcomeAvailabilityText": zod.union([zod.enum(['Welcome requests are open when a trained host is available.', 'Trained hosts are limited; response timing is not provided.', 'No trained active welcome host is currently available.']),zod.null()]).optional(),
+  "status": zod.enum(['active', 'closed']),
+  "memberCount": zod.number().int(),
+  "myMemberId": zod.string().nullable(),
+  "myMuted": zod.boolean(),
+  "createdAt": zod.coerce.date().optional(),
+  "updatedAt": zod.coerce.date().optional()
+})
+
+
+export const CloseGroupParams = zod.object({
+  "groupId": zod.coerce.string()
+})
+
+export const CloseGroupResponse = zod.void()
+
+
+export const JoinGroupParams = zod.object({
+  "groupId": zod.coerce.string()
+})
+
+export const JoinGroupResponse = zod.union([zod.object({
+  "id": zod.string(),
+  "groupId": zod.string(),
+  "memberId": zod.string(),
+  "role": zod.enum(['owner', 'moderator', 'member']),
+  "status": zod.enum(['active', 'left', 'removed']),
+  "muted": zod.boolean(),
+  "mutedAt": zod.coerce.date().nullish(),
+  "joinedAt": zod.coerce.date(),
+  "leftAt": zod.coerce.date().nullish(),
+  "removedAt": zod.coerce.date().nullish(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+}),zod.object({
+  "status": zod.enum(['already_member'])
+})])
+
+
+export const LeaveGroupParams = zod.object({
+  "groupId": zod.coerce.string()
+})
+
+export const LeaveGroupResponse = zod.object({
+  "status": zod.enum(['left'])
+})
+
+
+export const AssignGroupModeratorParams = zod.object({
+  "groupId": zod.coerce.string(),
+  "memberId": zod.coerce.string()
+})
+
+export const AssignGroupModeratorBody = zod.object({
+  "role": zod.enum(['moderator', 'member'])
+})
+
+export const AssignGroupModeratorResponse = zod.object({
+  "id": zod.string(),
+  "groupId": zod.string(),
+  "memberId": zod.string(),
+  "role": zod.enum(['owner', 'moderator', 'member']),
+  "status": zod.enum(['active', 'left', 'removed']),
+  "muted": zod.boolean(),
+  "mutedAt": zod.coerce.date().nullish(),
+  "joinedAt": zod.coerce.date(),
+  "leftAt": zod.coerce.date().nullish(),
+  "removedAt": zod.coerce.date().nullish(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+export const RemoveGroupMemberParams = zod.object({
+  "groupId": zod.coerce.string(),
+  "memberId": zod.coerce.string()
+})
+
+export const RemoveGroupMemberResponse = zod.void()
+
+
+export const MuteGroupParams = zod.object({
+  "groupId": zod.coerce.string()
+})
+
+export const MuteGroupResponse = zod.object({
+  "id": zod.string(),
+  "groupId": zod.string(),
+  "memberId": zod.string(),
+  "role": zod.enum(['owner', 'moderator', 'member']),
+  "status": zod.enum(['active', 'left', 'removed']),
+  "muted": zod.boolean(),
+  "mutedAt": zod.coerce.date().nullish(),
+  "joinedAt": zod.coerce.date(),
+  "leftAt": zod.coerce.date().nullish(),
+  "removedAt": zod.coerce.date().nullish(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+export const UnmuteGroupParams = zod.object({
+  "groupId": zod.coerce.string()
+})
+
+export const UnmuteGroupResponse = zod.void()
+
+
+export const ListGroupMembershipRequestsParams = zod.object({
+  "groupId": zod.coerce.string()
+})
+
+export const ListGroupMembershipRequestsResponseItem = zod.object({
+  "id": zod.string(),
+  "groupId": zod.string(),
+  "memberId": zod.string(),
+  "status": zod.enum(['pending', 'approved', 'declined', 'cancelled']),
+  "reviewedByMemberId": zod.string().nullish(),
+  "requestedAt": zod.coerce.date(),
+  "reviewedAt": zod.coerce.date().nullish(),
+  "cancelledAt": zod.coerce.date().nullish(),
+  "createdAt": zod.coerce.date()
+})
+export const ListGroupMembershipRequestsResponse = zod.array(ListGroupMembershipRequestsResponseItem)
+
+
+export const ListOwnGroupMembershipRequestsResponseItem = zod.object({
+  "id": zod.string(),
+  "groupId": zod.string(),
+  "memberId": zod.string(),
+  "status": zod.enum(['pending', 'approved', 'declined', 'cancelled']),
+  "reviewedByMemberId": zod.string().nullish(),
+  "requestedAt": zod.coerce.date(),
+  "reviewedAt": zod.coerce.date().nullish(),
+  "cancelledAt": zod.coerce.date().nullish(),
+  "createdAt": zod.coerce.date()
+})
+export const ListOwnGroupMembershipRequestsResponse = zod.array(ListOwnGroupMembershipRequestsResponseItem)
+
+
+export const ApproveGroupMembershipRequestParams = zod.object({
+  "groupId": zod.coerce.string(),
+  "requestId": zod.coerce.string()
+})
+
+export const ApproveGroupMembershipRequestResponse = zod.object({
+  "id": zod.string(),
+  "groupId": zod.string(),
+  "memberId": zod.string(),
+  "status": zod.enum(['pending', 'approved', 'declined', 'cancelled']),
+  "reviewedByMemberId": zod.string().nullish(),
+  "requestedAt": zod.coerce.date(),
+  "reviewedAt": zod.coerce.date().nullish(),
+  "cancelledAt": zod.coerce.date().nullish(),
+  "createdAt": zod.coerce.date()
+})
+
+
+export const DeclineGroupMembershipRequestParams = zod.object({
+  "groupId": zod.coerce.string(),
+  "requestId": zod.coerce.string()
+})
+
+export const DeclineGroupMembershipRequestResponse = zod.object({
+  "id": zod.string(),
+  "groupId": zod.string(),
+  "memberId": zod.string(),
+  "status": zod.enum(['pending', 'approved', 'declined', 'cancelled']),
+  "reviewedByMemberId": zod.string().nullish(),
+  "requestedAt": zod.coerce.date(),
+  "reviewedAt": zod.coerce.date().nullish(),
+  "cancelledAt": zod.coerce.date().nullish(),
+  "createdAt": zod.coerce.date()
+})
+
+
+export const CancelGroupMembershipRequestParams = zod.object({
+  "groupId": zod.coerce.string(),
+  "requestId": zod.coerce.string()
+})
+
+export const CancelGroupMembershipRequestResponse = zod.object({
+  "id": zod.string(),
+  "groupId": zod.string(),
+  "memberId": zod.string(),
+  "status": zod.enum(['pending', 'approved', 'declined', 'cancelled']),
+  "reviewedByMemberId": zod.string().nullish(),
+  "requestedAt": zod.coerce.date(),
+  "reviewedAt": zod.coerce.date().nullish(),
+  "cancelledAt": zod.coerce.date().nullish(),
+  "createdAt": zod.coerce.date()
+})
+
+
+export const ListGroupHostsParams = zod.object({
+  "groupId": zod.coerce.string()
+})
+
+export const ListGroupHostsResponseItem = zod.object({
+  "id": zod.string(),
+  "groupId": zod.string(),
+  "hostMemberId": zod.string(),
+  "assignedByMemberId": zod.string(),
+  "trainingId": zod.string(),
+  "trainedAt": zod.coerce.date(),
+  "active": zod.boolean(),
+  "revokedAt": zod.coerce.date().nullish(),
+  "createdAt": zod.coerce.date()
+})
+export const ListGroupHostsResponse = zod.array(ListGroupHostsResponseItem)
+
+
+export const AssignGroupHostParams = zod.object({
+  "groupId": zod.coerce.string()
+})
+
+export const AssignGroupHostBody = zod.object({
+  "hostMemberId": zod.string()
+})
+
+export const AssignGroupHostResponse = zod.object({
+  "id": zod.string(),
+  "groupId": zod.string(),
+  "hostMemberId": zod.string(),
+  "assignedByMemberId": zod.string(),
+  "trainingId": zod.string(),
+  "trainedAt": zod.coerce.date(),
+  "active": zod.boolean(),
+  "revokedAt": zod.coerce.date().nullish(),
+  "createdAt": zod.coerce.date()
+})
+
+
+export const DeactivateGroupHostParams = zod.object({
+  "groupId": zod.coerce.string(),
+  "hostMemberId": zod.coerce.string()
+})
+
+export const DeactivateGroupHostResponse = zod.void()
+
+
+export const ListGroupResourcesParams = zod.object({
+  "groupId": zod.coerce.string()
+})
+
+export const ListGroupResourcesResponseItem = zod.object({
+  "id": zod.string(),
+  "groupId": zod.string(),
+  "createdByMemberId": zod.string(),
+  "url": zod.string().url(),
+  "title": zod.string(),
+  "description": zod.string().nullish(),
+  "pinOrder": zod.number().int(),
+  "createdAt": zod.coerce.date()
+})
+export const ListGroupResourcesResponse = zod.array(ListGroupResourcesResponseItem)
+
+
+export const CreateGroupResourceParams = zod.object({
+  "groupId": zod.coerce.string()
+})
+
+
+export const createGroupResourceBodyPinOrderMin = 0;
+
+
+
+export const CreateGroupResourceBody = zod.object({
+  "url": zod.string().url(),
+  "title": zod.string().min(1),
+  "description": zod.string().nullish(),
+  "pinOrder": zod.number().int().min(createGroupResourceBodyPinOrderMin).optional()
+})
+
+export const CreateGroupResourceResponse = zod.object({
+  "id": zod.string(),
+  "groupId": zod.string(),
+  "createdByMemberId": zod.string(),
+  "url": zod.string().url(),
+  "title": zod.string(),
+  "description": zod.string().nullish(),
+  "pinOrder": zod.number().int(),
+  "createdAt": zod.coerce.date()
+})
+
+
+export const DeleteGroupResourceParams = zod.object({
+  "groupId": zod.coerce.string(),
+  "resourceId": zod.coerce.string()
+})
+
+export const DeleteGroupResourceResponse = zod.void()
+
+
+export const ListGroupWelcomeQueueParams = zod.object({
+  "groupId": zod.coerce.string()
+})
+
+export const ListGroupWelcomeQueueResponseItem = zod.object({
+  "id": zod.string(),
+  "groupId": zod.string(),
+  "memberId": zod.string(),
+  "introductionText": zod.string().nullish(),
+  "status": zod.enum(['open', 'acknowledged', 'closed', 'rejected']),
+  "requestedAt": zod.coerce.date(),
+  "acknowledgedByMemberId": zod.string().nullish(),
+  "acknowledgedAt": zod.coerce.date().nullish(),
+  "closedAt": zod.coerce.date().nullish(),
+  "requesterPreferredName": zod.string().optional()
+})
+export const ListGroupWelcomeQueueResponse = zod.array(ListGroupWelcomeQueueResponseItem)
+
+
+export const CreateGroupWelcomeRequestParams = zod.object({
+  "groupId": zod.coerce.string()
+})
+
+export const CreateGroupWelcomeRequestBody = zod.object({
+  "introductionText": zod.string().nullish()
+})
+
+export const CreateGroupWelcomeRequestResponse = zod.object({
+  "id": zod.string(),
+  "groupId": zod.string(),
+  "memberId": zod.string(),
+  "introductionText": zod.string().nullish(),
+  "status": zod.enum(['open', 'acknowledged', 'closed', 'rejected']),
+  "requestedAt": zod.coerce.date(),
+  "acknowledgedByMemberId": zod.string().nullish(),
+  "acknowledgedAt": zod.coerce.date().nullish(),
+  "closedAt": zod.coerce.date().nullish(),
+  "requesterPreferredName": zod.string().optional()
+})
+
+
+export const GetMyGroupWelcomeRequestParams = zod.object({
+  "groupId": zod.coerce.string()
+})
+
+export const GetMyGroupWelcomeRequestResponse = zod.object({
+  "requestId": zod.string().nullable(),
+  "status": zod.enum(['none', 'open', 'acknowledged', 'closed', 'rejected']),
+  "requestedAt": zod.coerce.date().nullable(),
+  "acknowledgedAt": zod.coerce.date().nullable(),
+  "closedAt": zod.coerce.date().nullable()
+})
+
+
+export const AcknowledgeGroupWelcomeParams = zod.object({
+  "groupId": zod.coerce.string(),
+  "requestId": zod.coerce.string()
+})
+
+export const AcknowledgeGroupWelcomeResponse = zod.object({
+  "id": zod.string(),
+  "status": zod.enum(['open', 'acknowledged', 'closed', 'rejected']),
+  "acknowledgedAt": zod.coerce.date().nullish(),
+  "closedAt": zod.coerce.date().nullish()
+})
+
+
+export const CloseGroupWelcomeParams = zod.object({
+  "groupId": zod.coerce.string(),
+  "requestId": zod.coerce.string()
+})
+
+export const CloseGroupWelcomeResponse = zod.object({
+  "id": zod.string(),
+  "status": zod.enum(['open', 'acknowledged', 'closed', 'rejected']),
+  "acknowledgedAt": zod.coerce.date().nullish(),
+  "closedAt": zod.coerce.date().nullish()
+})
+
+
+export const ListGroupPostsParams = zod.object({
+  "groupId": zod.coerce.string()
+})
+
+export const ListGroupPostsResponse = zod.object({
+  "items": zod.array(zod.object({
+  "id": zod.string(),
+  "authorMemberId": zod.string(),
+  "body": zod.string().nullable(),
+  "audience": zod.enum(['only_me', 'friends', 'my_circle', 'this_group', 'public']),
+  "circleId": zod.string().nullish(),
+  "groupId": zod.string().nullish(),
+  "isIntroduction": zod.boolean().optional(),
+  "responseLabel": zod.string().nullish(),
+  "status": zod.enum(['draft', 'published', 'deleted']),
+  "commentsOpen": zod.boolean(),
+  "visibleReactionCounts": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date(),
+  "authorId": zod.string().optional(),
+  "authorDisplayName": zod.string().optional(),
+  "myReactions": zod.array(zod.enum(['hear_you', 'thank_you_for_sharing'])).optional(),
+  "saved": zod.boolean().optional(),
+  "reactionCounts": zod.object({
+
+}).passthrough().nullish(),
+  "originalAvailable": zod.boolean().optional(),
+  "mediaAssets": zod.array(zod.object({
+  "id": zod.string(),
+  "kind": zod.enum(['photo', 'audio']),
+  "contentType": zod.string().nullable(),
+  "byteSize": zod.number().int().nullable(),
+  "width": zod.number().int().nullable(),
+  "height": zod.number().int().nullable(),
+  "durationSeconds": zod.number().int().nullable(),
+  "status": zod.enum(['uploading', 'quarantined', 'held', 'ready', 'rejected', 'cancelled', 'cleanup_pending']),
+  "malwareState": zod.enum(['pending', 'allowed', 'blocked', 'unavailable', 'error']),
+  "abuseState": zod.enum(['pending', 'allowed', 'blocked', 'unavailable', 'error']),
+  "altText": zod.string().nullable(),
+  "transcript": zod.string().nullable(),
+  "limitation": zod.string().nullable()
+})).optional()
+})),
+  "nextCursor": zod.string().nullable()
+})
+
+
+export const ReportGroupParams = zod.object({
+  "groupId": zod.coerce.string()
+})
+
+export const reportGroupBodyDetailsMax = 5000;
+
+
+
+export const ReportGroupBody = zod.object({
+  "targetMemberId": zod.string().optional(),
+  "groupId": zod.string().optional(),
+  "contentId": zod.string().optional(),
+  "contentTargetType": zod.enum(['post', 'comment']).optional(),
+  "contentTargetId": zod.string().optional(),
+  "category": zod.enum(['harassment', 'threats', 'exploitation', 'scams', 'impersonation', 'hateful_content', 'dangerous_medical_claims', 'distress_disclosure', 'respectful_disagreement']),
+  "details": zod.string().max(reportGroupBodyDetailsMax).optional()
+})
+
+export const ReportGroupResponse = zod.object({
+  "report": zod.object({
+  "id": zod.string(),
+  "reporterMemberId": zod.string(),
+  "targetMemberId": zod.string().nullish(),
+  "contentId": zod.string().nullish(),
+  "category": zod.string(),
+  "details": zod.string().nullish(),
+  "status": zod.string(),
+  "createdAt": zod.coerce.date()
+}),
+  "moderationRecord": zod.object({
+  "id": zod.string(),
+  "reportId": zod.string().nullish(),
+  "contentId": zod.string().nullish(),
+  "subjectMemberId": zod.string().nullish(),
+  "state": zod.enum(['pending', 'allowed', 'held', 'removed', 'appealed']),
+  "decision": zod.string().nullish(),
+  "sanction": zod.string().nullish(),
+  "reason": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+})
 })
 
 
@@ -1590,6 +2218,730 @@ export const UpdateMediaTranscriptResponse = zod.object({
   "altText": zod.string().nullable(),
   "transcript": zod.string().nullable(),
   "limitation": zod.string().nullable()
+})
+
+
+export const GetMessageContactSettingsResponse = zod.object({
+  "memberId": zod.string(),
+  "setting": zod.enum(['friends_only', 'friends_and_group_members', 'any_member_requests'])
+})
+
+
+export const UpdateMessageContactSettingsBody = zod.object({
+  "setting": zod.enum(['friends_only', 'friends_and_group_members', 'any_member_requests'])
+})
+
+export const UpdateMessageContactSettingsResponse = zod.object({
+  "memberId": zod.string(),
+  "setting": zod.enum(['friends_only', 'friends_and_group_members', 'any_member_requests'])
+})
+
+
+export const ListConversationsResponse = zod.object({
+  "items": zod.array(zod.object({
+  "id": zod.string(),
+  "kind": zod.enum(['direct', 'group']),
+  "status": zod.enum(['active', 'closed']),
+  "groupId": zod.string().nullish(),
+  "title": zod.string().nullish(),
+  "displayTitle": zod.string(),
+  "participantCount": zod.number().int(),
+  "participants": zod.array(zod.object({
+  "memberId": zod.string(),
+  "displayName": zod.string(),
+  "role": zod.enum(['owner', 'admin', 'member']),
+  "joinedAt": zod.coerce.date()
+})),
+  "lastMessage": zod.union([zod.object({
+  "id": zod.string(),
+  "preview": zod.string(),
+  "senderDisplayName": zod.string(),
+  "createdAt": zod.coerce.date()
+}),zod.null()]),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date().optional()
+})),
+  "nextCursor": zod.string().nullable()
+})
+
+
+export const createDirectConversationBodyBodyMax = 20000;
+
+export const createDirectConversationBodyMediaAssetIdsMax = 10;
+
+
+
+export const CreateDirectConversationBody = zod.object({
+  "recipientMemberId": zod.string(),
+  "body": zod.string().max(createDirectConversationBodyBodyMax),
+  "mediaAssetIds": zod.array(zod.string()).max(createDirectConversationBodyMediaAssetIdsMax).optional()
+})
+
+export const createDirectConversationResponseMessageBodyMax = 20000;
+
+export const createDirectConversationResponseMessageMediaAssetIdsMax = 10;
+
+
+
+export const CreateDirectConversationResponse = zod.object({
+  "conversation": zod.object({
+  "id": zod.string(),
+  "kind": zod.enum(['direct', 'group']),
+  "status": zod.enum(['active', 'closed']),
+  "groupId": zod.string().nullish(),
+  "title": zod.string().nullish(),
+  "displayTitle": zod.string(),
+  "participantCount": zod.number().int(),
+  "participants": zod.array(zod.object({
+  "memberId": zod.string(),
+  "displayName": zod.string(),
+  "role": zod.enum(['owner', 'admin', 'member']),
+  "joinedAt": zod.coerce.date()
+})),
+  "lastMessage": zod.union([zod.object({
+  "id": zod.string(),
+  "preview": zod.string(),
+  "senderDisplayName": zod.string(),
+  "createdAt": zod.coerce.date()
+}),zod.null()]),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date().optional()
+}),
+  "message": zod.object({
+  "id": zod.string(),
+  "conversationId": zod.string(),
+  "senderMemberId": zod.string(),
+  "senderDisplayName": zod.string(),
+  "body": zod.string().max(createDirectConversationResponseMessageBodyMax).nullable(),
+  "mediaAssetIds": zod.array(zod.string()).max(createDirectConversationResponseMessageMediaAssetIdsMax),
+  "mediaAssets": zod.array(zod.object({
+  "id": zod.string(),
+  "kind": zod.enum(['photo', 'audio']),
+  "status": zod.string(),
+  "altText": zod.string().nullable(),
+  "transcript": zod.string().nullable(),
+  "durationSeconds": zod.number().int().nullable()
+})),
+  "createdAt": zod.coerce.date(),
+  "deletedForEveryone": zod.boolean()
+})
+})
+
+
+export const createGroupConversationBodyMemberIdsMax = 100;
+
+export const createGroupConversationBodyTitleMax = 120;
+
+
+
+export const CreateGroupConversationBody = zod.object({
+  "memberIds": zod.array(zod.string()).min(1).max(createGroupConversationBodyMemberIdsMax),
+  "groupId": zod.string().optional(),
+  "title": zod.string().min(1).max(createGroupConversationBodyTitleMax)
+})
+
+export const CreateGroupConversationResponse = zod.object({
+  "id": zod.string(),
+  "kind": zod.enum(['direct', 'group']),
+  "status": zod.enum(['active', 'closed']),
+  "groupId": zod.string().nullish(),
+  "title": zod.string().nullish(),
+  "displayTitle": zod.string(),
+  "participantCount": zod.number().int(),
+  "participants": zod.array(zod.object({
+  "memberId": zod.string(),
+  "displayName": zod.string(),
+  "role": zod.enum(['owner', 'admin', 'member']),
+  "joinedAt": zod.coerce.date()
+})),
+  "lastMessage": zod.union([zod.object({
+  "id": zod.string(),
+  "preview": zod.string(),
+  "senderDisplayName": zod.string(),
+  "createdAt": zod.coerce.date()
+}),zod.null()]),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date().optional()
+})
+
+
+export const GetConversationParams = zod.object({
+  "conversationId": zod.coerce.string()
+})
+
+export const GetConversationResponse = zod.object({
+  "id": zod.string(),
+  "kind": zod.enum(['direct', 'group']),
+  "status": zod.enum(['active', 'closed']),
+  "groupId": zod.string().nullish(),
+  "title": zod.string().nullish(),
+  "displayTitle": zod.string(),
+  "participantCount": zod.number().int(),
+  "participants": zod.array(zod.object({
+  "memberId": zod.string(),
+  "displayName": zod.string(),
+  "role": zod.enum(['owner', 'admin', 'member']),
+  "joinedAt": zod.coerce.date()
+})),
+  "lastMessage": zod.union([zod.object({
+  "id": zod.string(),
+  "preview": zod.string(),
+  "senderDisplayName": zod.string(),
+  "createdAt": zod.coerce.date()
+}),zod.null()]),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date().optional()
+}).and(zod.object({
+  "members": zod.array(zod.object({
+  "id": zod.string(),
+  "conversationId": zod.string(),
+  "memberId": zod.string(),
+  "role": zod.enum(['owner', 'admin', 'member']),
+  "status": zod.enum(['active', 'left', 'removed']),
+  "joinedAt": zod.coerce.date()
+})).optional()
+}))
+
+
+export const AddConversationParticipantParams = zod.object({
+  "conversationId": zod.coerce.string()
+})
+
+export const AddConversationParticipantBody = zod.object({
+  "memberId": zod.string()
+})
+
+export const AddConversationParticipantResponse = zod.object({
+  "id": zod.string(),
+  "conversationId": zod.string(),
+  "memberId": zod.string(),
+  "role": zod.enum(['owner', 'admin', 'member']),
+  "status": zod.enum(['active', 'left', 'removed']),
+  "joinedAt": zod.coerce.date()
+})
+
+
+export const UpdateConversationParticipantRoleParams = zod.object({
+  "conversationId": zod.coerce.string(),
+  "memberId": zod.coerce.string()
+})
+
+export const UpdateConversationParticipantRoleBody = zod.object({
+  "role": zod.enum(['admin', 'member'])
+})
+
+export const UpdateConversationParticipantRoleResponse = zod.object({
+  "id": zod.string(),
+  "conversationId": zod.string(),
+  "memberId": zod.string(),
+  "role": zod.enum(['owner', 'admin', 'member']),
+  "status": zod.enum(['active', 'left', 'removed']),
+  "joinedAt": zod.coerce.date()
+})
+
+
+export const RemoveConversationParticipantParams = zod.object({
+  "conversationId": zod.coerce.string(),
+  "memberId": zod.coerce.string()
+})
+
+export const RemoveConversationParticipantResponse = zod.object({
+  "id": zod.string(),
+  "conversationId": zod.string(),
+  "memberId": zod.string(),
+  "role": zod.enum(['owner', 'admin', 'member']),
+  "status": zod.enum(['active', 'left', 'removed']),
+  "joinedAt": zod.coerce.date()
+})
+
+
+export const LeaveConversationParams = zod.object({
+  "conversationId": zod.coerce.string()
+})
+
+export const LeaveConversationBody = zod.object({
+  "transferToMemberId": zod.string().optional()
+})
+
+export const LeaveConversationResponse = zod.object({
+  "id": zod.string(),
+  "conversationId": zod.string(),
+  "memberId": zod.string(),
+  "role": zod.enum(['owner', 'admin', 'member']),
+  "status": zod.enum(['active', 'left', 'removed']),
+  "joinedAt": zod.coerce.date()
+})
+
+
+export const CloseConversationParams = zod.object({
+  "conversationId": zod.coerce.string()
+})
+
+export const CloseConversationResponse = zod.object({
+  "id": zod.string(),
+  "kind": zod.enum(['direct', 'group']),
+  "status": zod.enum(['active', 'closed']),
+  "groupId": zod.string().nullish(),
+  "title": zod.string().nullish(),
+  "displayTitle": zod.string(),
+  "participantCount": zod.number().int(),
+  "participants": zod.array(zod.object({
+  "memberId": zod.string(),
+  "displayName": zod.string(),
+  "role": zod.enum(['owner', 'admin', 'member']),
+  "joinedAt": zod.coerce.date()
+})),
+  "lastMessage": zod.union([zod.object({
+  "id": zod.string(),
+  "preview": zod.string(),
+  "senderDisplayName": zod.string(),
+  "createdAt": zod.coerce.date()
+}),zod.null()]),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date().optional()
+})
+
+
+export const ListMessagesParams = zod.object({
+  "conversationId": zod.coerce.string()
+})
+
+export const listMessagesResponseItemsItemBodyMax = 20000;
+
+export const listMessagesResponseItemsItemMediaAssetIdsMax = 10;
+
+
+
+export const ListMessagesResponse = zod.object({
+  "items": zod.array(zod.object({
+  "id": zod.string(),
+  "conversationId": zod.string(),
+  "senderMemberId": zod.string(),
+  "senderDisplayName": zod.string(),
+  "body": zod.string().max(listMessagesResponseItemsItemBodyMax).nullable(),
+  "mediaAssetIds": zod.array(zod.string()).max(listMessagesResponseItemsItemMediaAssetIdsMax),
+  "mediaAssets": zod.array(zod.object({
+  "id": zod.string(),
+  "kind": zod.enum(['photo', 'audio']),
+  "status": zod.string(),
+  "altText": zod.string().nullable(),
+  "transcript": zod.string().nullable(),
+  "durationSeconds": zod.number().int().nullable()
+})),
+  "createdAt": zod.coerce.date(),
+  "deletedForEveryone": zod.boolean()
+})),
+  "nextCursor": zod.string().nullable()
+})
+
+
+export const SendMessageParams = zod.object({
+  "conversationId": zod.coerce.string()
+})
+
+export const sendMessageBodyBodyMax = 20000;
+
+export const sendMessageBodyMediaAssetIdsMax = 10;
+
+export const sendMessageBodyIdempotencyKeyMax = 200;
+
+
+
+export const SendMessageBody = zod.object({
+  "body": zod.string().max(sendMessageBodyBodyMax).nullish(),
+  "mediaAssetIds": zod.array(zod.string()).max(sendMessageBodyMediaAssetIdsMax).optional(),
+  "idempotencyKey": zod.string().min(1).max(sendMessageBodyIdempotencyKeyMax)
+})
+
+export const sendMessageResponseBodyMax = 20000;
+
+export const sendMessageResponseMediaAssetIdsMax = 10;
+
+
+
+export const SendMessageResponse = zod.object({
+  "id": zod.string(),
+  "conversationId": zod.string(),
+  "senderMemberId": zod.string(),
+  "senderDisplayName": zod.string(),
+  "body": zod.string().max(sendMessageResponseBodyMax).nullable(),
+  "mediaAssetIds": zod.array(zod.string()).max(sendMessageResponseMediaAssetIdsMax),
+  "mediaAssets": zod.array(zod.object({
+  "id": zod.string(),
+  "kind": zod.enum(['photo', 'audio']),
+  "status": zod.string(),
+  "altText": zod.string().nullable(),
+  "transcript": zod.string().nullable(),
+  "durationSeconds": zod.number().int().nullable()
+})),
+  "createdAt": zod.coerce.date(),
+  "deletedForEveryone": zod.boolean()
+})
+
+
+export const ListMessageRequestsResponseItem = zod.object({
+  "id": zod.string(),
+  "senderMemberId": zod.string(),
+  "senderDisplayName": zod.string(),
+  "recipientMemberId": zod.string(),
+  "recipientDisplayName": zod.string(),
+  "status": zod.enum(['pending', 'accepted', 'declined', 'cancelled']),
+  "body": zod.string().nullable(),
+  "mediaAssetIds": zod.array(zod.string()),
+  "createdAt": zod.coerce.date()
+})
+export const ListMessageRequestsResponse = zod.array(ListMessageRequestsResponseItem)
+
+
+export const AcceptMessageRequestParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const acceptMessageRequestResponseMessageBodyMax = 20000;
+
+export const acceptMessageRequestResponseMessageMediaAssetIdsMax = 10;
+
+
+
+export const AcceptMessageRequestResponse = zod.object({
+  "request": zod.object({
+  "id": zod.string(),
+  "senderMemberId": zod.string(),
+  "senderDisplayName": zod.string(),
+  "recipientMemberId": zod.string(),
+  "recipientDisplayName": zod.string(),
+  "status": zod.enum(['pending', 'accepted', 'declined', 'cancelled']),
+  "body": zod.string().nullable(),
+  "mediaAssetIds": zod.array(zod.string()),
+  "createdAt": zod.coerce.date()
+}),
+  "conversation": zod.object({
+  "id": zod.string(),
+  "kind": zod.enum(['direct', 'group']),
+  "status": zod.enum(['active', 'closed']),
+  "groupId": zod.string().nullish(),
+  "title": zod.string().nullish(),
+  "displayTitle": zod.string(),
+  "participantCount": zod.number().int(),
+  "participants": zod.array(zod.object({
+  "memberId": zod.string(),
+  "displayName": zod.string(),
+  "role": zod.enum(['owner', 'admin', 'member']),
+  "joinedAt": zod.coerce.date()
+})),
+  "lastMessage": zod.union([zod.object({
+  "id": zod.string(),
+  "preview": zod.string(),
+  "senderDisplayName": zod.string(),
+  "createdAt": zod.coerce.date()
+}),zod.null()]),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date().optional()
+}),
+  "message": zod.object({
+  "id": zod.string(),
+  "conversationId": zod.string(),
+  "senderMemberId": zod.string(),
+  "senderDisplayName": zod.string(),
+  "body": zod.string().max(acceptMessageRequestResponseMessageBodyMax).nullable(),
+  "mediaAssetIds": zod.array(zod.string()).max(acceptMessageRequestResponseMessageMediaAssetIdsMax),
+  "mediaAssets": zod.array(zod.object({
+  "id": zod.string(),
+  "kind": zod.enum(['photo', 'audio']),
+  "status": zod.string(),
+  "altText": zod.string().nullable(),
+  "transcript": zod.string().nullable(),
+  "durationSeconds": zod.number().int().nullable()
+})),
+  "createdAt": zod.coerce.date(),
+  "deletedForEveryone": zod.boolean()
+})
+})
+
+
+export const DeclineMessageRequestParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const DeclineMessageRequestResponse = zod.object({
+  "id": zod.string(),
+  "senderMemberId": zod.string(),
+  "senderDisplayName": zod.string(),
+  "recipientMemberId": zod.string(),
+  "recipientDisplayName": zod.string(),
+  "status": zod.enum(['pending', 'accepted', 'declined', 'cancelled']),
+  "body": zod.string().nullable(),
+  "mediaAssetIds": zod.array(zod.string()),
+  "createdAt": zod.coerce.date()
+})
+
+
+export const CancelMessageRequestParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const CancelMessageRequestResponse = zod.object({
+  "id": zod.string(),
+  "senderMemberId": zod.string(),
+  "senderDisplayName": zod.string(),
+  "recipientMemberId": zod.string(),
+  "recipientDisplayName": zod.string(),
+  "status": zod.enum(['pending', 'accepted', 'declined', 'cancelled']),
+  "body": zod.string().nullable(),
+  "mediaAssetIds": zod.array(zod.string()),
+  "createdAt": zod.coerce.date()
+})
+
+
+export const DeleteMessageForEveryoneParams = zod.object({
+  "messageId": zod.coerce.string()
+})
+
+export const deleteMessageForEveryoneResponseBodyMax = 20000;
+
+export const deleteMessageForEveryoneResponseMediaAssetIdsMax = 10;
+
+
+
+export const DeleteMessageForEveryoneResponse = zod.object({
+  "id": zod.string(),
+  "conversationId": zod.string(),
+  "senderMemberId": zod.string(),
+  "senderDisplayName": zod.string(),
+  "body": zod.string().max(deleteMessageForEveryoneResponseBodyMax).nullable(),
+  "mediaAssetIds": zod.array(zod.string()).max(deleteMessageForEveryoneResponseMediaAssetIdsMax),
+  "mediaAssets": zod.array(zod.object({
+  "id": zod.string(),
+  "kind": zod.enum(['photo', 'audio']),
+  "status": zod.string(),
+  "altText": zod.string().nullable(),
+  "transcript": zod.string().nullable(),
+  "durationSeconds": zod.number().int().nullable()
+})),
+  "createdAt": zod.coerce.date(),
+  "deletedForEveryone": zod.boolean()
+})
+
+
+export const RemoveMessageForMeParams = zod.object({
+  "messageId": zod.coerce.string()
+})
+
+export const RemoveMessageForMeResponse = zod.void()
+
+
+export const ReportMessageParams = zod.object({
+  "messageId": zod.coerce.string()
+})
+
+export const reportMessageBodyDetailsMax = 5000;
+
+
+
+export const ReportMessageBody = zod.object({
+  "category": zod.string(),
+  "details": zod.string().max(reportMessageBodyDetailsMax).optional()
+})
+
+export const ReportMessageResponse = zod.object({
+  "report": zod.object({
+
+}).passthrough(),
+  "evidenceId": zod.string(),
+  "messageId": zod.string()
+})
+
+
+export const listNotificationsQueryLimitDefault = 50;
+export const listNotificationsQueryLimitMax = 100;
+
+
+
+export const ListNotificationsQueryParams = zod.object({
+  "limit": zod.coerce.number().int().min(1).max(listNotificationsQueryLimitMax).default(listNotificationsQueryLimitDefault),
+  "cursor": zod.coerce.string().optional()
+})
+
+export const ListNotificationsResponse = zod.object({
+  "items": zod.array(zod.object({
+  "id": zod.string(),
+  "recipientMemberId": zod.string(),
+  "actorMemberId": zod.string().nullish(),
+  "kind": zod.enum(['message', 'request', 'group_activity', 'safety', 'post', 'system']),
+  "title": zod.string(),
+  "body": zod.string(),
+  "deepLink": zod.string().nullish(),
+  "conversationId": zod.string().nullish(),
+  "messageId": zod.string().nullish(),
+  "postId": zod.string().nullish(),
+  "dedupKey": zod.string(),
+  "createdAt": zod.coerce.date(),
+  "readAt": zod.coerce.date().nullish()
+})),
+  "nextCursor": zod.string().nullable()
+})
+
+
+export const GetNotificationUnreadCountResponse = zod.object({
+  "count": zod.number().int()
+})
+
+
+export const MarkNotificationReadParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const MarkNotificationReadResponse = zod.object({
+  "id": zod.string(),
+  "recipientMemberId": zod.string(),
+  "actorMemberId": zod.string().nullish(),
+  "kind": zod.enum(['message', 'request', 'group_activity', 'safety', 'post', 'system']),
+  "title": zod.string(),
+  "body": zod.string(),
+  "deepLink": zod.string().nullish(),
+  "conversationId": zod.string().nullish(),
+  "messageId": zod.string().nullish(),
+  "postId": zod.string().nullish(),
+  "dedupKey": zod.string(),
+  "createdAt": zod.coerce.date(),
+  "readAt": zod.coerce.date().nullish()
+})
+
+
+export const MarkAllNotificationsReadResponse = zod.object({
+  "updated": zod.boolean()
+})
+
+
+export const getNotificationPreferencesResponseQuietHoursStartRegExp = new RegExp('^\\d\\d:\\d\\d$');
+export const getNotificationPreferencesResponseQuietHoursEndRegExp = new RegExp('^\\d\\d:\\d\\d$');
+
+
+export const GetNotificationPreferencesResponse = zod.object({
+  "memberId": zod.string().optional(),
+  "inAppMessages": zod.boolean().optional(),
+  "browserMessages": zod.boolean().optional(),
+  "nativeMessages": zod.boolean().optional(),
+  "inAppRequests": zod.boolean().optional(),
+  "browserRequests": zod.boolean().optional(),
+  "nativeRequests": zod.boolean().optional(),
+  "inAppGroupActivity": zod.boolean().optional(),
+  "browserGroupActivity": zod.boolean().optional(),
+  "nativeGroupActivity": zod.boolean().optional(),
+  "inAppSafety": zod.boolean().optional(),
+  "browserSafety": zod.boolean().optional(),
+  "nativeSafety": zod.boolean().optional(),
+  "quietHoursEnabled": zod.boolean().optional(),
+  "quietHoursStart": zod.string().regex(getNotificationPreferencesResponseQuietHoursStartRegExp).nullish(),
+  "quietHoursEnd": zod.string().regex(getNotificationPreferencesResponseQuietHoursEndRegExp).nullish(),
+  "quietHoursTimezone": zod.string().nullish(),
+  "lockScreenPreview": zod.enum(['private', 'generic', 'off']).optional()
+})
+
+
+export const updateNotificationPreferencesBodyOneQuietHoursStartRegExp = new RegExp('^\\d\\d:\\d\\d$');
+export const updateNotificationPreferencesBodyOneQuietHoursEndRegExp = new RegExp('^\\d\\d:\\d\\d$');
+
+
+export const UpdateNotificationPreferencesBody = zod.object({
+  "memberId": zod.string().optional(),
+  "inAppMessages": zod.boolean().optional(),
+  "browserMessages": zod.boolean().optional(),
+  "nativeMessages": zod.boolean().optional(),
+  "inAppRequests": zod.boolean().optional(),
+  "browserRequests": zod.boolean().optional(),
+  "nativeRequests": zod.boolean().optional(),
+  "inAppGroupActivity": zod.boolean().optional(),
+  "browserGroupActivity": zod.boolean().optional(),
+  "nativeGroupActivity": zod.boolean().optional(),
+  "inAppSafety": zod.boolean().optional(),
+  "browserSafety": zod.boolean().optional(),
+  "nativeSafety": zod.boolean().optional(),
+  "quietHoursEnabled": zod.boolean().optional(),
+  "quietHoursStart": zod.string().regex(updateNotificationPreferencesBodyOneQuietHoursStartRegExp).nullish(),
+  "quietHoursEnd": zod.string().regex(updateNotificationPreferencesBodyOneQuietHoursEndRegExp).nullish(),
+  "quietHoursTimezone": zod.string().nullish(),
+  "lockScreenPreview": zod.enum(['private', 'generic', 'off']).optional()
+})
+
+export const updateNotificationPreferencesResponseQuietHoursStartRegExp = new RegExp('^\\d\\d:\\d\\d$');
+export const updateNotificationPreferencesResponseQuietHoursEndRegExp = new RegExp('^\\d\\d:\\d\\d$');
+
+
+export const UpdateNotificationPreferencesResponse = zod.object({
+  "memberId": zod.string().optional(),
+  "inAppMessages": zod.boolean().optional(),
+  "browserMessages": zod.boolean().optional(),
+  "nativeMessages": zod.boolean().optional(),
+  "inAppRequests": zod.boolean().optional(),
+  "browserRequests": zod.boolean().optional(),
+  "nativeRequests": zod.boolean().optional(),
+  "inAppGroupActivity": zod.boolean().optional(),
+  "browserGroupActivity": zod.boolean().optional(),
+  "nativeGroupActivity": zod.boolean().optional(),
+  "inAppSafety": zod.boolean().optional(),
+  "browserSafety": zod.boolean().optional(),
+  "nativeSafety": zod.boolean().optional(),
+  "quietHoursEnabled": zod.boolean().optional(),
+  "quietHoursStart": zod.string().regex(updateNotificationPreferencesResponseQuietHoursStartRegExp).nullish(),
+  "quietHoursEnd": zod.string().regex(updateNotificationPreferencesResponseQuietHoursEndRegExp).nullish(),
+  "quietHoursTimezone": zod.string().nullish(),
+  "lockScreenPreview": zod.enum(['private', 'generic', 'off']).optional()
+})
+
+
+export const RegisterNotificationDeviceBody = zod.object({
+  "kind": zod.enum(['browser_push', 'native_push']),
+  "tokenOrEndpoint": zod.string(),
+  "platform": zod.string(),
+  "accountSessionDeviceId": zod.string(),
+  "expiresAt": zod.coerce.date().nullish()
+})
+
+export const RegisterNotificationDeviceResponse = zod.object({
+  "id": zod.string(),
+  "kind": zod.enum(['browser_push', 'native_push']),
+  "platform": zod.string(),
+  "accountSessionDeviceId": zod.string(),
+  "expiresAt": zod.coerce.date().nullish(),
+  "lastSeenAt": zod.coerce.date().optional(),
+  "active": zod.boolean()
+})
+
+
+export const RevokeCurrentNotificationDeviceResponse = zod.void()
+
+
+export const RevokeAllNotificationDevicesResponse = zod.void()
+
+
+export const GetNotificationDeliveryStatusResponse = zod.record(zod.string(), zod.object({
+
+}).passthrough())
+
+
+export const AccessMessageReportEvidenceParams = zod.object({
+  "reportId": zod.coerce.string()
+})
+
+export const accessMessageReportEvidenceHeaderXEvidenceReasonMax = 1000;
+
+
+
+export const AccessMessageReportEvidenceHeader = zod.object({
+  "X-Evidence-Reason": zod.string().min(1).max(accessMessageReportEvidenceHeaderXEvidenceReasonMax)
+})
+
+export const AccessMessageReportEvidenceResponse = zod.object({
+  "report": zod.object({
+
+}).passthrough(),
+  "evidence": zod.object({
+
+}).passthrough(),
+  "context": zod.array(zod.object({
+
+}).passthrough())
 })
 
 

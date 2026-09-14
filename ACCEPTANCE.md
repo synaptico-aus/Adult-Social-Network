@@ -271,3 +271,74 @@ Phase 3 is verified in development. Production release still depends on Phase 2 
 - [x] Circle exports contain the signed-in person’s own membership, invitation,
   history-grant, and authored-post records without exposing another person’s
   account material.
+
+## Groups and community welcome acceptance
+
+- [x] Discoverability, content visibility, and joining policy are separate
+  server-enforced controls.
+- [x] Private groups and member-only content are denied across search,
+  suggestions, direct links, rosters, resources, posts, comments, reactions,
+  saves, reports, media, notifications, and exports.
+- [x] Open joins and approval requests are accountable. Blocks are checked
+  against every active member during direct joining and approval.
+- [x] Owners and moderators act only inside their assigned group. Only owners
+  can change discoverability, content visibility, joining, or welcome settings.
+- [x] Leaving, removal, closure, and blocking revoke future group access.
+  Retained evidence is not silently erased, and downloaded copies cannot be
+  recalled.
+- [x] Rules, pinned resources, group reports, mute controls, group posts, and
+  optional introduction posts are available without role-based restrictions on
+  people living with dementia.
+- [x] Welcome queues require independent active training, an exact active group
+  assignment, and active membership. Requesters retain an honest visible status;
+  copy uses controlled templates with no deadline or guaranteed reply.
+- [x] Suggestions use only voluntary profile choices. Development categories are
+  labelled as taxonomy and create no fake members, groups, posts, or activity.
+
+| Verification | Result |
+| --- | --- |
+| OpenAPI generation, schema push, workspace typecheck, diff check | Passed |
+| Full API and policy suite | Passed in a complete run; 78/79 on the final concurrent run due to an existing Phase 6 pagination ordering flake, which passed 12/12 in isolation |
+| Phase 9 DB-backed HTTP gate | Passed: 10 scenarios |
+| Authorization architecture review | Passed with no remaining blocker |
+
+## Messaging and notifications acceptance
+
+- [x] Direct contact defaults to friends only. Members can explicitly allow
+  requests from shared-group members or any member without bypassing blocks.
+- [x] Message requests are recipient-bound and support acceptance, decline, and
+  sender cancellation with canonical lock ordering against concurrent blocks.
+- [x] Direct and group conversation reads, sends, participant changes, exports,
+  notifications, deep links, and media reauthorize current live membership.
+  Linked conversations also recheck the underlying group's active membership.
+- [x] Group leave, removal, closure, blocking, and rejoining serialize against
+  in-flight sends. Removed members lose future access, and rejoining does not
+  reveal messages from before the new membership cutoff.
+- [x] Text, photos, and voice notes are supported. Attachments must be owned,
+  ready, malware-allowed, abuse-allowed, and attached to only one protected
+  context.
+- [x] Delete for everyone and remove only from my view are separate persisted
+  operations with clear participant-visible results.
+- [x] Message reports capture immutable evidence and bounded context. Staff
+  cannot browse conversations and require an exact report, reason, capability,
+  fresh MFA, and an audited evidence access.
+- [x] In-app notifications support deduplication, stable pagination through
+  inaccessible rows, read/unread state, preferences, quiet hours, and generic
+  private previews. Opening a target uses its current protected API.
+- [x] Device registrations are globally exclusive, bound to a server-derived
+  Clerk session, expiry-aware, masked in responses, and revocable on current or
+  explicit session logout. Account switching does not retain query data.
+- [x] Notification delivery records and browser foreground notices contain no
+  message body, sender or group name, media URL, or unauthenticated private
+  target.
+- [x] The interface and documentation state that messages are not end-to-end
+  encrypted.
+- [ ] Real APNs/FCM native delivery and background Web Push delivery are not
+  configured or verified. Simulated delivery remains incomplete.
+
+| Verification | Result |
+| --- | --- |
+| OpenAPI generation, schema push, workspace typecheck, diff check | Passed |
+| Phase 10 DB-backed HTTP gate | Passed: 14 scenarios, including 20 repeated accept/block races |
+| Full API and policy suite | Passed: 93 tests |
+| Authorization architecture review | Passed with no blocker, high, or medium findings |

@@ -4,7 +4,7 @@ import { and, desc, eq } from "drizzle-orm";
 import { getAuth } from "@clerk/express";
 import { createClerkClient } from "@clerk/backend";
 import { reverificationError } from "@clerk/backend/internal";
-import { db, deletionRequestsTable, memberConsentsTable, membersTable } from "@workspace/db";
+import { db, deletionRequestsTable, memberConsentsTable, membersTable, deviceRegistrationsTable } from "@workspace/db";
 import {
   CompleteOnboardingBody,
   CompleteOnboardingResponse,
@@ -15,6 +15,7 @@ import {
 } from "@workspace/api-zod";
 import { requireAuth, sensitiveRateLimit } from "../middlewares/account-auth";
 import { AGE_POLICY_VERSION, ALLOWED_AGE_METHODS, hasCurrentConsent, isAdultEligible, validOnboardingDocuments, freshFirstFactor } from "../lib/account-policy";
+import { revokeDevicesForClerkSession } from "./notifications";
 
 const router: IRouter = Router();
 router.use("/account", requireAuth);
@@ -80,7 +81,10 @@ router.get("/account/sessions", async (req, res): Promise<void> => {
 router.delete("/account/sessions/others", sensitiveRateLimit(), async (req, res): Promise<void> => {
   const auth = getAuth(req);
   const sessions = await clerk.sessions.getSessionList({ userId: auth.userId!, status: "active" });
-  await Promise.all(sessions.data.filter((session) => session.id !== auth.sessionId).map((session) => clerk.sessions.revokeSession(session.id)));
+  await Promise.all(sessions.data.filter((session) => session.id !== auth.sessionId).map(async (session) => {
+    await clerk.sessions.revokeSession(session.id);
+    await revokeDevicesForClerkSession(session.id);
+  }));
   res.sendStatus(204);
 });
 router.delete("/account/sessions/:sessionId", sensitiveRateLimit(), async (req, res): Promise<void> => {
@@ -89,6 +93,7 @@ router.delete("/account/sessions/:sessionId", sensitiveRateLimit(), async (req, 
   const sessionId = Array.isArray(req.params.sessionId) ? req.params.sessionId[0] : req.params.sessionId;
   if (!sessions.data.some((session) => session.id === sessionId)) { res.status(403).json({ error: "Session is not owned by this member" }); return; }
   await clerk.sessions.revokeSession(sessionId);
+  await revokeDevicesForClerkSession(sessionId);
   res.sendStatus(204);
 });
 
@@ -115,13 +120,18 @@ router.post("/account/deletion", sensitiveRateLimit(5), async (req, res): Promis
   const member = (await db.select().from(membersTable).where(eq(membersTable.clerkUserId, userId)).limit(1))[0];
   if (!member) { res.status(404).json({ error: "Onboarding required" }); return; }
   const [request] = await db.insert(deletionRequestsTable).values({ id: randomUUID(), memberId: member.id, status: "pending", reauthMethod: "clerk-session-fva", reauthenticatedAt: new Date() }).returning();
+  await db.update(membersTable).set({ active: false, deletedAt: new Date() }).where(eq(membersTable.id, member.id));
+  await db.update(deviceRegistrationsTable).set({ active: false, revokedAt: new Date() }).where(eq(deviceRegistrationsTable.memberId, member.id));
   res.status(202).json(InitiateDeletionResponse.parse({ status: request.status, requestedAt: request.requestedAt }));
 });
 
 router.delete("/account/deletion", async (req, res): Promise<void> => {
   const userId = getAuth(req).userId!;
   const member = (await db.select().from(membersTable).where(eq(membersTable.clerkUserId, userId)).limit(1))[0];
-  if (member) await db.update(deletionRequestsTable).set({ status: "cancelled", cancelledAt: new Date() }).where(and(eq(deletionRequestsTable.memberId, member.id), eq(deletionRequestsTable.status, "pending")));
+  if (member) {
+    await db.update(deletionRequestsTable).set({ status: "cancelled", cancelledAt: new Date() }).where(and(eq(deletionRequestsTable.memberId, member.id), eq(deletionRequestsTable.status, "pending")));
+    await db.update(membersTable).set({ active: true, deletedAt: null }).where(eq(membersTable.id, member.id));
+  }
   res.sendStatus(204);
 });
 

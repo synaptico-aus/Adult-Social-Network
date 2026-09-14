@@ -1,8 +1,9 @@
 import { boolean, index, jsonb, pgTable, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
 import { membersTable } from "./members";
 import { circlesTable } from "./circles";
+import { groupsTable } from "./groups";
 
-export const postAudiences = ["only_me", "friends", "my_circle", "public"] as const;
+export const postAudiences = ["only_me", "friends", "my_circle", "this_group", "public"] as const;
 export const responseLabels = ["someone_to_listen", "shared_experiences", "practical_ideas", "something_uplifting"] as const;
 export const postStatuses = ["draft", "published", "deleted"] as const;
 export const commentStatuses = ["active", "deleted"] as const;
@@ -14,6 +15,8 @@ export const postsTable = pgTable("posts", {
   body: text("body").notNull(),
   audience: text("audience", { enum: postAudiences }).notNull().default("only_me"),
   circleId: text("circle_id").references(() => circlesTable.id, { onDelete: "set null" }),
+  groupId: text("group_id").references(() => groupsTable.id, { onDelete: "set null" }),
+  isIntroduction: boolean("is_introduction").notNull().default(false),
   responseLabel: text("response_label", { enum: responseLabels }),
   commentsOpen: boolean("comments_open").notNull().default(true),
   visibleReactionCounts: boolean("visible_reaction_counts").notNull().default(true),
@@ -28,7 +31,8 @@ export const postsTable = pgTable("posts", {
 }, (t) => [
   index("posts_author_created_idx").on(t.authorMemberId, t.createdAt, t.id),
   index("posts_feed_created_idx").on(t.status, t.createdAt, t.id),
-   index("posts_circle_created_idx").on(t.circleId, t.status, t.createdAt, t.id),
+    index("posts_circle_created_idx").on(t.circleId, t.status, t.createdAt, t.id),
+    index("posts_group_created_idx").on(t.groupId, t.status, t.createdAt, t.id),
 ]);
 
 export const commentsTable = pgTable("post_comments", {

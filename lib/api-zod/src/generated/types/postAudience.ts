@@ -13,5 +13,6 @@ export const PostAudience = {
   only_me: 'only_me',
   friends: 'friends',
   my_circle: 'my_circle',
+  this_group: 'this_group',
   public: 'public',
 } as const;

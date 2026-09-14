@@ -207,3 +207,56 @@ post-row locking.
 - Invitation acceptance, membership transitions, and circle-post publication use
   the database timeline so the pre-join history cutoff is not affected by
   application-server clock skew.
+
+### Groups and community welcome decisions
+
+- Group discoverability, content visibility, and joining policy remain separate
+  controls. Public discovery never implies public content or membership access.
+- Active group membership is an independent authorization boundary. Relationship
+  labels, profile roles, staff status, diagnoses, and family descriptions do not
+  grant membership, moderator authority, or welcome-queue access.
+- Joining and approval serialize against blocks with canonical member-pair and
+  group-member locks, then re-check every active member. Blocking uses the same
+  owner-safe rule as circles: an owner removes the blocked member; otherwise the
+  blocker leaves.
+- Group moderators are scoped to one group. Only the owner can change
+  discoverability, content visibility, joining policy, or whether welcome
+  requests are enabled.
+- Community-host training is independent from group assignment. Queue access
+  requires current training, current assignment to that exact group, and current
+  membership on every read and mutation.
+- Welcome availability uses controlled, non-guaranteed wording. Pending requests
+  remain visible without countdowns, deadlines, escalation pressure, or promises
+  of an immediate response.
+- Group suggestions use only voluntary profile choices. Development categories
+  are taxonomy, not evidence of active or populated communities.
+
+### Messaging and notification decisions
+
+- Conversation membership is an independent, live authorization boundary.
+  A linked community-group conversation additionally requires current active
+  membership in that exact group on every read, send, media request, participant
+  mutation, export, notification, and deep-link target.
+- Direct contact defaults to mutual friends. Broader choices create recipient-
+  controlled requests rather than immediate conversation access. Blocks override
+  every contact preference.
+- Security-sensitive mutations acquire canonical member-pair locks before group
+  authority and conversation locks, then re-read all relevant state. Notification
+  creation for linked conversations uses the same group authority lock.
+- Group conversation history begins at the later of the current conversation
+  membership and linked-group membership timestamps. Leaving, removal, closure,
+  or blocking revokes future access; rejoining cannot revive earlier history.
+- Delete for everyone redacts the message for every participant. Remove from my
+  view creates a member-scoped tombstone and changes no other participant's view.
+- Staff have no general conversation browser. Reported-message evidence access
+  is bound to one report and bounded captured context, and requires a reason,
+  fresh MFA, an evidence capability, and an audit record.
+- In-app notifications are persistent records, but delivery is subordinate to
+  current authorization, category preferences, quiet hours, token/session
+  validity, and deduplication. Push payloads are generic and contain no private
+  content or unauthenticated target.
+- Messages are not end-to-end encrypted. The server handles plaintext for
+  authorization, attachment checks, reporting, exports, and deletion behavior.
+- Provider registration and queue support do not prove delivery. Native and
+  background browser push remain incomplete until a real provider and devices
+  are configured and verified.

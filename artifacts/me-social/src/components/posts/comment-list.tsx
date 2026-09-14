@@ -25,13 +25,14 @@ import { useQueryClient } from "@tanstack/react-query";
 export interface CommentListProps {
   postId: string;
   commentsOpen: boolean;
+  groupId?: string | null;
 }
 
 const formSchema = z.object({
   body: z.string().min(1, "Comment cannot be empty").max(10000, "Comment is too long"),
 });
 
-export function CommentList({ postId, commentsOpen }: CommentListProps) {
+export function CommentList({ postId, commentsOpen, groupId }: CommentListProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { data: accountSummary } = useGetAccountSummary({
@@ -299,6 +300,7 @@ export function CommentList({ postId, commentsOpen }: CommentListProps) {
         isOpen={!!reportingCommentId} 
         onOpenChange={(open) => { if (!open) setReportingCommentId(null); }} 
         commentId={reportingCommentId || undefined} 
+        groupId={groupId}
         targetMemberId={reportingTargetId || undefined} 
       />
     </div>

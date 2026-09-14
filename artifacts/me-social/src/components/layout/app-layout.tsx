@@ -1,8 +1,10 @@
 import { ReactNode } from "react"
 import { Link, useLocation } from "wouter"
-import { Home, Compass, Users, MessageSquare, UserCircle, Heart, ChevronLeft, Info } from "lucide-react"
+import { Home, Compass, Users, MessageSquare, UserCircle, Heart, ChevronLeft, Info, Bell } from "lucide-react"
 import { useSimpleView } from "@/lib/simple-view"
 import { Button } from "@/components/ui/button"
+import { useGetNotificationUnreadCount, getGetNotificationUnreadCountQueryKey } from "@workspace/api-client-react"
+import { useAuth } from "@clerk/react"
 
 const navItems = [
   { href: "/", label: "Home", icon: Home },
@@ -10,13 +12,23 @@ const navItems = [
   { href: "/circle", label: "My Circle", icon: Users },
   { href: "/groups", label: "Groups", icon: Users },
   { href: "/messages", label: "Messages", icon: MessageSquare },
+  { href: "/notifications", label: "Alerts", icon: Bell },
   { href: "/me", label: "Me", icon: UserCircle },
 ]
 
 function DesktopSidebar() {
   const [location] = useLocation()
   const { isSimpleView } = useSimpleView()
-  
+  const { isSignedIn } = useAuth()
+
+  const { data: unreadData } = useGetNotificationUnreadCount({
+    query: {
+      enabled: !!isSignedIn,
+      queryKey: getGetNotificationUnreadCountQueryKey(),
+      refetchInterval: 30000,
+    }
+  })
+
   const items = isSimpleView ? navItems.filter(i => !i.advanced) : navItems
 
   return (
@@ -30,10 +42,18 @@ function DesktopSidebar() {
       
       <nav className="flex-1 px-4 lg:px-6 py-4 space-y-3 overflow-y-auto">
         {items.map(item => {
-          const active = location === item.href
+          const active = location === item.href || (item.href !== "/" && location.startsWith(item.href + "/"))
+          const unread = item.href === "/notifications" ? (unreadData?.count || 0) : 0
           return (
-            <Link key={item.href} href={item.href} className={`flex items-center gap-4 px-4 py-4 rounded-2xl transition-all font-medium text-xl min-w-0 ${active ? 'bg-secondary text-secondary-foreground font-bold shadow-sm' : 'text-foreground/80 hover:bg-secondary/50 hover:text-foreground'}`}>
-              <item.icon className={`w-8 h-8 shrink-0 ${active ? 'fill-primary/10 text-primary' : ''}`} aria-hidden="true" />
+            <Link key={item.href} href={item.href} className={`flex items-center gap-4 px-4 py-4 rounded-2xl transition-all font-medium text-xl min-w-0 relative ${active ? 'bg-secondary text-secondary-foreground font-bold shadow-sm' : 'text-foreground/80 hover:bg-secondary/50 hover:text-foreground'}`}>
+              <div className="relative">
+                <item.icon className={`w-8 h-8 shrink-0 ${active ? 'fill-primary/10 text-primary' : ''}`} aria-hidden="true" />
+                {unread > 0 && (
+                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground shadow-sm ring-2 ring-card">
+                    {unread > 9 ? '9+' : unread}
+                  </span>
+                )}
+              </div>
               <span className="truncate">{item.label}</span>
             </Link>
           )
@@ -53,16 +73,33 @@ function DesktopSidebar() {
 function MobileBottomNav() {
   const [location] = useLocation()
   const { isSimpleView } = useSimpleView()
+  const { isSignedIn } = useAuth()
+
+  const { data: unreadData } = useGetNotificationUnreadCount({
+    query: {
+      enabled: !!isSignedIn,
+      queryKey: getGetNotificationUnreadCountQueryKey(),
+      refetchInterval: 30000,
+    }
+  })
   
   const items = isSimpleView ? navItems.filter(i => !i.advanced) : navItems
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 border-t border-border bg-card/95 backdrop-blur-md supports-[backdrop-filter]:bg-card/80 flex flex-row items-center justify-between px-1 py-1 pb-[env(safe-area-inset-bottom)] z-50 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
       {items.map(item => {
-        const active = location === item.href
+        const active = location === item.href || (item.href !== "/" && location.startsWith(item.href + "/"))
+        const unread = item.href === "/notifications" ? (unreadData?.count || 0) : 0
         return (
           <Link key={item.href} href={item.href} className={`flex-1 flex flex-col items-center justify-center p-1 min-h-[48px] rounded-xl transition-colors ${active ? 'text-primary' : 'text-muted-foreground'}`}>
-            <item.icon className={`w-7 h-7 shrink-0 ${active ? 'fill-primary/20 text-primary' : ''}`} aria-hidden="true" />
+            <div className="relative">
+              <item.icon className={`w-7 h-7 shrink-0 ${active ? 'fill-primary/20 text-primary' : ''}`} aria-hidden="true" />
+              {unread > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-3 w-3 items-center justify-center rounded-full bg-primary text-[8px] font-bold text-primary-foreground shadow-sm ring-1 ring-card">
+                  {unread > 9 ? '9+' : unread}
+                </span>
+              )}
+            </div>
             <span className={`text-[10px] leading-tight text-center mt-1 ${active ? 'font-bold' : 'font-medium'}`}>{item.label}</span>
           </Link>
         )
@@ -108,21 +145,21 @@ function RightPanel() {
           <div className="w-14 h-14 rounded-2xl bg-secondary flex items-center justify-center mb-5">
             <Info className="w-7 h-7 text-primary" />
           </div>
-          <h3 className="font-display font-semibold text-2xl mb-3 text-foreground">Welcome to Phase 4</h3>
+          <h3 className="font-display font-semibold text-2xl mb-3 text-foreground">A safe place</h3>
           <p className="text-foreground/80 text-base leading-relaxed">
-            You are exploring the foundational design of Me. While some features are not yet active, you can preview the layout, accessibility settings, and calm interface designed for dignity.
+            Me is built for connection and dignity. You are in control of what you share and who you share it with.
           </p>
         </div>
         
         <div className="space-y-4">
-          <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider ml-2">Planned Spaces</h3>
-          <div className="bg-card border border-border border-dashed rounded-2xl p-5 flex flex-col gap-3 shadow-sm">
+          <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider ml-2">Getting Support</h3>
+          <div className="bg-card border border-border rounded-2xl p-5 flex flex-col gap-3 shadow-sm">
             <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center shrink-0">
-              <Users className="w-6 h-6 text-muted-foreground" />
+              <Users className="w-6 h-6 text-primary" />
             </div>
             <div>
-              <h4 className="font-semibold text-foreground text-lg">Support Groups</h4>
-              <p className="text-sm text-muted-foreground mt-1 leading-relaxed">Soon, you'll see suggestions for secure, private groups to connect with others sharing similar journeys.</p>
+              <h4 className="font-semibold text-foreground text-lg">Communities</h4>
+              <p className="text-sm text-muted-foreground mt-1 leading-relaxed">Explore Groups to find others on a similar journey, share practical ideas, and find spaces where you are understood.</p>
             </div>
           </div>
         </div>

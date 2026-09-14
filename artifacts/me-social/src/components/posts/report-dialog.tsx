@@ -34,10 +34,11 @@ export interface ReportDialogProps {
   onOpenChange: (open: boolean) => void;
   postId?: string;
   commentId?: string;
+  groupId?: string | null;
   targetMemberId?: string;
 }
 
-export function ReportDialog({ isOpen, onOpenChange, postId, commentId, targetMemberId }: ReportDialogProps) {
+export function ReportDialog({ isOpen, onOpenChange, postId, commentId, groupId, targetMemberId }: ReportDialogProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const createReport = useCreateReport();
@@ -58,6 +59,7 @@ export function ReportDialog({ isOpen, onOpenChange, postId, commentId, targetMe
         data: {
           category: values.category as ReportInputCategory,
           details: values.details || undefined,
+          ...(groupId ? { groupId } : {}),
           targetMemberId,
           contentTargetType: commentId ? 'comment' : (postId ? 'post' : undefined),
           contentTargetId: commentId || postId,

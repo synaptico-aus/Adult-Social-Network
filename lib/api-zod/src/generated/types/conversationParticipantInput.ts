@@ -6,4 +6,6 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export type ListNotificationEvents200Item = { [key: string]: unknown };
+export interface ConversationParticipantInput {
+  memberId: string;
+}

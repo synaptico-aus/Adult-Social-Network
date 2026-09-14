@@ -74,6 +74,28 @@ _Populate as you build — explicit user instructions worth remembering across s
   Circle posts require current membership on every server read. Pre-join history
   is private until an explicit, revocable grant; removal, leaving, closure, and
   blocks revoke future server access but cannot recall downloaded copies.
+- Groups keep discoverability, content visibility, and joining policy separate.
+  Membership and moderator authority are group-scoped; blocks, leaving, removal,
+  and closure revoke future access on every content path.
+- Community welcome access requires independent active host training, an exact
+  active group assignment, and active membership. Availability copy comes from
+  controlled non-SLA templates, and unanswered requests remain visibly pending.
+- Group suggestions use only voluntary profile choices. Seeded development
+  categories are labelled taxonomy and never create fake members or activity.
+- Messaging defaults to mutual friends; broader contact settings create
+  recipient-controlled requests. Conversation, attachment, export, notification,
+  and deep-link access always reauthorize active membership and blocks.
+- Linked group conversations require current active membership in the underlying
+  group. Group leave, removal, closure, and blocking serialize against sends and
+  revoke future access; rejoining does not reveal intervening history.
+- Delete for everyone is distinct from remove only from my view. Staff cannot
+  browse messages and can access only exact reported evidence with bounded
+  context, a reason, fresh MFA, capability checks, and an audit trail.
+- Messages are not end-to-end encrypted. See ENCRYPTION.md for the actual model.
+  Push payloads are generic and contain no private message or media content.
+- In-app notifications are implemented. APNs/FCM and background Web Push remain
+  explicitly incomplete and unverified because no real provider is configured;
+  simulated delivery does not count as complete.
 - Sensitive audit records are append-only and minimal. Retention duration and
   pseudonymisation remain pending privacy/legal approval.
 - Staff access uses only active server role assignments with role-specific
@@ -98,7 +120,7 @@ permitted.
 ### Phase 6 content rules
 Text posts, drafts, chronological feeds, response guidance, comments/replies,
 supportive reactions, saves, hides, reports, and internal shares are implemented.
-Only `only_me`, `friends`, and `public` audiences are currently valid. Every
+`only_me`, `friends`, `my_circle`, `this_group`, and `public` audiences are valid. Every
 feed, direct, saved, shared, notification, report, and interaction path must
 reauthorize current audience, friendship, either-direction blocks, moderation,
 and original-share visibility. Published body edits must be re-screened in the

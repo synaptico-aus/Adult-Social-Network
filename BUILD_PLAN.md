@@ -298,3 +298,59 @@ Security, accessibility, privacy, moderation, performance, operational, legal, a
 - The My Circle page shows current recipients before sharing, prompts before
   removal, history changes, leaving, or closing, and gives clear empty/error
   states for invite availability.
+
+### Groups and community welcome implementation record
+
+- Added groups with independent discoverability, content visibility, and join
+  policies. Private groups are omitted from unauthorized search, suggestions,
+  detail, roster, resource, post, media, interaction, notification, and export
+  paths.
+- Added open and approval-based membership, scoped owner/moderator/member roles,
+  leaving, muting, removal, closure, rules, pinned resources, reports, and
+  optional introduction posts.
+- Blocking and membership approval use canonical member-pair locks and re-check
+  every active group member. Leaving, removal, closure, or blocking revokes
+  future server access without deleting retained evidence.
+- Added independent community-host training records and exact group assignments.
+  Only an active, trained, assigned host can read, acknowledge, or close that
+  group's welcome queue. Requesters can see pending status without a reply
+  deadline or guarantee.
+- Suggestions use only voluntary profile choices. Development categories are
+  clearly labelled taxonomy records and contain no fabricated members or
+  activity.
+- Added responsive browse, search, suggestion, creation, group detail, resource,
+  approval, welcome, host, roster, and reporting interfaces.
+- Verified with workspace typechecking, 10 focused Phase 9 scenarios, the full
+  API suite, diff checks, and an authorization architecture review.
+
+### Messaging and notifications implementation record
+
+- Added friend-default direct conversations, recipient-controlled message
+  requests, and titled group conversations with owner/admin/member roles.
+  Contact alternatives are explicit and blocks always take precedence.
+- Added text, protected photos, and protected voice notes using the existing
+  private upload, transcript/description, malware, and abuse-check pipeline.
+  Message and attachment reads reauthorize current conversation and linked-group
+  membership.
+- Added separate deletion semantics: senders can delete for everyone while any
+  participant can remove a message only from their own view. Retained reported
+  evidence remains narrowly scoped.
+- Added message reporting and report-bound staff evidence access. Staff receive
+  only the reported message and bounded captured context after providing a
+  reason and satisfying capability and fresh-MFA checks; every access is audited.
+- Added a persistent in-app notification inbox, read/unread state, preferences,
+  quiet hours, generic lock-screen previews, deduplication, retry-ready delivery
+  records, and account/session-bound device registration and revocation.
+- Added responsive inbox, requests, new direct/group conversation, thread,
+  notification center, and settings interfaces. Authentication changes clear
+  user-scoped caches and explicit sign-out revokes the current session's device
+  registrations on a best-effort basis.
+- Documented the actual encryption model: authenticated access and platform
+  transport/storage controls, but no application-layer or end-to-end encryption.
+- External APNs, FCM, and background Web Push delivery remain incomplete because
+  no provider credentials or real delivery service are configured. Simulated
+  delivery is not counted as complete.
+- Verified with schema push, workspace typechecking, 14 focused Phase 10
+  scenarios including repeated and linked-group races, 93 passing API tests,
+  diff checks, and a final architecture review with no blocker, high, or medium
+  findings.

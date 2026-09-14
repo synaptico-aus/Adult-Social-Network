@@ -10,6 +10,7 @@ import type { ReportInputContentTargetType } from './reportInputContentTargetTyp
 
 export interface ReportInput {
   targetMemberId?: string;
+  groupId?: string;
   contentId?: string;
   contentTargetType?: ReportInputContentTargetType;
   contentTargetId?: string;

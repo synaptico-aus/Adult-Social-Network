@@ -16,6 +16,10 @@ tags:
     description: Member safety and reporting
   - name: staff
     description: Capability-scoped moderation operations
+  - name: messages
+    description: Live-membership authorized messaging
+  - name: notifications
+    description: In-app notification inbox and generic delivery
 paths:
   /healthz:
     get:
@@ -486,11 +490,6 @@ paths:
         - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 50, default: 20 } }
         - { name: cursor, in: query, schema: { type: string } }
       responses: { "200": { description: Reverse chronological feed, content: { application/json: { schema: { $ref: "#/components/schemas/PaginatedPosts" } } } } }
-  /notifications:
-    get:
-      operationId: listNotificationEvents
-      tags: [notifications]
-      responses: { "200": { description: Reauthorized internal notification events, content: { application/json: { schema: { type: array, items: { type: object } } } } } }
   /posts/{id}/reactions:
     post:
       operationId: togglePostReaction
@@ -634,6 +633,221 @@ paths:
       tags: [circles]
       parameters: [{ name: circleId, in: path, required: true, schema: { type: string } }]
       responses: { "200": { description: Circle posts, content: { application/json: { schema: { $ref: "#/components/schemas/PaginatedPosts" } } } } }
+  /groups:
+    get:
+      operationId: listGroups
+      tags: [groups]
+      parameters: [{ name: q, in: query, schema: { type: string } }]
+      responses: { "200": { description: Groups, content: { application/json: { schema: { $ref: "#/components/schemas/GroupList" } } } } }
+    post:
+      operationId: createGroup
+      tags: [groups]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/GroupInput" } } }
+      responses: { "201": { description: Group, content: { application/json: { schema: { $ref: "#/components/schemas/Group" } } } } }
+  /groups/categories:
+    get:
+      operationId: listGroupCategories
+      tags: [groups]
+      responses: { "200": { description: Development group categories, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/GroupCategory" } } } } } }
+  /groups/suggestions:
+    get:
+      operationId: listGroupSuggestions
+      tags: [groups]
+      responses: { "200": { description: Explicit profile-choice suggestions, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/GroupSuggestion" } } } } } }
+  /groups/{groupId}:
+    get:
+      operationId: getGroup
+      tags: [groups]
+      parameters: [{ name: groupId, in: path, required: true, schema: { type: string } }]
+      responses: { "200": { description: Group, content: { application/json: { schema: { $ref: "#/components/schemas/Group" } } } } }
+    patch:
+      operationId: updateGroupSettings
+      tags: [groups]
+      parameters: [{ name: groupId, in: path, required: true, schema: { type: string } }]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/GroupUpdate" } } }
+      responses: { "200": { description: Updated group, content: { application/json: { schema: { $ref: "#/components/schemas/Group" } } } } }
+    delete:
+      operationId: closeGroup
+      tags: [groups]
+      parameters: [{ name: groupId, in: path, required: true, schema: { type: string } }]
+      responses: { "204": { description: Closed } }
+  /groups/{groupId}/join:
+    post:
+      operationId: joinGroup
+      tags: [groups]
+      parameters: [{ name: groupId, in: path, required: true, schema: { type: string } }]
+      responses:
+        "200": { description: Joined or already a member, content: { application/json: { schema: { oneOf: [{ $ref: "#/components/schemas/GroupMember" }, { $ref: "#/components/schemas/GroupJoinStatus" }] } } } }
+        "202": { description: Membership request created, content: { application/json: { schema: { $ref: "#/components/schemas/GroupMembershipRequest" } } } }
+  /groups/{groupId}/leave:
+    post:
+      operationId: leaveGroup
+      tags: [groups]
+      parameters: [{ name: groupId, in: path, required: true, schema: { type: string } }]
+      responses: { "200": { description: Left, content: { application/json: { schema: { $ref: "#/components/schemas/GroupActionStatus" } } } } }
+  /groups/{groupId}/members/{memberId}:
+    patch:
+      operationId: assignGroupModerator
+      tags: [groups]
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: string } }
+        - { name: memberId, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/GroupMemberRoleInput" } } }
+      responses: { "200": { description: Updated role, content: { application/json: { schema: { $ref: "#/components/schemas/GroupMember" } } } } }
+    delete:
+      operationId: removeGroupMember
+      tags: [groups]
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: string } }
+        - { name: memberId, in: path, required: true, schema: { type: string } }
+      responses: { "204": { description: Removed } }
+  /groups/{groupId}/mute:
+    post:
+      operationId: muteGroup
+      tags: [groups]
+      parameters: [{ name: groupId, in: path, required: true, schema: { type: string } }]
+      responses: { "200": { description: Muted, content: { application/json: { schema: { $ref: "#/components/schemas/GroupMember" } } } } }
+    delete:
+      operationId: unmuteGroup
+      tags: [groups]
+      parameters: [{ name: groupId, in: path, required: true, schema: { type: string } }]
+      responses: { "204": { description: Unmuted } }
+  /groups/{groupId}/requests:
+    get:
+      operationId: listGroupMembershipRequests
+      tags: [groups]
+      parameters: [{ name: groupId, in: path, required: true, schema: { type: string } }]
+      responses: { "200": { description: Requests, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/GroupMembershipRequest" } } } } } }
+  /group-membership-requests:
+    get:
+      operationId: listOwnGroupMembershipRequests
+      tags: [groups]
+      responses: { "200": { description: Own membership requests, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/GroupMembershipRequest" } } } } } }
+  /groups/{groupId}/requests/{requestId}/approve:
+    post:
+      operationId: approveGroupMembershipRequest
+      tags: [groups]
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: string } }
+        - { name: requestId, in: path, required: true, schema: { type: string } }
+      responses: { "200": { description: Reviewed request, content: { application/json: { schema: { $ref: "#/components/schemas/GroupMembershipRequest" } } } } }
+  /groups/{groupId}/requests/{requestId}/decline:
+    post:
+      operationId: declineGroupMembershipRequest
+      tags: [groups]
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: string } }
+        - { name: requestId, in: path, required: true, schema: { type: string } }
+      responses: { "200": { description: Reviewed request, content: { application/json: { schema: { $ref: "#/components/schemas/GroupMembershipRequest" } } } } }
+  /groups/{groupId}/requests/{requestId}/cancel:
+    post:
+      operationId: cancelGroupMembershipRequest
+      tags: [groups]
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: string } }
+        - { name: requestId, in: path, required: true, schema: { type: string } }
+      responses: { "200": { description: Cancelled request, content: { application/json: { schema: { $ref: "#/components/schemas/GroupMembershipRequest" } } } } }
+  /groups/{groupId}/hosts:
+    get:
+      operationId: listGroupHosts
+      tags: [groups]
+      parameters: [{ name: groupId, in: path, required: true, schema: { type: string } }]
+      responses: { "200": { description: Host assignments (never a welcome queue), content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/GroupHostAssignment" } } } } } }
+    post:
+      operationId: assignGroupHost
+      tags: [groups]
+      parameters: [{ name: groupId, in: path, required: true, schema: { type: string } }]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/GroupHostInput" } } }
+      responses: { "201": { description: Host assignment, content: { application/json: { schema: { $ref: "#/components/schemas/GroupHostAssignment" } } } } }
+  /groups/{groupId}/hosts/{hostMemberId}:
+    delete:
+      operationId: deactivateGroupHost
+      tags: [groups]
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: string } }
+        - { name: hostMemberId, in: path, required: true, schema: { type: string } }
+      responses: { "204": { description: Host assignment deactivated } }
+  /groups/{groupId}/resources:
+    get:
+      operationId: listGroupResources
+      tags: [groups]
+      parameters: [{ name: groupId, in: path, required: true, schema: { type: string } }]
+      responses: { "200": { description: Pinned resources, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/GroupResource" } } } } } }
+    post:
+      operationId: createGroupResource
+      tags: [groups]
+      parameters: [{ name: groupId, in: path, required: true, schema: { type: string } }]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/GroupResourceInput" } } }
+      responses: { "201": { description: Resource, content: { application/json: { schema: { $ref: "#/components/schemas/GroupResource" } } } } }
+  /groups/{groupId}/resources/{resourceId}:
+    delete:
+      operationId: deleteGroupResource
+      tags: [groups]
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: string } }
+        - { name: resourceId, in: path, required: true, schema: { type: string } }
+      responses: { "204": { description: Deleted } }
+  /groups/{groupId}/welcome:
+    get:
+      operationId: listGroupWelcomeQueue
+      tags: [groups]
+      parameters: [{ name: groupId, in: path, required: true, schema: { type: string } }]
+      responses: { "200": { description: Host-only queue, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/GroupWelcomeRequest" } } } } } }
+    post:
+      operationId: createGroupWelcomeRequest
+      tags: [groups]
+      parameters: [{ name: groupId, in: path, required: true, schema: { type: string } }]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/GroupWelcomeInput" } } }
+      responses: { "201": { description: Welcome request, content: { application/json: { schema: { $ref: "#/components/schemas/GroupWelcomeRequest" } } } } }
+  /groups/{groupId}/welcome/me:
+    get:
+      operationId: getMyGroupWelcomeRequest
+      tags: [groups]
+      parameters: [{ name: groupId, in: path, required: true, schema: { type: string } }]
+      responses: { "200": { description: Own latest welcome request status, content: { application/json: { schema: { $ref: "#/components/schemas/GroupWelcomeMeResponse" } } } } }
+  /groups/{groupId}/welcome/{requestId}/acknowledge:
+    post:
+      operationId: acknowledgeGroupWelcome
+      tags: [groups]
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: string } }
+        - { name: requestId, in: path, required: true, schema: { type: string } }
+      responses: { "200": { description: Acknowledged, content: { application/json: { schema: { $ref: "#/components/schemas/GroupWelcomeMutation" } } } } }
+  /groups/{groupId}/welcome/{requestId}/close:
+    post:
+      operationId: closeGroupWelcome
+      tags: [groups]
+      parameters:
+        - { name: groupId, in: path, required: true, schema: { type: string } }
+        - { name: requestId, in: path, required: true, schema: { type: string } }
+      responses: { "200": { description: Closed, content: { application/json: { schema: { $ref: "#/components/schemas/GroupWelcomeMutation" } } } } }
+  /groups/{groupId}/posts:
+    get:
+      operationId: listGroupPosts
+      tags: [groups]
+      parameters: [{ name: groupId, in: path, required: true, schema: { type: string } }]
+      responses: { "200": { description: Group posts, content: { application/json: { schema: { $ref: "#/components/schemas/PaginatedPosts" } } } } }
+  /groups/{groupId}/reports:
+    post:
+      operationId: reportGroup
+      tags: [groups]
+      parameters: [{ name: groupId, in: path, required: true, schema: { type: string } }]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/ReportInput" } } }
+      responses: { "201": { description: Group report, content: { application/json: { schema: { $ref: "#/components/schemas/GroupReportResponse" } } } } }
   /media/uploads/request:
     post:
       operationId: requestMediaUpload
@@ -678,6 +892,193 @@ paths:
         required: true
         content: { application/json: { schema: { $ref: "#/components/schemas/MediaTranscriptInput" } } }
       responses: { "200": { description: Updated transcript, content: { application/json: { schema: { $ref: "#/components/schemas/MediaAttachment" } } } } }
+  /message-contact-settings:
+    get:
+      operationId: getMessageContactSettings
+      tags: [messages]
+      responses: { "200": { description: Contact setting, content: { application/json: { schema: { $ref: "#/components/schemas/MessageContactSettings" } } } } }
+    patch:
+      operationId: updateMessageContactSettings
+      tags: [messages]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/MessageContactSettingsInput" } } } }
+      responses: { "200": { description: Updated contact setting, content: { application/json: { schema: { $ref: "#/components/schemas/MessageContactSettings" } } } } }
+  /conversations:
+    get:
+      operationId: listConversations
+      tags: [messages]
+      responses: { "200": { description: Accessible conversations, content: { application/json: { schema: { $ref: "#/components/schemas/PaginatedConversations" } } } } }
+  /conversations/direct:
+    post:
+      operationId: createDirectConversation
+      tags: [messages]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/DirectMessageInput" } } } }
+      responses: { "201": { description: Direct conversation and message, content: { application/json: { schema: { $ref: "#/components/schemas/DirectConversationCreateResponse" } } } }, "202": { description: Message request, content: { application/json: { schema: { $ref: "#/components/schemas/MessageRequestCreateResponse" } } } } }
+  /conversations/group:
+    post:
+      operationId: createGroupConversation
+      tags: [messages]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/GroupConversationInput" } } } }
+      responses: { "201": { description: Group conversation, content: { application/json: { schema: { $ref: "#/components/schemas/Conversation" } } } } }
+  /conversations/{conversationId}:
+    get:
+      operationId: getConversation
+      tags: [messages]
+      parameters: [{ name: conversationId, in: path, required: true, schema: { type: string } }]
+      responses: { "200": { description: Conversation, content: { application/json: { schema: { $ref: "#/components/schemas/ConversationDetail" } } } } }
+  /conversations/{conversationId}/participants:
+    post:
+      operationId: addConversationParticipant
+      tags: [messages]
+      parameters: [{ name: conversationId, in: path, required: true, schema: { type: string } }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/ConversationParticipantInput" } } } }
+      responses: { "201": { description: Added participant, content: { application/json: { schema: { $ref: "#/components/schemas/ConversationMember" } } } } }
+  /conversations/{conversationId}/participants/{memberId}:
+    patch:
+      operationId: updateConversationParticipantRole
+      tags: [messages]
+      parameters:
+        - { name: conversationId, in: path, required: true, schema: { type: string } }
+        - { name: memberId, in: path, required: true, schema: { type: string } }
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/ConversationParticipantRoleInput" } } } }
+      responses: { "200": { description: Updated participant, content: { application/json: { schema: { $ref: "#/components/schemas/ConversationMember" } } } } }
+    delete:
+      operationId: removeConversationParticipant
+      tags: [messages]
+      parameters:
+        - { name: conversationId, in: path, required: true, schema: { type: string } }
+        - { name: memberId, in: path, required: true, schema: { type: string } }
+      responses: { "200": { description: Removed participant, content: { application/json: { schema: { $ref: "#/components/schemas/ConversationMember" } } } } }
+  /conversations/{conversationId}/leave:
+    post:
+      operationId: leaveConversation
+      tags: [messages]
+      parameters: [{ name: conversationId, in: path, required: true, schema: { type: string } }]
+      requestBody: { required: false, content: { application/json: { schema: { $ref: "#/components/schemas/ConversationLeaveInput" } } } }
+      responses: { "200": { description: Left conversation, content: { application/json: { schema: { $ref: "#/components/schemas/ConversationMember" } } } } }
+  /conversations/{conversationId}/close:
+    post:
+      operationId: closeConversation
+      tags: [messages]
+      parameters: [{ name: conversationId, in: path, required: true, schema: { type: string } }]
+      responses: { "200": { description: Closed conversation, content: { application/json: { schema: { $ref: "#/components/schemas/Conversation" } } } } }
+  /conversations/{conversationId}/messages:
+    get:
+      operationId: listMessages
+      tags: [messages]
+      parameters:
+        - { name: conversationId, in: path, required: true, schema: { type: string } }
+      responses: { "200": { description: Chronological messages, content: { application/json: { schema: { $ref: "#/components/schemas/PaginatedMessages" } } } } }
+    post:
+      operationId: sendMessage
+      tags: [messages]
+      parameters: [{ name: conversationId, in: path, required: true, schema: { type: string } }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/MessageInput" } } } }
+      responses: { "201": { description: Message, content: { application/json: { schema: { $ref: "#/components/schemas/Message" } } } } }
+  /message-requests:
+    get:
+      operationId: listMessageRequests
+      tags: [messages]
+      responses: { "200": { description: Bound message requests, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/MessageRequest" } } } } } }
+  /message-requests/{id}/accept:
+    post:
+      operationId: acceptMessageRequest
+      tags: [messages]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { "200": { description: Accepted request, content: { application/json: { schema: { $ref: "#/components/schemas/MessageRequestAcceptResponse" } } } } }
+  /message-requests/{id}/decline:
+    post:
+      operationId: declineMessageRequest
+      tags: [messages]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { "200": { description: Declined request, content: { application/json: { schema: { $ref: "#/components/schemas/MessageRequest" } } } } }
+  /message-requests/{id}/cancel:
+    post:
+      operationId: cancelMessageRequest
+      tags: [messages]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { "200": { description: Cancelled request, content: { application/json: { schema: { $ref: "#/components/schemas/MessageRequest" } } } } }
+  /messages/{messageId}/for-everyone:
+    delete:
+      operationId: deleteMessageForEveryone
+      tags: [messages]
+      parameters: [{ name: messageId, in: path, required: true, schema: { type: string } }]
+      responses: { "200": { description: Deleted message, content: { application/json: { schema: { $ref: "#/components/schemas/Message" } } } } }
+  /messages/{messageId}/for-me:
+    delete:
+      operationId: removeMessageForMe
+      tags: [messages]
+      parameters: [{ name: messageId, in: path, required: true, schema: { type: string } }]
+      responses: { "204": { description: Removed from current member view } }
+  /messages/{messageId}/report:
+    post:
+      operationId: reportMessage
+      tags: [messages]
+      parameters: [{ name: messageId, in: path, required: true, schema: { type: string } }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/MessageReportInput" } } } }
+      responses: { "201": { description: Message report, content: { application/json: { schema: { $ref: "#/components/schemas/MessageReportResponse" } } } } }
+  /notifications:
+    get:
+      operationId: listNotifications
+      tags: [notifications]
+      parameters:
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 100, default: 50 } }
+        - { name: cursor, in: query, schema: { type: string } }
+      responses: { "200": { description: Reauthorized inbox, content: { application/json: { schema: { $ref: "#/components/schemas/PaginatedNotifications" } } } } }
+  /notifications/unread-count:
+    get:
+      operationId: getNotificationUnreadCount
+      tags: [notifications]
+      responses: { "200": { description: Unread count, content: { application/json: { schema: { $ref: "#/components/schemas/UnreadCount" } } } } }
+  /notifications/{id}/read:
+    post:
+      operationId: markNotificationRead
+      tags: [notifications]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { "200": { description: Read notification, content: { application/json: { schema: { $ref: "#/components/schemas/Notification" } } } } }
+  /notifications/read-all:
+    post:
+      operationId: markAllNotificationsRead
+      tags: [notifications]
+      responses: { "200": { description: Read update, content: { application/json: { schema: { $ref: "#/components/schemas/ReadAllNotificationsResponse" } } } } }
+  /notification-preferences:
+    get:
+      operationId: getNotificationPreferences
+      tags: [notifications]
+      responses: { "200": { description: Preferences, content: { application/json: { schema: { $ref: "#/components/schemas/NotificationPreferences" } } } } }
+    patch:
+      operationId: updateNotificationPreferences
+      tags: [notifications]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/NotificationPreferencesInput" } } } }
+      responses: { "200": { description: Updated preferences, content: { application/json: { schema: { $ref: "#/components/schemas/NotificationPreferences" } } } } }
+  /devices:
+    post:
+      operationId: registerNotificationDevice
+      tags: [notifications]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/DeviceRegistrationInput" } } } }
+      responses: { "200": { description: Rotated device, content: { application/json: { schema: { $ref: "#/components/schemas/DeviceRegistration" } } } }, "201": { description: Registered device, content: { application/json: { schema: { $ref: "#/components/schemas/DeviceRegistration" } } } } }
+  /devices/current:
+    delete:
+      operationId: revokeCurrentNotificationDevice
+      tags: [notifications]
+      responses: { "204": { description: Revoked } }
+  /devices/all:
+    delete:
+      operationId: revokeAllNotificationDevices
+      tags: [notifications]
+      responses: { "204": { description: Revoked } }
+  /delivery/status:
+    get:
+      operationId: getNotificationDeliveryStatus
+      tags: [notifications]
+      responses: { "200": { description: Explicit provider status, content: { application/json: { schema: { $ref: "#/components/schemas/DeliveryStatus" } } } } }
+  /staff/reports/{reportId}/message-evidence:
+    get:
+      operationId: accessMessageReportEvidence
+      tags: [staff]
+      parameters:
+        - { name: reportId, in: path, required: true, schema: { type: string } }
+        - { name: X-Evidence-Reason, in: header, required: true, schema: { type: string, minLength: 1, maxLength: 1000 } }
+      responses: { "200": { description: Bounded report evidence, content: { application/json: { schema: { $ref: "#/components/schemas/MessageEvidenceResponse" } } } } }
 components:
   schemas:
     MediaUploadInput:
@@ -699,6 +1100,206 @@ components:
       type: object
       required: [transcript]
       properties: { transcript: { type: string, minLength: 1, maxLength: 100000 } }
+    WelcomeAvailabilityText:
+      type: string
+      enum:
+        - "Welcome requests are open when a trained host is available."
+        - "Trained hosts are limited; response timing is not provided."
+        - "No trained active welcome host is currently available."
+    GroupInput:
+      type: object
+      required: [name, category]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 120 }
+        description: { type: ["string", "null"] }
+        category: { type: string }
+        rules: { type: ["string", "null"] }
+        suggestionTags: { type: array, items: { type: string } }
+        discoverability: { type: string, enum: [public, private] }
+        contentVisibility: { type: string, enum: [public, members] }
+        joinPolicy: { type: string, enum: [open, approval, closed] }
+        welcomeEnabled: { type: boolean }
+        welcomeAvailabilityText:
+          oneOf:
+            - { $ref: "#/components/schemas/WelcomeAvailabilityText" }
+            - { type: "null" }
+    Group:
+      type: object
+      required: [id, ownerMemberId, name, category, discoverability, contentVisibility, joinPolicy, status, memberCount, myMemberId, myMuted]
+      properties:
+        id: { type: string }
+        ownerMemberId: { type: string }
+        name: { type: string }
+        description: { type: ["string", "null"] }
+        category: { type: string }
+        rules: { type: ["string", "null"] }
+        suggestionTags: { type: array, items: { type: string } }
+        discoverability: { type: string, enum: [public, private] }
+        contentVisibility: { type: string, enum: [public, members] }
+        joinPolicy: { type: string, enum: [open, approval, closed] }
+        welcomeEnabled: { type: boolean }
+        welcomeAvailabilityText:
+          oneOf:
+            - { $ref: "#/components/schemas/WelcomeAvailabilityText" }
+            - { type: "null" }
+        status: { type: string, enum: [active, closed] }
+        memberCount: { type: integer }
+        myMemberId: { type: ["string", "null"] }
+        myMuted: { type: boolean }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    GroupSuggestion:
+      allOf:
+        - $ref: "#/components/schemas/Group"
+        - type: object
+          required: [matchedChoices]
+          properties:
+            matchedChoices: { type: array, items: { type: string } }
+    GroupMember:
+      type: object
+      required: [id, groupId, memberId, role, status, muted, joinedAt, createdAt, updatedAt]
+      properties:
+        id: { type: string }
+        groupId: { type: string }
+        memberId: { type: string }
+        role: { type: string, enum: [owner, moderator, member] }
+        status: { type: string, enum: [active, left, removed] }
+        muted: { type: boolean }
+        mutedAt: { type: ["string", "null"], format: date-time }
+        joinedAt: { type: string, format: date-time }
+        leftAt: { type: ["string", "null"], format: date-time }
+        removedAt: { type: ["string", "null"], format: date-time }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    GroupMembershipRequest:
+      type: object
+      required: [id, groupId, memberId, status, requestedAt, createdAt]
+      properties:
+        id: { type: string }
+        groupId: { type: string }
+        memberId: { type: string }
+        status: { type: string, enum: [pending, approved, declined, cancelled] }
+        reviewedByMemberId: { type: ["string", "null"] }
+        requestedAt: { type: string, format: date-time }
+        reviewedAt: { type: ["string", "null"], format: date-time }
+        cancelledAt: { type: ["string", "null"], format: date-time }
+        createdAt: { type: string, format: date-time }
+    GroupJoinStatus:
+      type: object
+      required: [status]
+      properties: { status: { type: string, enum: [already_member] } }
+    GroupActionStatus:
+      type: object
+      required: [status]
+      properties: { status: { type: string, enum: [left] } }
+    GroupUpdate:
+      type: object
+      properties:
+        name: { type: string, minLength: 1, maxLength: 120 }
+        description: { type: ["string", "null"] }
+        rules: { type: ["string", "null"] }
+        discoverability: { type: string, enum: [public, private] }
+        contentVisibility: { type: string, enum: [public, members] }
+        joinPolicy: { type: string, enum: [open, approval, closed] }
+        welcomeEnabled: { type: boolean }
+        welcomeAvailabilityText:
+          oneOf:
+            - { $ref: "#/components/schemas/WelcomeAvailabilityText" }
+            - { type: "null" }
+        suggestionTags: { type: array, items: { type: string } }
+    GroupMemberRoleInput:
+      type: object
+      required: [role]
+      properties: { role: { type: string, enum: [moderator, member] } }
+    GroupList:
+      type: object
+      required: [items]
+      properties: { items: { type: array, items: { $ref: "#/components/schemas/Group" } } }
+    GroupCategory:
+      type: object
+      required: [id, name, developmentOnly]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        developmentOnly: { type: boolean }
+    GroupResourceInput:
+      type: object
+      required: [url, title]
+      properties:
+        url: { type: string, format: uri }
+        title: { type: string, minLength: 1 }
+        description: { type: ["string", "null"] }
+        pinOrder: { type: integer, minimum: 0 }
+    GroupResource:
+      type: object
+      required: [id, groupId, createdByMemberId, url, title, pinOrder, createdAt]
+      properties:
+        id: { type: string }
+        groupId: { type: string }
+        createdByMemberId: { type: string }
+        url: { type: string, format: uri }
+        title: { type: string }
+        description: { type: ["string", "null"] }
+        pinOrder: { type: integer }
+        createdAt: { type: string, format: date-time }
+    GroupWelcomeInput:
+      type: object
+      properties: { introductionText: { type: ["string", "null"] } }
+    GroupHostInput:
+      type: object
+      required: [hostMemberId]
+      properties:
+        hostMemberId: { type: string }
+    GroupHostAssignment:
+      type: object
+      required: [id, groupId, hostMemberId, assignedByMemberId, trainingId, trainedAt, active, createdAt]
+      properties:
+        id: { type: string }
+        groupId: { type: string }
+        hostMemberId: { type: string }
+        assignedByMemberId: { type: string }
+        trainingId: { type: string }
+        trainedAt: { type: string, format: date-time }
+        active: { type: boolean }
+        revokedAt: { type: ["string", "null"], format: date-time }
+        createdAt: { type: string, format: date-time }
+    GroupWelcomeRequest:
+      type: object
+      required: [id, groupId, memberId, status, requestedAt]
+      properties:
+        id: { type: string }
+        groupId: { type: string }
+        memberId: { type: string }
+        introductionText: { type: ["string", "null"] }
+        status: { type: string, enum: [open, acknowledged, closed, rejected] }
+        requestedAt: { type: string, format: date-time }
+        acknowledgedByMemberId: { type: ["string", "null"] }
+        acknowledgedAt: { type: ["string", "null"], format: date-time }
+        closedAt: { type: ["string", "null"], format: date-time }
+        requesterPreferredName: { type: string }
+    GroupWelcomeMeResponse:
+      type: object
+      required: [requestId, status, requestedAt, acknowledgedAt, closedAt]
+      properties:
+        requestId: { type: ["string", "null"] }
+        status: { type: string, enum: [none, open, acknowledged, closed, rejected] }
+        requestedAt: { type: ["string", "null"], format: date-time }
+        acknowledgedAt: { type: ["string", "null"], format: date-time }
+        closedAt: { type: ["string", "null"], format: date-time }
+    GroupWelcomeMutation:
+      type: object
+      required: [id, status]
+      properties:
+        id: { type: string }
+        status: { type: string, enum: [open, acknowledged, closed, rejected] }
+        acknowledgedAt: { type: ["string", "null"], format: date-time }
+        closedAt: { type: ["string", "null"], format: date-time }
+    GroupReportResponse:
+      type: object
+      required: [report, moderationRecord]
+      properties:
+        report: { $ref: "#/components/schemas/Report" }
+        moderationRecord: { $ref: "#/components/schemas/ModerationRecord" }
     CircleInput:
       type: object
       required: [name]
@@ -760,8 +1361,10 @@ components:
       required: [body]
       properties:
         body: { type: string, maxLength: 20000 }
-        audience: { type: string, enum: [only_me, friends, my_circle, public] }
+        audience: { type: string, enum: [only_me, friends, my_circle, this_group, public] }
         circleId: { type: ["string", "null"] }
+        groupId: { type: ["string", "null"] }
+        isIntroduction: { type: boolean }
         responseLabel: { type: ["string", "null"], enum: [someone_to_listen, shared_experiences, practical_ideas, something_uplifting, null] }
         commentsOpen: { type: boolean }
         visibleReactionCounts: { type: boolean }
@@ -775,8 +1378,10 @@ components:
         id: { type: string }
         authorMemberId: { type: string }
         body: { type: ["string", "null"] }
-        audience: { type: string, enum: [only_me, friends, my_circle, public] }
+        audience: { type: string, enum: [only_me, friends, my_circle, this_group, public] }
         circleId: { type: ["string", "null"] }
+        groupId: { type: ["string", "null"] }
+        isIntroduction: { type: boolean }
         responseLabel: { type: ["string", "null"] }
         status: { type: string, enum: [draft, published, deleted] }
         commentsOpen: { type: boolean }
@@ -971,6 +1576,7 @@ components:
       required: [category]
       properties:
         targetMemberId: { type: string }
+        groupId: { type: string }
         contentId: { type: string }
         contentTargetType: { type: string, enum: [post, comment] }
         contentTargetId: { type: string }
@@ -1232,4 +1838,269 @@ components:
         uploadURL: { type: string, format: uri }
         objectPath: { type: string }
         reminder: { type: string }
+    MessageContactSettings:
+      type: object
+      required: [memberId, setting]
+      properties:
+        memberId: { type: string }
+        setting: { type: string, enum: [friends_only, friends_and_group_members, any_member_requests] }
+    MessageContactSettingsInput:
+      type: object
+      required: [setting]
+      properties:
+        setting: { type: string, enum: [friends_only, friends_and_group_members, any_member_requests] }
+    Conversation:
+      type: object
+      required: [id, kind, status, displayTitle, participantCount, participants, lastMessage, createdAt]
+      properties:
+        id: { type: string }
+        kind: { type: string, enum: [direct, group] }
+        status: { type: string, enum: [active, closed] }
+        groupId: { type: ["string", "null"] }
+        title: { type: ["string", "null"] }
+        displayTitle: { type: string }
+        participantCount: { type: integer }
+        participants: { type: array, items: { $ref: "#/components/schemas/ConversationParticipant" } }
+        lastMessage: { oneOf: [{ $ref: "#/components/schemas/LastMessagePreview" }, { type: "null" }] }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    ConversationDetail:
+      allOf:
+        - $ref: "#/components/schemas/Conversation"
+        - type: object
+          properties:
+            members: { type: array, items: { $ref: "#/components/schemas/ConversationMember" } }
+    ConversationMember:
+      type: object
+      required: [id, conversationId, memberId, role, status, joinedAt]
+      properties:
+        id: { type: string }
+        conversationId: { type: string }
+        memberId: { type: string }
+        role: { type: string, enum: [owner, admin, member] }
+        status: { type: string, enum: [active, left, removed] }
+        joinedAt: { type: string, format: date-time }
+    ConversationParticipant:
+      type: object
+      required: [memberId, displayName, role, joinedAt]
+      properties:
+        memberId: { type: string }
+        displayName: { type: string }
+        role: { type: string, enum: [owner, admin, member] }
+        joinedAt: { type: string, format: date-time }
+    LastMessagePreview:
+      type: object
+      required: [id, preview, senderDisplayName, createdAt]
+      properties:
+        id: { type: string }
+        preview: { type: string }
+        senderDisplayName: { type: string }
+        createdAt: { type: string, format: date-time }
+    ConversationParticipantInput:
+      type: object
+      required: [memberId]
+      properties:
+        memberId: { type: string }
+    ConversationParticipantRoleInput:
+      type: object
+      required: [role]
+      properties:
+        role: { type: string, enum: [admin, member] }
+    ConversationLeaveInput:
+      type: object
+      properties:
+        transferToMemberId: { type: string }
+    PaginatedConversations:
+      type: object
+      required: [items, nextCursor]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/Conversation" } }
+        nextCursor: { type: ["string", "null"] }
+    Message:
+      type: object
+      required: [id, conversationId, senderMemberId, senderDisplayName, body, mediaAssetIds, mediaAssets, createdAt, deletedForEveryone]
+      properties:
+        id: { type: string }
+        conversationId: { type: string }
+        senderMemberId: { type: string }
+        senderDisplayName: { type: string }
+        body: { type: ["string", "null"], maxLength: 20000 }
+        mediaAssetIds: { type: array, maxItems: 10, items: { type: string } }
+        mediaAssets: { type: array, items: { $ref: "#/components/schemas/MessageMediaAsset" } }
+        createdAt: { type: string, format: date-time }
+        deletedForEveryone: { type: boolean }
+    MessageInput:
+      type: object
+      required: [idempotencyKey]
+      properties:
+        body: { type: ["string", "null"], maxLength: 20000 }
+        mediaAssetIds: { type: array, maxItems: 10, items: { type: string } }
+        idempotencyKey: { type: string, minLength: 1, maxLength: 200 }
+    DirectMessageInput:
+      type: object
+      required: [recipientMemberId, body]
+      properties:
+        recipientMemberId: { type: string }
+        body: { type: string, maxLength: 20000 }
+        mediaAssetIds: { type: array, maxItems: 10, items: { type: string } }
+    GroupConversationInput:
+      type: object
+      required: [memberIds, title]
+      properties:
+        memberIds: { type: array, minItems: 1, maxItems: 100, items: { type: string } }
+        groupId: { type: string }
+        title: { type: string, minLength: 1, maxLength: 120 }
+    PaginatedMessages:
+      type: object
+      required: [items, nextCursor]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/Message" } }
+        nextCursor: { type: ["string", "null"] }
+    MessageRequest:
+      type: object
+      required: [id, senderMemberId, senderDisplayName, recipientMemberId, recipientDisplayName, status, body, mediaAssetIds, createdAt]
+      properties:
+        id: { type: string }
+        senderMemberId: { type: string }
+        senderDisplayName: { type: string }
+        recipientMemberId: { type: string }
+        recipientDisplayName: { type: string }
+        status: { type: string, enum: [pending, accepted, declined, cancelled] }
+        body: { type: ["string", "null"] }
+        mediaAssetIds: { type: array, items: { type: string } }
+        createdAt: { type: string, format: date-time }
+    MessageMediaAsset:
+      type: object
+      required: [id, kind, status, altText, transcript, durationSeconds]
+      properties:
+        id: { type: string }
+        kind: { type: string, enum: [photo, audio] }
+        status: { type: string }
+        altText: { type: ["string", "null"] }
+        transcript: { type: ["string", "null"] }
+        durationSeconds: { type: ["integer", "null"] }
+    DirectConversationCreateResponse:
+      type: object
+      required: [conversation, message]
+      properties:
+        conversation: { $ref: "#/components/schemas/Conversation" }
+        message: { $ref: "#/components/schemas/Message" }
+    MessageRequestCreateResponse:
+      type: object
+      required: [request, conversation]
+      properties:
+        request: { $ref: "#/components/schemas/MessageRequest" }
+        conversation: { type: ["object", "null"] }
+    MessageRequestAcceptResponse:
+      type: object
+      required: [request, conversation, message]
+      properties:
+        request: { $ref: "#/components/schemas/MessageRequest" }
+        conversation: { $ref: "#/components/schemas/Conversation" }
+        message: { $ref: "#/components/schemas/Message" }
+    MessageReportInput:
+      type: object
+      required: [category]
+      properties:
+        category: { type: string }
+        details: { type: string, maxLength: 5000 }
+    MessageReportResponse:
+      type: object
+      required: [report, evidenceId, messageId]
+      properties:
+        report: { type: object }
+        evidenceId: { type: string }
+        messageId: { type: string }
+    Notification:
+      type: object
+      required: [id, recipientMemberId, kind, title, body, dedupKey, createdAt]
+      properties:
+        id: { type: string }
+        recipientMemberId: { type: string }
+        actorMemberId: { type: ["string", "null"] }
+        kind: { type: string, enum: [message, request, group_activity, safety, post, system] }
+        title: { type: string }
+        body: { type: string }
+        deepLink: { type: ["string", "null"] }
+        conversationId: { type: ["string", "null"] }
+        messageId: { type: ["string", "null"] }
+        postId: { type: ["string", "null"] }
+        dedupKey: { type: string }
+        createdAt: { type: string, format: date-time }
+        readAt: { type: ["string", "null"], format: date-time }
+    PaginatedNotifications:
+      type: object
+      required: [items, nextCursor]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/Notification" } }
+        nextCursor: { type: ["string", "null"] }
+    UnreadCount:
+      type: object
+      required: [count]
+      properties:
+        count: { type: integer }
+    ReadAllNotificationsResponse:
+      type: object
+      required: [updated]
+      properties:
+        updated: { type: boolean }
+    NotificationPreferences:
+      type: object
+      properties:
+        memberId: { type: string }
+        inAppMessages: { type: boolean }
+        browserMessages: { type: boolean }
+        nativeMessages: { type: boolean }
+        inAppRequests: { type: boolean }
+        browserRequests: { type: boolean }
+        nativeRequests: { type: boolean }
+        inAppGroupActivity: { type: boolean }
+        browserGroupActivity: { type: boolean }
+        nativeGroupActivity: { type: boolean }
+        inAppSafety: { type: boolean }
+        browserSafety: { type: boolean }
+        nativeSafety: { type: boolean }
+        quietHoursEnabled: { type: boolean }
+        quietHoursStart: { type: ["string", "null"], pattern: "^\\d\\d:\\d\\d$" }
+        quietHoursEnd: { type: ["string", "null"], pattern: "^\\d\\d:\\d\\d$" }
+        quietHoursTimezone: { type: ["string", "null"] }
+        lockScreenPreview: { type: string, enum: [private, generic, off] }
+    NotificationPreferencesInput:
+      allOf:
+        - $ref: "#/components/schemas/NotificationPreferences"
+    DeviceRegistrationInput:
+      type: object
+      required: [kind, tokenOrEndpoint, platform, accountSessionDeviceId]
+      properties:
+        kind: { type: string, enum: [browser_push, native_push] }
+        tokenOrEndpoint: { type: string }
+        platform: { type: string }
+        accountSessionDeviceId: { type: string }
+        expiresAt: { type: ["string", "null"], format: date-time }
+    DeviceRegistration:
+      type: object
+      required: [id, kind, platform, accountSessionDeviceId, active]
+      properties:
+        id: { type: string }
+        kind: { type: string, enum: [browser_push, native_push] }
+        platform: { type: string }
+        accountSessionDeviceId: { type: string }
+        expiresAt: { type: ["string", "null"], format: date-time }
+        lastSeenAt: { type: string, format: date-time }
+        active: { type: boolean }
+    DeviceRevokeInput:
+      type: object
+      required: [accountSessionDeviceId]
+      properties:
+        accountSessionDeviceId: { type: string }
+    DeliveryStatus:
+      type: object
+      additionalProperties: { type: object }
+    MessageEvidenceResponse:
+      type: object
+      required: [report, evidence, context]
+      properties:
+        report: { type: object }
+        evidence: { type: object }
+        context: { type: array, items: { type: object } }
 

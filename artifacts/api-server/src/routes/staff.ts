@@ -1,7 +1,7 @@
 import { Router, type IRouter, type Request, type Response } from "express";
 import { requireStaffCapability, requireStaffMfa } from "../middlewares/staff-auth";
 import { STAFF_ROLE_CAPABILITIES, roleHasCapability } from "../lib/staff-policy";
-import { db, appealsTable, evidenceAccessAuditTable, moderationRecordsTable, reportsTable, retainedEvidenceTable, sensitiveActionAuditTable, staffRoleAssignmentsTable, verificationRequestsTable } from "@workspace/db";
+import { db, appealsTable, evidenceAccessAuditTable, messageReportsTable, messageReportContextTable, messagesTable, moderationRecordsTable, reportsTable, retainedEvidenceTable, sensitiveActionAuditTable, staffRoleAssignmentsTable, verificationRequestsTable } from "@workspace/db";
 import { and, desc, eq, inArray, or } from "drizzle-orm";
 import { z } from "zod";
 import { getAuth } from "@clerk/express";
@@ -56,6 +56,24 @@ router.post("/staff/evidence/:evidenceId/access", requireStaffCapability("eviden
   }
   await db.insert(evidenceAccessAuditTable).values({ id: randomUUID(), actorClerkUserId: actor, evidenceId: evidence.id, reason: parsed.data.reason });
   res.json({ allowed: true, evidence: { id: evidence.id, reportId: evidence.reportId, contentId: evidence.contentId, contentKind: evidence.contentKind, bodySnapshot: evidence.bodySnapshot, policyVersion: evidence.policyVersion, retentionReason: evidence.retentionReason, capturedAt: evidence.capturedAt } });
+});
+router.get("/staff/reports/:reportId/message-evidence", requireStaffCapability("evidence.read"), async (req: Request, res: Response): Promise<void> => {
+  const parsed = z.object({ reason: z.string().trim().min(1).max(1000) }).strict().safeParse({ reason: req.header("x-evidence-reason") ?? req.query.reason });
+  const actor = getAuth(req).userId;
+  if (!parsed.success || !actor) { res.status(400).json({ error: "A specific access reason is required" }); return; }
+  const reportId = String(req.params.reportId);
+  const report = (await db.select().from(reportsTable).where(eq(reportsTable.id, reportId)).limit(1))[0];
+  const evidence = (await db.select().from(messageReportsTable).where(eq(messageReportsTable.reportId, reportId)).limit(1))[0];
+  if (!report || !evidence || report.contentId !== evidence.messageId || report.contentTargetType !== "message") {
+    res.status(404).json({ error: "Message evidence is not associated with this report" }); return;
+  }
+  const context = await db.select().from(messageReportContextTable).where(eq(messageReportContextTable.messageReportId, evidence.id)).orderBy(messageReportContextTable.position);
+  await db.insert(evidenceAccessAuditTable).values({ id: randomUUID(), actorClerkUserId: actor, evidenceId: evidence.id, reason: parsed.data.reason });
+  res.json({
+    report: { id: report.id, category: report.category, status: report.status, createdAt: report.createdAt },
+    evidence: { id: evidence.id, reportId: evidence.reportId, messageId: evidence.messageId, bodySnapshot: evidence.bodySnapshot, mediaAssetIdsSnapshot: evidence.mediaAssetIdsSnapshot, capturedAt: evidence.capturedAt },
+    context: context.map((item) => ({ messageId: item.messageId, senderMemberId: item.senderMemberId, bodySnapshot: item.bodySnapshot, mediaAssetIdsSnapshot: item.mediaAssetIdsSnapshot, position: item.position })),
+  });
 });
 router.post("/staff/moderation/:id/decision", requireStaffCapability("moderation.decide"), async (req: Request, res: Response): Promise<void> => {
   const parsed = z.object({

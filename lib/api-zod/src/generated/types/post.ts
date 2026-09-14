@@ -20,6 +20,9 @@ export interface Post {
   /** @nullable */
   circleId?: string | null;
   /** @nullable */
+  groupId?: string | null;
+  isIntroduction?: boolean;
+  /** @nullable */
   responseLabel?: string | null;
   status: PostStatus;
   commentsOpen: boolean;

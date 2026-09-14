@@ -6,6 +6,7 @@ import { getAuth } from "@clerk/express";
 import { circleHistoryGrantsTable, circleInvitationsTable, circleMembersTable, circlesTable, db, membersTable, notificationEventsTable, postsTable, profilesTable, safetyRelationshipsTable } from "@workspace/db";
 import { requireAuth, memberRateLimit } from "../middlewares/account-auth";
 import { response as postResponse, visiblePost } from "./posts";
+import { lockMemberPairs } from "../lib/member-locks";
 
 const router = Router();
 router.use("/circles", requireAuth);
@@ -39,17 +40,9 @@ async function lockCircleMember(tx: { execute: (query: unknown) => Promise<unkno
 async function lockCircleMembers(tx: { execute: (query: unknown) => Promise<unknown> }, circleId: string, ...memberIds: string[]) {
   for (const memberId of [...new Set(memberIds)].sort()) await lockCircleMember(tx, circleId, memberId);
 }
-async function lockRelationshipPair(tx: { execute: (query: unknown) => Promise<unknown> }, first: string, second: string) {
-  const [left, right] = first < second ? [first, second] : [second, first];
-  await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${left + ":" + right}, 0))`);
-}
 async function lockCircleInvitationAuthorization(tx: any, circleId: string, inviteeId: string) {
   const rows = await tx.select({ memberId: circleMembersTable.memberId }).from(circleMembersTable).where(and(eq(circleMembersTable.circleId, circleId), eq(circleMembersTable.status, "active"))) as { memberId: string }[];
-  const pairs: string[] = [...new Set(rows.map(({ memberId }) => [memberId, inviteeId].sort().join(":")))].sort();
-  for (const pair of pairs) {
-    const [left, right] = pair.split(":");
-    await lockRelationshipPair(tx, left!, right!);
-  }
+  await lockMemberPairs(tx, rows.map(({ memberId }) => [memberId, inviteeId] as const));
 }
 async function notify(recipientMemberId: string, actorMemberId: string, eventType: string) {
   await db.insert(notificationEventsTable).values({ id: id(), recipientMemberId, actorMemberId, eventType, moderationState: "allowed" });
@@ -80,12 +73,14 @@ router.post("/circles/:circleId/invitations", memberRateLimit(20, 60_000, "circl
   if (!m || !body.success || body.data.recipientMemberId === m.id) { res.status(400).json({ error: "Invalid invitation" }); return; }
   const expiresAt = new Date(body.data.expiresAt); if (expiresAt <= new Date() || expiresAt.getTime() > Date.now() + 31 * 86400_000) { res.status(400).json({ error: "Choose an expiry within 31 days" }); return; }
   const result = await db.transaction(async (tx) => {
+    // Relationship locks precede circle-member locks, matching block
+    // processing and preventing a pair/circle lock inversion.
+    await lockCircleInvitationAuthorization(tx, circleId, body.data.recipientMemberId);
     await lockCircleMembers(tx, circleId, m.id, body.data.recipientMemberId);
     const circle = (await tx.select().from(circlesTable).where(eq(circlesTable.id, circleId)).for("update").limit(1))[0];
     const mine = circle && await activeMembership(tx, circleId, m.id);
     const target = (await tx.select({ id: membersTable.id }).from(membersTable).where(eq(membersTable.id, body.data.recipientMemberId)).limit(1))[0];
     if (!circle || circle.status !== "active" || !canManage(mine?.role) || !target) return undefined;
-    await lockCircleInvitationAuthorization(tx, circleId, body.data.recipientMemberId);
     if (await blockedByAnyMember(tx, circleId, body.data.recipientMemberId)) return undefined;
     if (await activeMembership(tx, circleId, body.data.recipientMemberId)) return null;
     await tx.update(circleInvitationsTable).set({ status: "expired" }).where(and(eq(circleInvitationsTable.circleId, circleId), eq(circleInvitationsTable.recipientMemberId, body.data.recipientMemberId), eq(circleInvitationsTable.status, "pending"), sql`${circleInvitationsTable.expiresAt} <= now()`));
@@ -110,12 +105,12 @@ router.post("/circle-invitations/:invitationId/accept", async (req, res): Promis
   const result = await db.transaction(async (tx) => {
     const candidate = (await tx.select({ circleId: circleInvitationsTable.circleId }).from(circleInvitationsTable).where(and(eq(circleInvitationsTable.id, invitationId), eq(circleInvitationsTable.recipientMemberId, m.id))).limit(1))[0];
     if (!candidate) return undefined;
+    await lockCircleInvitationAuthorization(tx, candidate.circleId, m.id);
     await lockCircleMembers(tx, candidate.circleId, m.id);
     const invitation = (await tx.select().from(circleInvitationsTable).where(and(eq(circleInvitationsTable.id, invitationId), eq(circleInvitationsTable.recipientMemberId, m.id))).for("update").limit(1))[0];
     if (!invitation || invitation.status !== "pending") return undefined;
     const circle = (await tx.select().from(circlesTable).where(eq(circlesTable.id, invitation.circleId)).for("update").limit(1))[0];
     if (!circle || circle.status !== "active") return undefined;
-    await lockCircleInvitationAuthorization(tx, invitation.circleId, m.id);
     if (await blockedByAnyMember(tx, invitation.circleId, m.id)) return undefined;
     const [accepted] = await tx.update(circleInvitationsTable).set({ status: "accepted", acceptedAt: sql`now()` }).where(and(eq(circleInvitationsTable.id, invitation.id), eq(circleInvitationsTable.status, "pending"), sql`${circleInvitationsTable.expiresAt} > now()`)).returning();
     if (!accepted) { await tx.update(circleInvitationsTable).set({ status: "expired" }).where(and(eq(circleInvitationsTable.id, invitation.id), eq(circleInvitationsTable.status, "pending"))); return undefined; }

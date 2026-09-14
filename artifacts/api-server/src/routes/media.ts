@@ -1,11 +1,12 @@
 import { Router, type Request } from "express";
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, inArray, or, sql } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import { Readable } from "node:stream";
 import { getAuth } from "@clerk/express";
 import { z } from "zod";
-import { db, membersTable, mediaAssetsTable, mediaScreeningResultsTable, postsTable, thisIsMeCardsTable } from "@workspace/db";
+import { db, membersTable, mediaAssetsTable, mediaScreeningResultsTable, postsTable, thisIsMeCardsTable, messagesTable, conversationsTable, conversationMembersTable, messageMemberRemovalsTable, safetyRelationshipsTable } from "@workspace/db";
 import { requireAuth } from "../middlewares/account-auth";
+import { liveConversationMember } from "../lib/conversation-access";
 import { deleteMediaObject, mediaFile, mediaObjectPath, replaceMediaObject, requestMediaUpload } from "../lib/media-storage";
 import { inspectBytes, validateDeclared } from "../lib/media-validation";
 import "../lib/media-deletion-hook";
@@ -107,11 +108,43 @@ router.get("/media/:id", async (req, res): Promise<void> => {
   const owns = asset.ownerMemberId === m.id;
   const posts = await db.select().from(postsTable).where(and(sql`${postsTable.mediaAssetIds} @> ${JSON.stringify([asset.id])}::jsonb`, eq(postsTable.status, "published")));
   const visibleAttachment = !owns && (await Promise.all(posts.map((post) => visiblePost(post, m.id)))).some(Boolean);
+  // Ownership alone does not bypass a group lifecycle cutoff. A member who
+  // left or was removed cannot retrieve media attached to their own group
+  // post, even though they still own the underlying upload record.
+  const ownGroupAttachmentVisible = owns && (await Promise.all(posts.filter((post) => post.audience === "this_group" && post.authorMemberId === m.id).map((post) => visiblePost(post, m.id)))).every(Boolean);
+  const messageRows = await db.select().from(messagesTable).where(sql`${messagesTable.mediaAssetIds} @> ${JSON.stringify([asset.id])}::jsonb`);
+  let visibleMessage = false;
+  for (const message of messageRows) {
+    if (message.deletedForEveryoneAt) continue;
+    const conversation = (await db.select().from(conversationsTable).where(and(eq(conversationsTable.id, message.conversationId), eq(conversationsTable.status, "active"))).limit(1))[0];
+    const membership = conversation && await liveConversationMember(message.conversationId, m.id);
+    const removed = membership && (await db.select({ id: messageMemberRemovalsTable.id }).from(messageMemberRemovalsTable).where(and(eq(messageMemberRemovalsTable.messageId, message.id), eq(messageMemberRemovalsTable.memberId, m.id))).limit(1))[0];
+    const participants = conversation && await db.select({ memberId: conversationMembersTable.memberId }).from(conversationMembersTable).where(and(eq(conversationMembersTable.conversationId, message.conversationId), eq(conversationMembersTable.status, "active")));
+    const blockedParticipant = participants
+      ? (await db.select({ id: safetyRelationshipsTable.id })
+        .from(safetyRelationshipsTable)
+        .where(and(
+          eq(safetyRelationshipsTable.kind, "block"),
+          or(
+            and(eq(safetyRelationshipsTable.actorMemberId, m.id), inArray(safetyRelationshipsTable.targetMemberId, participants.map((row) => row.memberId))),
+            and(eq(safetyRelationshipsTable.targetMemberId, m.id), inArray(safetyRelationshipsTable.actorMemberId, participants.map((row) => row.memberId))),
+          ),
+        ))
+        .limit(1))[0]
+      : undefined;
+    if (membership && message.createdAt >= membership.joinedAt && !removed && !blockedParticipant) { visibleMessage = true; break; }
+  }
   // This Is Me cards are owner-scoped by the existing profile policy. Do not
   // infer access from a card's memberId: the card route intentionally exposes
   // cards only to their owner until a visibility policy exists.
-  if (!owns && !visibleAttachment) { res.status(404).end(); return; }
-  const file = await mediaFile(asset.objectPath); if (!file) { res.status(404).end(); return; }
+  if ((messageRows.length > 0 && !visibleMessage) || ((!owns || posts.some((post) => post.audience === "this_group" && post.authorMemberId === m.id)) && !visibleAttachment && !ownGroupAttachmentVisible && !visibleMessage)) { res.status(404).end(); return; }
+  let file;
+  try { file = await mediaFile(asset.objectPath); } catch {
+    // Storage/provider failures must fail closed for protected media rather
+    // than turning an authorization-safe miss into an information leak.
+    res.status(404).end(); return;
+  }
+  if (!file) { res.status(404).end(); return; }
   res.setHeader("Cache-Control", "private, no-store, max-age=0"); res.setHeader("Content-Type", asset.contentType ?? "application/octet-stream"); res.setHeader("Content-Disposition", "inline"); Readable.from(file.createReadStream()).pipe(res);
 });
 export default router;

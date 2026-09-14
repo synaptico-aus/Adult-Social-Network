@@ -198,9 +198,9 @@ test("internal share cannot widen and source removal revokes it", async () => {
 test("notification events exclude held/blocked interactions and reauthorize on read", async () => {
   const source = await post(ids.alice, { audience: "public" });
   await call(`/api/posts/${source.id}/reactions`, ids.bob, { method: "POST", body: { kind: "hear_you" } });
-  assert.equal((await call("/api/notifications", ids.alice)).body.some((e: any) => e.postId === source.id), true);
+  assert.equal((await call("/api/notifications", ids.alice)).body.items.some((e: any) => e.postId === source.id), true);
   await call("/api/safety/block", ids.alice, { method: "POST", body: { targetMemberId: ids.bob } });
-  assert.equal((await call("/api/notifications", ids.alice)).body.some((e: any) => e.postId === source.id), false);
+  assert.equal((await call("/api/notifications", ids.alice)).body.items.some((e: any) => e.postId === source.id), false);
 });
 
 test("concurrent block/unfriend/audience change versus comment/reaction/save/share leaves no unauthorized rows", async () => {

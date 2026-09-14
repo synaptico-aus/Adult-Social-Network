@@ -60,7 +60,7 @@ test("new members need an explicit history grant and removal revokes posts, comm
   assert.equal((await call(`/api/posts/${made.body.id}`, ids.bob)).status, 404);
   assert.equal((await call(`/api/posts/${bobPost.body.id}`, ids.bob)).status, 404);
   assert.equal((await call(`/api/posts/${made.body.id}/comments`, ids.bob, { method: "POST", body: { body: "no access" } })).status, 404);
-  assert.equal((await call("/api/notifications", ids.bob)).body.some((event: any) => event.postId === made.body.id), false);
+  assert.equal((await call("/api/notifications", ids.bob)).body.items.some((event: any) => event.postId === made.body.id), false);
   await inviteAndAccept(created.id);
   assert.equal((await call(`/api/posts/${made.body.id}`, ids.bob)).status, 404);
 });

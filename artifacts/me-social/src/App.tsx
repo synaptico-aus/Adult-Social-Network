@@ -21,7 +21,15 @@ import { AppLayout } from '@/components/layout/app-layout';
 import HomeFeed from '@/pages/feed';
 import Explore from '@/pages/explore';
 import Groups from '@/pages/groups';
+import GroupCreate from '@/pages/group-create';
+import GroupDetail from '@/pages/group-detail';
 import Messages from '@/pages/messages';
+import MessageDetail from '@/pages/message-detail';
+import MessageRequestDetail from '@/pages/message-request-detail';
+import MessageNew from '@/pages/message-new';
+import MessageSettings from '@/pages/message-settings';
+import Notifications from '@/pages/notifications';
+import NotificationSettings from '@/pages/notification-settings';
 import MePage from '@/pages/me-profile';
 import MePosts from '@/pages/me-posts';
 import SavedPosts from '@/pages/saved-posts';
@@ -135,7 +143,15 @@ function Router() {
                   <Route path="/explore"><RequireMember><Explore /></RequireMember></Route>
                    <Route path="/circle"><RequireMember><MyCircle /></RequireMember></Route>
                   <Route path="/groups"><RequireMember><Groups /></RequireMember></Route>
+                  <Route path="/groups/new"><RequireMember><GroupCreate /></RequireMember></Route>
+                  <Route path="/groups/:id"><RequireMember><GroupDetail /></RequireMember></Route>
                   <Route path="/messages"><RequireMember><Messages /></RequireMember></Route>
+                  <Route path="/messages/settings"><RequireMember><MessageSettings /></RequireMember></Route>
+                  <Route path="/messages/new"><RequireMember><MessageNew /></RequireMember></Route>
+                  <Route path="/messages/requests/:id"><RequireMember><MessageRequestDetail /></RequireMember></Route>
+                  <Route path="/messages/:id"><RequireMember><MessageDetail /></RequireMember></Route>
+                  <Route path="/notifications"><RequireMember><Notifications /></RequireMember></Route>
+                  <Route path="/notifications/settings"><RequireMember><NotificationSettings /></RequireMember></Route>
                   <Route path="/me"><RequireMember><MePage /></RequireMember></Route>
                   <Route path="/me/posts"><RequireMember><MePosts /></RequireMember></Route>
                   <Route path="/saved"><RequireMember><SavedPosts /></RequireMember></Route>

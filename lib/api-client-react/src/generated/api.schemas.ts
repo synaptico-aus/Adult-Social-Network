@@ -111,6 +111,428 @@ export interface MediaTranscriptInput {
   transcript: string;
 }
 
+export type WelcomeAvailabilityText = typeof WelcomeAvailabilityText[keyof typeof WelcomeAvailabilityText];
+
+
+export const WelcomeAvailabilityText = {
+  Welcome_requests_are_open_when_a_trained_host_is_available: 'Welcome requests are open when a trained host is available.',
+  'Trained_hosts_are_limited;_response_timing_is_not_provided': 'Trained hosts are limited; response timing is not provided.',
+  No_trained_active_welcome_host_is_currently_available: 'No trained active welcome host is currently available.',
+} as const;
+
+export type GroupInputDiscoverability = typeof GroupInputDiscoverability[keyof typeof GroupInputDiscoverability];
+
+
+export const GroupInputDiscoverability = {
+  public: 'public',
+  private: 'private',
+} as const;
+
+export type GroupInputContentVisibility = typeof GroupInputContentVisibility[keyof typeof GroupInputContentVisibility];
+
+
+export const GroupInputContentVisibility = {
+  public: 'public',
+  members: 'members',
+} as const;
+
+export type GroupInputJoinPolicy = typeof GroupInputJoinPolicy[keyof typeof GroupInputJoinPolicy];
+
+
+export const GroupInputJoinPolicy = {
+  open: 'open',
+  approval: 'approval',
+  closed: 'closed',
+} as const;
+
+export interface GroupInput {
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  name: string;
+  /** @nullable */
+  description?: string | null;
+  category: string;
+  /** @nullable */
+  rules?: string | null;
+  suggestionTags?: string[];
+  discoverability?: GroupInputDiscoverability;
+  contentVisibility?: GroupInputContentVisibility;
+  joinPolicy?: GroupInputJoinPolicy;
+  welcomeEnabled?: boolean;
+  welcomeAvailabilityText?: WelcomeAvailabilityText | null;
+}
+
+export type GroupDiscoverability = typeof GroupDiscoverability[keyof typeof GroupDiscoverability];
+
+
+export const GroupDiscoverability = {
+  public: 'public',
+  private: 'private',
+} as const;
+
+export type GroupContentVisibility = typeof GroupContentVisibility[keyof typeof GroupContentVisibility];
+
+
+export const GroupContentVisibility = {
+  public: 'public',
+  members: 'members',
+} as const;
+
+export type GroupJoinPolicy = typeof GroupJoinPolicy[keyof typeof GroupJoinPolicy];
+
+
+export const GroupJoinPolicy = {
+  open: 'open',
+  approval: 'approval',
+  closed: 'closed',
+} as const;
+
+export type GroupStatus = typeof GroupStatus[keyof typeof GroupStatus];
+
+
+export const GroupStatus = {
+  active: 'active',
+  closed: 'closed',
+} as const;
+
+export interface Group {
+  id: string;
+  ownerMemberId: string;
+  name: string;
+  /** @nullable */
+  description?: string | null;
+  category: string;
+  /** @nullable */
+  rules?: string | null;
+  suggestionTags?: string[];
+  discoverability: GroupDiscoverability;
+  contentVisibility: GroupContentVisibility;
+  joinPolicy: GroupJoinPolicy;
+  welcomeEnabled?: boolean;
+  welcomeAvailabilityText?: WelcomeAvailabilityText | null;
+  status: GroupStatus;
+  memberCount: number;
+  /** @nullable */
+  myMemberId: string | null;
+  myMuted: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export type GroupSuggestion = Group & {
+  matchedChoices: string[];
+};
+export type GroupMemberRole = typeof GroupMemberRole[keyof typeof GroupMemberRole];
+
+
+export const GroupMemberRole = {
+  owner: 'owner',
+  moderator: 'moderator',
+  member: 'member',
+} as const;
+
+export type GroupMemberStatus = typeof GroupMemberStatus[keyof typeof GroupMemberStatus];
+
+
+export const GroupMemberStatus = {
+  active: 'active',
+  left: 'left',
+  removed: 'removed',
+} as const;
+
+export interface GroupMember {
+  id: string;
+  groupId: string;
+  memberId: string;
+  role: GroupMemberRole;
+  status: GroupMemberStatus;
+  muted: boolean;
+  /** @nullable */
+  mutedAt?: string | null;
+  joinedAt: string;
+  /** @nullable */
+  leftAt?: string | null;
+  /** @nullable */
+  removedAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type GroupMembershipRequestStatus = typeof GroupMembershipRequestStatus[keyof typeof GroupMembershipRequestStatus];
+
+
+export const GroupMembershipRequestStatus = {
+  pending: 'pending',
+  approved: 'approved',
+  declined: 'declined',
+  cancelled: 'cancelled',
+} as const;
+
+export interface GroupMembershipRequest {
+  id: string;
+  groupId: string;
+  memberId: string;
+  status: GroupMembershipRequestStatus;
+  /** @nullable */
+  reviewedByMemberId?: string | null;
+  requestedAt: string;
+  /** @nullable */
+  reviewedAt?: string | null;
+  /** @nullable */
+  cancelledAt?: string | null;
+  createdAt: string;
+}
+
+export type GroupJoinStatusStatus = typeof GroupJoinStatusStatus[keyof typeof GroupJoinStatusStatus];
+
+
+export const GroupJoinStatusStatus = {
+  already_member: 'already_member',
+} as const;
+
+export interface GroupJoinStatus {
+  status: GroupJoinStatusStatus;
+}
+
+export type GroupActionStatusStatus = typeof GroupActionStatusStatus[keyof typeof GroupActionStatusStatus];
+
+
+export const GroupActionStatusStatus = {
+  left: 'left',
+} as const;
+
+export interface GroupActionStatus {
+  status: GroupActionStatusStatus;
+}
+
+export type GroupUpdateDiscoverability = typeof GroupUpdateDiscoverability[keyof typeof GroupUpdateDiscoverability];
+
+
+export const GroupUpdateDiscoverability = {
+  public: 'public',
+  private: 'private',
+} as const;
+
+export type GroupUpdateContentVisibility = typeof GroupUpdateContentVisibility[keyof typeof GroupUpdateContentVisibility];
+
+
+export const GroupUpdateContentVisibility = {
+  public: 'public',
+  members: 'members',
+} as const;
+
+export type GroupUpdateJoinPolicy = typeof GroupUpdateJoinPolicy[keyof typeof GroupUpdateJoinPolicy];
+
+
+export const GroupUpdateJoinPolicy = {
+  open: 'open',
+  approval: 'approval',
+  closed: 'closed',
+} as const;
+
+export interface GroupUpdate {
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  name?: string;
+  /** @nullable */
+  description?: string | null;
+  /** @nullable */
+  rules?: string | null;
+  discoverability?: GroupUpdateDiscoverability;
+  contentVisibility?: GroupUpdateContentVisibility;
+  joinPolicy?: GroupUpdateJoinPolicy;
+  welcomeEnabled?: boolean;
+  welcomeAvailabilityText?: WelcomeAvailabilityText | null;
+  suggestionTags?: string[];
+}
+
+export type GroupMemberRoleInputRole = typeof GroupMemberRoleInputRole[keyof typeof GroupMemberRoleInputRole];
+
+
+export const GroupMemberRoleInputRole = {
+  moderator: 'moderator',
+  member: 'member',
+} as const;
+
+export interface GroupMemberRoleInput {
+  role: GroupMemberRoleInputRole;
+}
+
+export interface GroupList {
+  items: Group[];
+}
+
+export interface GroupCategory {
+  id: string;
+  name: string;
+  developmentOnly: boolean;
+}
+
+export interface GroupResourceInput {
+  url: string;
+  /** @minLength 1 */
+  title: string;
+  /** @nullable */
+  description?: string | null;
+  /** @minimum 0 */
+  pinOrder?: number;
+}
+
+export interface GroupResource {
+  id: string;
+  groupId: string;
+  createdByMemberId: string;
+  url: string;
+  title: string;
+  /** @nullable */
+  description?: string | null;
+  pinOrder: number;
+  createdAt: string;
+}
+
+export interface GroupWelcomeInput {
+  /** @nullable */
+  introductionText?: string | null;
+}
+
+export interface GroupHostInput {
+  hostMemberId: string;
+}
+
+export interface GroupHostAssignment {
+  id: string;
+  groupId: string;
+  hostMemberId: string;
+  assignedByMemberId: string;
+  trainingId: string;
+  trainedAt: string;
+  active: boolean;
+  /** @nullable */
+  revokedAt?: string | null;
+  createdAt: string;
+}
+
+export type GroupWelcomeRequestStatus = typeof GroupWelcomeRequestStatus[keyof typeof GroupWelcomeRequestStatus];
+
+
+export const GroupWelcomeRequestStatus = {
+  open: 'open',
+  acknowledged: 'acknowledged',
+  closed: 'closed',
+  rejected: 'rejected',
+} as const;
+
+export interface GroupWelcomeRequest {
+  id: string;
+  groupId: string;
+  memberId: string;
+  /** @nullable */
+  introductionText?: string | null;
+  status: GroupWelcomeRequestStatus;
+  requestedAt: string;
+  /** @nullable */
+  acknowledgedByMemberId?: string | null;
+  /** @nullable */
+  acknowledgedAt?: string | null;
+  /** @nullable */
+  closedAt?: string | null;
+  requesterPreferredName?: string;
+}
+
+export type GroupWelcomeMeResponseStatus = typeof GroupWelcomeMeResponseStatus[keyof typeof GroupWelcomeMeResponseStatus];
+
+
+export const GroupWelcomeMeResponseStatus = {
+  none: 'none',
+  open: 'open',
+  acknowledged: 'acknowledged',
+  closed: 'closed',
+  rejected: 'rejected',
+} as const;
+
+export interface GroupWelcomeMeResponse {
+  /** @nullable */
+  requestId: string | null;
+  status: GroupWelcomeMeResponseStatus;
+  /** @nullable */
+  requestedAt: string | null;
+  /** @nullable */
+  acknowledgedAt: string | null;
+  /** @nullable */
+  closedAt: string | null;
+}
+
+export type GroupWelcomeMutationStatus = typeof GroupWelcomeMutationStatus[keyof typeof GroupWelcomeMutationStatus];
+
+
+export const GroupWelcomeMutationStatus = {
+  open: 'open',
+  acknowledged: 'acknowledged',
+  closed: 'closed',
+  rejected: 'rejected',
+} as const;
+
+export interface GroupWelcomeMutation {
+  id: string;
+  status: GroupWelcomeMutationStatus;
+  /** @nullable */
+  acknowledgedAt?: string | null;
+  /** @nullable */
+  closedAt?: string | null;
+}
+
+export interface Report {
+  id: string;
+  reporterMemberId: string;
+  /** @nullable */
+  targetMemberId?: string | null;
+  /** @nullable */
+  contentId?: string | null;
+  category: string;
+  /** @nullable */
+  details?: string | null;
+  status: string;
+  createdAt: string;
+}
+
+export type ModerationRecordState = typeof ModerationRecordState[keyof typeof ModerationRecordState];
+
+
+export const ModerationRecordState = {
+  pending: 'pending',
+  allowed: 'allowed',
+  held: 'held',
+  removed: 'removed',
+  appealed: 'appealed',
+} as const;
+
+export interface ModerationRecord {
+  id: string;
+  /** @nullable */
+  reportId?: string | null;
+  /** @nullable */
+  contentId?: string | null;
+  /** @nullable */
+  subjectMemberId?: string | null;
+  state: ModerationRecordState;
+  /** @nullable */
+  decision?: string | null;
+  /** @nullable */
+  sanction?: string | null;
+  /** @nullable */
+  reason?: string | null;
+  createdAt: string;
+}
+
+export interface GroupReportResponse {
+  report: Report;
+  moderationRecord: ModerationRecord;
+}
+
 export interface CircleInput {
   /**
      * @minLength 1
@@ -224,6 +646,7 @@ export const PostInputAudience = {
   only_me: 'only_me',
   friends: 'friends',
   my_circle: 'my_circle',
+  this_group: 'this_group',
   public: 'public',
 } as const;
 
@@ -247,6 +670,9 @@ export interface PostInput {
   /** @nullable */
   circleId?: string | null;
   /** @nullable */
+  groupId?: string | null;
+  isIntroduction?: boolean;
+  /** @nullable */
   responseLabel?: PostInputResponseLabel;
   commentsOpen?: boolean;
   visibleReactionCounts?: boolean;
@@ -264,6 +690,7 @@ export const PostAudience = {
   only_me: 'only_me',
   friends: 'friends',
   my_circle: 'my_circle',
+  this_group: 'this_group',
   public: 'public',
 } as const;
 
@@ -297,6 +724,9 @@ export interface Post {
   audience: PostAudience;
   /** @nullable */
   circleId?: string | null;
+  /** @nullable */
+  groupId?: string | null;
+  isIntroduction?: boolean;
   /** @nullable */
   responseLabel?: string | null;
   status: PostStatus;
@@ -617,6 +1047,7 @@ export const ReportInputCategory = {
 
 export interface ReportInput {
   targetMemberId?: string;
+  groupId?: string;
   contentId?: string;
   contentTargetType?: ReportInputContentTargetType;
   contentTargetId?: string;
@@ -660,49 +1091,6 @@ export interface ModerationDecisionInput {
   sanction?: ModerationDecisionInputSanction;
   /** @minLength 1 */
   reason: string;
-}
-
-export type ModerationRecordState = typeof ModerationRecordState[keyof typeof ModerationRecordState];
-
-
-export const ModerationRecordState = {
-  pending: 'pending',
-  allowed: 'allowed',
-  held: 'held',
-  removed: 'removed',
-  appealed: 'appealed',
-} as const;
-
-export interface ModerationRecord {
-  id: string;
-  /** @nullable */
-  reportId?: string | null;
-  /** @nullable */
-  contentId?: string | null;
-  /** @nullable */
-  subjectMemberId?: string | null;
-  state: ModerationRecordState;
-  /** @nullable */
-  decision?: string | null;
-  /** @nullable */
-  sanction?: string | null;
-  /** @nullable */
-  reason?: string | null;
-  createdAt: string;
-}
-
-export interface Report {
-  id: string;
-  reporterMemberId: string;
-  /** @nullable */
-  targetMemberId?: string | null;
-  /** @nullable */
-  contentId?: string | null;
-  category: string;
-  /** @nullable */
-  details?: string | null;
-  status: string;
-  createdAt: string;
 }
 
 export interface ReportCreateResponse {
@@ -1000,6 +1388,427 @@ export interface ProfilePhotoUpload {
   reminder: string;
 }
 
+export type MessageContactSettingsSetting = typeof MessageContactSettingsSetting[keyof typeof MessageContactSettingsSetting];
+
+
+export const MessageContactSettingsSetting = {
+  friends_only: 'friends_only',
+  friends_and_group_members: 'friends_and_group_members',
+  any_member_requests: 'any_member_requests',
+} as const;
+
+export interface MessageContactSettings {
+  memberId: string;
+  setting: MessageContactSettingsSetting;
+}
+
+export type MessageContactSettingsInputSetting = typeof MessageContactSettingsInputSetting[keyof typeof MessageContactSettingsInputSetting];
+
+
+export const MessageContactSettingsInputSetting = {
+  friends_only: 'friends_only',
+  friends_and_group_members: 'friends_and_group_members',
+  any_member_requests: 'any_member_requests',
+} as const;
+
+export interface MessageContactSettingsInput {
+  setting: MessageContactSettingsInputSetting;
+}
+
+export type ConversationKind = typeof ConversationKind[keyof typeof ConversationKind];
+
+
+export const ConversationKind = {
+  direct: 'direct',
+  group: 'group',
+} as const;
+
+export type ConversationStatus = typeof ConversationStatus[keyof typeof ConversationStatus];
+
+
+export const ConversationStatus = {
+  active: 'active',
+  closed: 'closed',
+} as const;
+
+export type ConversationParticipantRole = typeof ConversationParticipantRole[keyof typeof ConversationParticipantRole];
+
+
+export const ConversationParticipantRole = {
+  owner: 'owner',
+  admin: 'admin',
+  member: 'member',
+} as const;
+
+export interface ConversationParticipant {
+  memberId: string;
+  displayName: string;
+  role: ConversationParticipantRole;
+  joinedAt: string;
+}
+
+export interface LastMessagePreview {
+  id: string;
+  preview: string;
+  senderDisplayName: string;
+  createdAt: string;
+}
+
+export interface Conversation {
+  id: string;
+  kind: ConversationKind;
+  status: ConversationStatus;
+  /** @nullable */
+  groupId?: string | null;
+  /** @nullable */
+  title?: string | null;
+  displayTitle: string;
+  participantCount: number;
+  participants: ConversationParticipant[];
+  lastMessage: LastMessagePreview | null;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export type ConversationMemberRole = typeof ConversationMemberRole[keyof typeof ConversationMemberRole];
+
+
+export const ConversationMemberRole = {
+  owner: 'owner',
+  admin: 'admin',
+  member: 'member',
+} as const;
+
+export type ConversationMemberStatus = typeof ConversationMemberStatus[keyof typeof ConversationMemberStatus];
+
+
+export const ConversationMemberStatus = {
+  active: 'active',
+  left: 'left',
+  removed: 'removed',
+} as const;
+
+export interface ConversationMember {
+  id: string;
+  conversationId: string;
+  memberId: string;
+  role: ConversationMemberRole;
+  status: ConversationMemberStatus;
+  joinedAt: string;
+}
+
+export type ConversationDetail = Conversation & {
+  members?: ConversationMember[];
+};
+
+export interface ConversationParticipantInput {
+  memberId: string;
+}
+
+export type ConversationParticipantRoleInputRole = typeof ConversationParticipantRoleInputRole[keyof typeof ConversationParticipantRoleInputRole];
+
+
+export const ConversationParticipantRoleInputRole = {
+  admin: 'admin',
+  member: 'member',
+} as const;
+
+export interface ConversationParticipantRoleInput {
+  role: ConversationParticipantRoleInputRole;
+}
+
+export interface ConversationLeaveInput {
+  transferToMemberId?: string;
+}
+
+export interface PaginatedConversations {
+  items: Conversation[];
+  /** @nullable */
+  nextCursor: string | null;
+}
+
+export type MessageMediaAssetKind = typeof MessageMediaAssetKind[keyof typeof MessageMediaAssetKind];
+
+
+export const MessageMediaAssetKind = {
+  photo: 'photo',
+  audio: 'audio',
+} as const;
+
+export interface MessageMediaAsset {
+  id: string;
+  kind: MessageMediaAssetKind;
+  status: string;
+  /** @nullable */
+  altText: string | null;
+  /** @nullable */
+  transcript: string | null;
+  /** @nullable */
+  durationSeconds: number | null;
+}
+
+export interface Message {
+  id: string;
+  conversationId: string;
+  senderMemberId: string;
+  senderDisplayName: string;
+  /**
+     * @maxLength 20000
+     * @nullable
+     */
+  body: string | null;
+  /** @maxItems 10 */
+  mediaAssetIds: string[];
+  mediaAssets: MessageMediaAsset[];
+  createdAt: string;
+  deletedForEveryone: boolean;
+}
+
+export interface MessageInput {
+  /**
+     * @maxLength 20000
+     * @nullable
+     */
+  body?: string | null;
+  /** @maxItems 10 */
+  mediaAssetIds?: string[];
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
+  idempotencyKey: string;
+}
+
+export interface DirectMessageInput {
+  recipientMemberId: string;
+  /** @maxLength 20000 */
+  body: string;
+  /** @maxItems 10 */
+  mediaAssetIds?: string[];
+}
+
+export interface GroupConversationInput {
+  /**
+     * @minItems 1
+     * @maxItems 100
+     */
+  memberIds: string[];
+  groupId?: string;
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  title: string;
+}
+
+export interface PaginatedMessages {
+  items: Message[];
+  /** @nullable */
+  nextCursor: string | null;
+}
+
+export type MessageRequestStatus = typeof MessageRequestStatus[keyof typeof MessageRequestStatus];
+
+
+export const MessageRequestStatus = {
+  pending: 'pending',
+  accepted: 'accepted',
+  declined: 'declined',
+  cancelled: 'cancelled',
+} as const;
+
+export interface MessageRequest {
+  id: string;
+  senderMemberId: string;
+  senderDisplayName: string;
+  recipientMemberId: string;
+  recipientDisplayName: string;
+  status: MessageRequestStatus;
+  /** @nullable */
+  body: string | null;
+  mediaAssetIds: string[];
+  createdAt: string;
+}
+
+export interface DirectConversationCreateResponse {
+  conversation: Conversation;
+  message: Message;
+}
+
+/**
+ * @nullable
+ */
+export type MessageRequestCreateResponseConversation = { [key: string]: unknown } | null;
+
+export interface MessageRequestCreateResponse {
+  request: MessageRequest;
+  /** @nullable */
+  conversation: MessageRequestCreateResponseConversation;
+}
+
+export interface MessageRequestAcceptResponse {
+  request: MessageRequest;
+  conversation: Conversation;
+  message: Message;
+}
+
+export interface MessageReportInput {
+  category: string;
+  /** @maxLength 5000 */
+  details?: string;
+}
+
+export type MessageReportResponseReport = { [key: string]: unknown };
+
+export interface MessageReportResponse {
+  report: MessageReportResponseReport;
+  evidenceId: string;
+  messageId: string;
+}
+
+export type NotificationKind = typeof NotificationKind[keyof typeof NotificationKind];
+
+
+export const NotificationKind = {
+  message: 'message',
+  request: 'request',
+  group_activity: 'group_activity',
+  safety: 'safety',
+  post: 'post',
+  system: 'system',
+} as const;
+
+export interface Notification {
+  id: string;
+  recipientMemberId: string;
+  /** @nullable */
+  actorMemberId?: string | null;
+  kind: NotificationKind;
+  title: string;
+  body: string;
+  /** @nullable */
+  deepLink?: string | null;
+  /** @nullable */
+  conversationId?: string | null;
+  /** @nullable */
+  messageId?: string | null;
+  /** @nullable */
+  postId?: string | null;
+  dedupKey: string;
+  createdAt: string;
+  /** @nullable */
+  readAt?: string | null;
+}
+
+export interface PaginatedNotifications {
+  items: Notification[];
+  /** @nullable */
+  nextCursor: string | null;
+}
+
+export interface UnreadCount {
+  count: number;
+}
+
+export interface ReadAllNotificationsResponse {
+  updated: boolean;
+}
+
+export type NotificationPreferencesLockScreenPreview = typeof NotificationPreferencesLockScreenPreview[keyof typeof NotificationPreferencesLockScreenPreview];
+
+
+export const NotificationPreferencesLockScreenPreview = {
+  private: 'private',
+  generic: 'generic',
+  off: 'off',
+} as const;
+
+export interface NotificationPreferences {
+  memberId?: string;
+  inAppMessages?: boolean;
+  browserMessages?: boolean;
+  nativeMessages?: boolean;
+  inAppRequests?: boolean;
+  browserRequests?: boolean;
+  nativeRequests?: boolean;
+  inAppGroupActivity?: boolean;
+  browserGroupActivity?: boolean;
+  nativeGroupActivity?: boolean;
+  inAppSafety?: boolean;
+  browserSafety?: boolean;
+  nativeSafety?: boolean;
+  quietHoursEnabled?: boolean;
+  /**
+     * @nullable
+     * @pattern ^\d\d:\d\d$
+     */
+  quietHoursStart?: string | null;
+  /**
+     * @nullable
+     * @pattern ^\d\d:\d\d$
+     */
+  quietHoursEnd?: string | null;
+  /** @nullable */
+  quietHoursTimezone?: string | null;
+  lockScreenPreview?: NotificationPreferencesLockScreenPreview;
+}
+
+export type NotificationPreferencesInput = NotificationPreferences;
+
+export type DeviceRegistrationInputKind = typeof DeviceRegistrationInputKind[keyof typeof DeviceRegistrationInputKind];
+
+
+export const DeviceRegistrationInputKind = {
+  browser_push: 'browser_push',
+  native_push: 'native_push',
+} as const;
+
+export interface DeviceRegistrationInput {
+  kind: DeviceRegistrationInputKind;
+  tokenOrEndpoint: string;
+  platform: string;
+  accountSessionDeviceId: string;
+  /** @nullable */
+  expiresAt?: string | null;
+}
+
+export type DeviceRegistrationKind = typeof DeviceRegistrationKind[keyof typeof DeviceRegistrationKind];
+
+
+export const DeviceRegistrationKind = {
+  browser_push: 'browser_push',
+  native_push: 'native_push',
+} as const;
+
+export interface DeviceRegistration {
+  id: string;
+  kind: DeviceRegistrationKind;
+  platform: string;
+  accountSessionDeviceId: string;
+  /** @nullable */
+  expiresAt?: string | null;
+  lastSeenAt?: string;
+  active: boolean;
+}
+
+export interface DeviceRevokeInput {
+  accountSessionDeviceId: string;
+}
+
+export interface DeliveryStatus {[key: string]: { [key: string]: unknown }}
+
+export type MessageEvidenceResponseReport = { [key: string]: unknown };
+
+export type MessageEvidenceResponseEvidence = { [key: string]: unknown };
+
+export type MessageEvidenceResponseContextItem = { [key: string]: unknown };
+
+export interface MessageEvidenceResponse {
+  report: MessageEvidenceResponseReport;
+  evidence: MessageEvidenceResponseEvidence;
+  context: MessageEvidenceResponseContextItem[];
+}
+
 export type ListFriendRequestsParams = {
 /**
  * @minimum 1
@@ -1011,7 +1820,6 @@ limit?: number;
  */
 cursor?: string;
 };
-
 export type ListFriendsParams = {
 /**
  * @minimum 1
@@ -1081,12 +1889,23 @@ export const GetFeedFilter = {
   friends: 'friends',
 } as const;
 
-export type ListNotificationEvents200Item = { [key: string]: unknown };
-
 export type ListSavedPostsParams = {
 /**
  * @minimum 1
  * @maximum 50
+ */
+limit?: number;
+cursor?: string;
+};
+
+export type ListGroupsParams = {
+q?: string;
+};
+
+export type ListNotificationsParams = {
+/**
+ * @minimum 1
+ * @maximum 100
  */
 limit?: number;
 cursor?: string;
