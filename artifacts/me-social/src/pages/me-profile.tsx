@@ -2,7 +2,7 @@ import { PageHeader } from "@/components/shared/page-header"
 import { useSimpleView } from "@/lib/simple-view"
 import { useTheme } from "@/components/theme-provider"
 import { Switch } from "@/components/ui/switch"
-import { ArrowRight, Info, Heart, Layers, Edit, FileText, Shield, Eye, Settings, FileBox, Bookmark, LogOut } from "lucide-react"
+import { ArrowRight, Info, Heart, Layers, Edit, FileText, Shield, Eye, Settings, FileBox, Bookmark, LogOut, BookOpen } from "lucide-react"
 import { Link, useLocation } from "wouter"
 import { useGetOwnProfile, getGetOwnProfileQueryKey, useRevokeCurrentNotificationDevice, getListNotificationsQueryKey } from "@workspace/api-client-react"
 import { getPhotoUrl } from "@/hooks/use-profile-photo"
@@ -96,6 +96,19 @@ export default function MePage() {
         </div>
 
         <div className="p-4 md:p-6 text-left grid grid-cols-1 divide-y divide-border/50">
+          <Link href="/me/learning" className="flex items-center justify-between group p-4 rounded-xl hover:bg-secondary/30 transition-colors" data-testid="link-my-learning">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-primary shrink-0">
+                <BookOpen className="w-6 h-6" aria-hidden="true" />
+              </div>
+              <div>
+                <h3 className="text-2xl font-semibold text-foreground group-hover:text-primary transition-colors">My Learning</h3>
+                <p className="text-muted-foreground mt-1 text-lg">Your saved modules and progress.</p>
+              </div>
+            </div>
+            <ArrowRight className="w-8 h-8 text-muted-foreground group-hover:text-primary transition-colors hidden sm:block" aria-hidden="true" />
+          </Link>
+
           <Link href="/me/posts" className="flex items-center justify-between group p-4 rounded-xl hover:bg-secondary/30 transition-colors" data-testid="link-my-posts">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-primary shrink-0">

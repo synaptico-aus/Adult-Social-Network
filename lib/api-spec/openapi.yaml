@@ -20,6 +20,10 @@ tags:
     description: Live-membership authorized messaging
   - name: notifications
     description: In-app notification inbox and generic delivery
+  - name: education
+    description: Public approved education and private learning state
+  - name: education-staff
+    description: Capability-scoped education authoring and review
 paths:
   /healthz:
     get:
@@ -1079,7 +1083,204 @@ paths:
         - { name: reportId, in: path, required: true, schema: { type: string } }
         - { name: X-Evidence-Reason, in: header, required: true, schema: { type: string, minLength: 1, maxLength: 1000 } }
       responses: { "200": { description: Bounded report evidence, content: { application/json: { schema: { $ref: "#/components/schemas/MessageEvidenceResponse" } } } } }
+  /education/categories:
+    get:
+      operationId: listEducationCategories
+      tags: [education]
+      responses:
+        "200": { description: Taxonomy categories, content: { application/json: { schema: { $ref: "#/components/schemas/EducationCategoryList" } } } }
+  /education:
+    get:
+      operationId: searchEducation
+      tags: [education]
+      parameters:
+        - { in: query, name: q, schema: { type: string } }
+        - { in: query, name: category, schema: { type: string } }
+        - { in: query, name: limit, schema: { type: integer, minimum: 1, maximum: 50 } }
+        - { in: query, name: cursor, schema: { type: string } }
+      responses:
+        "200": { description: Approved current content, content: { application/json: { schema: { $ref: "#/components/schemas/EducationList" } } } }
+  /education/search:
+    get:
+      operationId: searchEducationExplicit
+      tags: [education]
+      parameters:
+        - { in: query, name: q, schema: { type: string } }
+        - { in: query, name: category, schema: { type: string } }
+        - { in: query, name: limit, schema: { type: integer, minimum: 1, maximum: 50 } }
+        - { in: query, name: cursor, schema: { type: string } }
+      responses:
+        "200": { description: Approved current content, content: { application/json: { schema: { $ref: "#/components/schemas/EducationList" } } } }
+  /education/completions:
+    get:
+      operationId: listMyEducationCompletions
+      tags: [education]
+      security: [{ clerk: [] }]
+      responses:
+        "200": { description: Opted-in current completions, content: { application/json: { schema: { $ref: "#/components/schemas/EducationCompletionList" } } } }
+  /education/{lessonId}/completions:
+    get:
+      operationId: listVisibleEducationCompletions
+      tags: [education]
+      security: [{ clerk: [] }]
+      parameters: [{ in: path, name: lessonId, required: true, schema: { type: string } }]
+      responses:
+        "200": { description: Block and profile-authorized opted-in completions, content: { application/json: { schema: { $ref: "#/components/schemas/EducationVisibleCompletionList" } } } }
+  /education/{slug}:
+    get:
+      operationId: getEducation
+      tags: [education]
+      parameters: [{ in: path, name: slug, required: true, schema: { type: string } }]
+      responses:
+        "200": { description: Approved current lesson, content: { application/json: { schema: { $ref: "#/components/schemas/EducationLesson" } } } }
+        "404": { description: Not found or withdrawn }
+  /education/me:
+    get:
+      operationId: getMyEducation
+      tags: [education]
+      security: [{ clerk: [] }]
+      responses:
+        "200": { description: Private learning overview, content: { application/json: { schema: { $ref: "#/components/schemas/EducationOverview" } } } }
+  /education/me/saves/{lessonId}:
+    put:
+      operationId: saveEducation
+      tags: [education]
+      security: [{ clerk: [] }]
+      parameters: [{ in: path, name: lessonId, required: true, schema: { type: string } }]
+      responses:
+        "201": { description: Saved, content: { application/json: { schema: { $ref: "#/components/schemas/EducationLearningSave" } } } }
+        "200": { description: Already saved, content: { application/json: { schema: { $ref: "#/components/schemas/EducationLearningSave" } } } }
+    delete:
+      operationId: removeEducationSave
+      tags: [education]
+      security: [{ clerk: [] }]
+      parameters: [{ in: path, name: lessonId, required: true, schema: { type: string } }]
+      responses: { "204": { description: Removed } }
+  /education/me/progress/{lessonId}:
+    put:
+      operationId: updateEducationProgress
+      tags: [education]
+      security: [{ clerk: [] }]
+      parameters: [{ in: path, name: lessonId, required: true, schema: { type: string } }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/EducationProgressInput" } } } }
+      responses: { "200": { description: Updated progress, content: { application/json: { schema: { $ref: "#/components/schemas/EducationProgress" } } } } }
+  /education/me/progress/{lessonId}/reset:
+    post:
+      operationId: resetEducationProgress
+      tags: [education]
+      security: [{ clerk: [] }]
+      parameters: [{ in: path, name: lessonId, required: true, schema: { type: string } }]
+      responses: { "204": { description: Reset } }
+  /education/me/completion/{lessonId}:
+    put:
+      operationId: setEducationCompletionOptIn
+      tags: [education]
+      security: [{ clerk: [] }]
+      parameters: [{ in: path, name: lessonId, required: true, schema: { type: string } }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/EducationCompletionOptInInput" }
+      responses: { "200": { description: Retractable completion preference, content: { application/json: { schema: { $ref: "#/components/schemas/EducationProgress" } } } } }
+  /staff/education:
+    get:
+      operationId: listStaffEducation
+      tags: [education-staff]
+      security: [{ clerk: [] }]
+      responses: { "200": { description: Staff education list, content: { application/json: { schema: { $ref: "#/components/schemas/EducationStaffLessonList" } } } } }
+    post:
+      operationId: createEducation
+      tags: [education-staff]
+      security: [{ clerk: [] }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/EducationLessonInput" } } } }
+      responses: { "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/EducationStaffLesson" } } } } }
+  /staff/education/{id}:
+    get:
+      operationId: getStaffEducation
+      tags: [education-staff]
+      security: [{ clerk: [] }]
+      parameters: [{ in: path, name: id, required: true, schema: { type: string } }]
+      responses: { "200": { description: Staff detail, content: { application/json: { schema: { $ref: "#/components/schemas/EducationStaffDetail" } } } } }
+  /staff/education/{id}/revisions:
+    post:
+      operationId: createEducationRevision
+      tags: [education-staff]
+      security: [{ clerk: [] }]
+      parameters: [{ in: path, name: id, required: true, schema: { type: string } }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/EducationRevisionInput" } } } }
+      responses: { "201": { description: Created revision, content: { application/json: { schema: { $ref: "#/components/schemas/EducationRevision" } } } } }
+  /staff/education/{id}/revisions/{revisionId}/submit-review:
+    post:
+      operationId: submitEducationReview
+      tags: [education-staff]
+      security: [{ clerk: [] }]
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: string } }
+        - { in: path, name: revisionId, required: true, schema: { type: string } }
+      responses: { "200": { description: Submitted, content: { application/json: { schema: { $ref: "#/components/schemas/EducationRevision" } } } } }
+  /staff/education/{id}/revisions/{revisionId}/approve:
+    post:
+      operationId: approveEducationRevision
+      tags: [education-staff]
+      security: [{ clerk: [] }]
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: string } }
+        - { in: path, name: revisionId, required: true, schema: { type: string } }
+      requestBody: { content: { application/json: { schema: { $ref: "#/components/schemas/EducationReviewInput" } } } }
+      responses: { "200": { description: Approved, content: { application/json: { schema: { $ref: "#/components/schemas/EducationApproval" } } } } }
+  /staff/education/{id}/revisions/{revisionId}/reject:
+    post:
+      operationId: rejectEducationRevision
+      tags: [education-staff]
+      security: [{ clerk: [] }]
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: string } }
+        - { in: path, name: revisionId, required: true, schema: { type: string } }
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/EducationRejectInput" } } } }
+      responses: { "200": { description: Rejected and returned to draft, content: { application/json: { schema: { $ref: "#/components/schemas/EducationRevision" } } } } }
+  /staff/education/{id}/publish:
+    post:
+      operationId: publishEducation
+      tags: [education-staff]
+      security: [{ clerk: [] }]
+      parameters: [{ in: path, name: id, required: true, schema: { type: string } }]
+      responses: { "200": { description: Published, content: { application/json: { schema: { $ref: "#/components/schemas/EducationLesson" } } } }, "409": { description: Publish gate failed } }
+  /staff/education/{id}/review-due:
+    post:
+      operationId: markEducationReviewDue
+      tags: [education-staff]
+      security: [{ clerk: [] }]
+      parameters: [{ in: path, name: id, required: true, schema: { type: string } }]
+      responses: { "200": { description: Marked review due, content: { application/json: { schema: { $ref: "#/components/schemas/EducationStaffLesson" } } } } }
+  /staff/education/{id}/archive:
+    post:
+      operationId: archiveEducation
+      tags: [education-staff]
+      security: [{ clerk: [] }]
+      parameters: [{ in: path, name: id, required: true, schema: { type: string } }]
+      responses: { "200": { description: Archived, content: { application/json: { schema: { $ref: "#/components/schemas/EducationStaffLesson" } } } } }
+  /staff/education/{id}/withdraw:
+    post:
+      operationId: withdrawEducation
+      tags: [education-staff]
+      security: [{ clerk: [] }]
+      parameters: [{ in: path, name: id, required: true, schema: { type: string } }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/EducationCorrectionInput" } } } }
+      responses: { "200": { description: Withdrawn, content: { application/json: { schema: { $ref: "#/components/schemas/EducationStaffLesson" } } } } }
+  /staff/education/{id}/corrections:
+    post:
+      operationId: correctEducation
+      tags: [education-staff]
+      security: [{ clerk: [] }]
+      parameters: [{ in: path, name: id, required: true, schema: { type: string } }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/EducationCorrectionInput" } } } }
+      responses: { "201": { description: Correction recorded, content: { application/json: { schema: { $ref: "#/components/schemas/EducationCorrection" } } } } }
 components:
+  securitySchemes:
+    clerk:
+      type: http
+      scheme: bearer
   schemas:
     MediaUploadInput:
       type: object
@@ -2103,4 +2304,290 @@ components:
         report: { type: object }
         evidence: { type: object }
         context: { type: array, items: { type: object } }
+    EducationCategory:
+      type: object
+      required: [id, slug, name, sortOrder]
+      properties:
+        id: { type: string }
+        slug: { type: string, enum: [understanding, communication, support, safety, resources] }
+        name: { type: string }
+        description: { type: ["string", "null"] }
+        sortOrder: { type: integer }
+    EducationCategoryList:
+      type: object
+      required: [items]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/EducationCategory" } }
+    EducationSource:
+      type: object
+      required: [id, revisionId, kind, citation, provenance, url, region, rightsStatus, rightsPermissions]
+      properties:
+        id: { type: string }
+        revisionId: { type: string }
+        kind: { type: string, enum: [historical, historical_population_research, current_evidence, guidance, service, licensed_link] }
+        citation: { type: string }
+        url: { type: string, format: uri }
+        provenance: { type: string }
+        sourceDate: { type: ["string", "null"], format: date-time }
+        verifiedAt: { type: ["string", "null"], format: date-time }
+        evidenceCheckedAt: { type: ["string", "null"], format: date-time }
+        region: { type: string }
+        rightsStatus: { type: string, enum: [original, permitted, link_only] }
+        rightsPermissions: { type: string }
+        currentEvidenceSourceId: { type: ["string", "null"] }
+    EducationSourceInput:
+      type: object
+      required: [kind, citation, provenance, url, region, rightsStatus, rightsPermissions]
+      properties:
+        kind: { type: string, enum: [historical, historical_population_research, current_evidence, guidance, service, licensed_link] }
+        citation: { type: string }
+        url: { type: string, format: uri }
+        provenance: { type: string }
+        sourceDate: { type: ["string", "null"], format: date-time }
+        verifiedAt: { type: ["string", "null"], format: date-time }
+        evidenceCheckedAt: { type: ["string", "null"], format: date-time }
+        region: { type: string }
+        rightsStatus: { type: string, enum: [original, permitted, link_only] }
+        rightsPermissions: { type: string }
+    EducationRevisionInput:
+      type: object
+      required: [title, summary, body, region, educationalWording, sources, avoidsBlameAndGuarantees, restrictedContentLinkedOnly, contentRightsConfirmed]
+      properties:
+        title: { type: string }
+        summary: { type: string }
+        body: { type: string, minLength: 1, maxLength: 100000, description: Plain text only. HTML is not trusted or accepted; clients render text. }
+        region: { type: string, minLength: 1 }
+        educationalWording: { type: string }
+        avoidsBlameAndGuarantees: { type: boolean }
+        avoidsBlameAttestation: { type: boolean }
+        avoidsIndividualGuaranteesAttestation: { type: boolean }
+        restrictedContentLinkedOnly: { type: boolean }
+        contentRightsConfirmed: { type: boolean }
+        containsCopiedRestrictedContent: { type: boolean, default: false, description: Declaration only; not automated plagiarism detection. }
+        accessibleMedia: { $ref: "#/components/schemas/EducationAccessibleMedia" }
+        sources: { type: array, items: { $ref: "#/components/schemas/EducationSourceInput" }, minItems: 1 }
+    EducationLessonInput:
+      allOf:
+        - $ref: "#/components/schemas/EducationRevisionInput"
+      type: object
+      required: [categoryId, slug, title]
+      properties:
+        categoryId: { type: string, enum: [education-understanding, education-communication, education-support, education-safety, education-resources] }
+        slug: { type: string }
+    EducationReviewInput:
+      type: object
+      properties:
+        note: { type: string }
+    EducationRejectInput:
+      type: object
+      required: [reason]
+      properties:
+        reason: { type: string, minLength: 1, description: User-entered rejection reason }
+    EducationApproval:
+      type: object
+      required: [id, status, reviewerClerkUserId]
+      properties:
+        id: { type: string }
+        status: { type: string, const: approved }
+        reviewerClerkUserId: { type: string }
+    EducationLesson:
+      type: object
+      required: [id, slug, title, summary, categoryId, status, reviewDue, revision]
+      properties:
+        id: { type: string }
+        slug: { type: string }
+        title: { type: string }
+        summary: { type: string }
+        categoryId: { type: string, enum: [education-understanding, education-communication, education-support, education-safety, education-resources] }
+        status: { type: string, enum: [published, review_due] }
+        reviewDue: { type: boolean }
+        publishedAt: { type: ["string", "null"], format: date-time }
+        reviewDueAt: { type: ["string", "null"], format: date-time }
+        revision: { $ref: "#/components/schemas/EducationPublicRevision" }
+    EducationPublicRevision:
+      type: object
+      required: [id, version, title, summary, body, region, educationalWording, status, sources]
+      properties:
+        id: { type: string }
+        version: { type: integer }
+        title: { type: string }
+        summary: { type: string }
+        body: { type: string, description: Plain text only; never trusted HTML }
+        region: { type: string }
+        educationalWording: { type: string }
+        accessibleMedia: { $ref: "#/components/schemas/EducationAccessibleMedia" }
+        status: { type: string, enum: [published, review_due] }
+        sources: { type: array, items: { $ref: "#/components/schemas/EducationSource" } }
+    EducationRevision:
+      type: object
+      required: [id, lessonId, version, title, summary, body, region, educationalWording, status, authorClerkUserId, sources]
+      properties:
+        id: { type: string }
+        lessonId: { type: string }
+        version: { type: integer }
+        title: { type: string }
+        summary: { type: string }
+        body: { type: string, description: Plain text only; never trusted HTML }
+        region: { type: string }
+        educationalWording: { type: string }
+        avoidsBlameAndGuarantees: { type: boolean }
+        avoidsBlameAttestation: { type: boolean }
+        avoidsIndividualGuaranteesAttestation: { type: boolean }
+        restrictedContentLinkedOnly: { type: boolean }
+        contentRightsConfirmed: { type: boolean }
+        containsCopiedRestrictedContent: { type: boolean }
+        status: { type: string, enum: [draft, review, published, rejected] }
+        authorClerkUserId: { type: string }
+        reviewerClerkUserId: { type: ["string", "null"] }
+        reviewedAt: { type: ["string", "null"], format: date-time }
+        accessibleMedia: { $ref: "#/components/schemas/EducationAccessibleMedia" }
+        createdAt: { type: string, format: date-time }
+        sources: { type: array, items: { $ref: "#/components/schemas/EducationSource" } }
+    EducationStaffLesson:
+      type: object
+      required: [id, categoryId, slug, title, seedOrigin, status, authorClerkUserId, currentRevisionId, publishedRevisionId, currentRevision, createdAt, updatedAt]
+      properties:
+        id: { type: string }
+        categoryId: { type: string, enum: [education-understanding, education-communication, education-support, education-safety, education-resources] }
+        slug: { type: string }
+        title: { type: string }
+        seedOrigin: { type: string, enum: [staff, seed] }
+        status: { type: string, enum: [draft, review, published, review_due, archived] }
+        authorClerkUserId: { type: string }
+        currentRevisionId: { type: ["string", "null"] }
+        publishedRevisionId: { type: ["string", "null"] }
+        currentRevision: { oneOf: [{ $ref: "#/components/schemas/EducationRevision" }, { type: "null" }] }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    EducationStaffLessonList:
+      type: object
+      required: [items]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/EducationStaffLesson" } }
+    EducationStaffDetail:
+      type: object
+      required: [lesson, revisions, corrections]
+      properties:
+        lesson: { $ref: "#/components/schemas/EducationStaffLesson" }
+        revisions: { type: array, items: { $ref: "#/components/schemas/EducationRevision" } }
+        corrections: { type: array, items: { $ref: "#/components/schemas/EducationCorrection" } }
+    EducationList:
+      type: object
+      required: [items, nextCursor]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/EducationLesson" } }
+        nextCursor: { type: ["string", "null"] }
+    EducationProgressInput:
+      type: object
+      properties:
+        percent: { type: ["integer", "null"], minimum: 0, maximum: 100 }
+        position: { type: ["string", "null"] }
+        completed: { type: boolean }
+        completionOptIn: { type: boolean, default: false }
+    EducationCompletionOptInInput:
+      type: object
+      required: [optIn]
+      properties:
+        optIn: { type: boolean }
+    EducationProgress:
+      type: object
+      required: [lessonId, completionOptIn, completionDisclaimer, lesson]
+      properties:
+        lessonId: { type: string }
+        percent: { type: ["integer", "null"] }
+        position: { type: ["string", "null"] }
+        completedAt: { type: ["string", "null"], format: date-time }
+        completionOptIn: { type: boolean }
+        completionDisclaimer: { type: string }
+        lesson: { $ref: "#/components/schemas/EducationLearningLesson" }
+    EducationOverview:
+      type: object
+      required: [saves, progress, continue]
+      properties:
+        saves: { type: array, items: { $ref: "#/components/schemas/EducationLearningSave" } }
+        progress: { type: array, items: { $ref: "#/components/schemas/EducationProgress" } }
+        continue: { $ref: "#/components/schemas/EducationContinue" }
+    EducationAccessibleMedia:
+      type: ["object", "null"]
+      properties:
+        kind: { type: string }
+        url: { type: string, format: uri }
+        altText: { type: string }
+        transcript: { type: string }
+        durationSeconds: { type: number }
+        width: { type: integer }
+        height: { type: integer }
+    EducationContinue:
+      type: ["object", "null"]
+      properties:
+        lessonId: { type: string }
+        revisionId: { type: ["string", "null"] }
+        position: { type: ["string", "null"] }
+        percent: { type: ["integer", "null"] }
+    EducationLearningSave:
+      type: object
+      required: [id, memberId, lessonId, createdAt, lesson]
+      properties:
+        id: { type: string }
+        memberId: { type: string }
+        lessonId: { type: string }
+        createdAt: { type: string, format: date-time }
+        lesson: { $ref: "#/components/schemas/EducationLearningLesson" }
+    EducationLearningLesson:
+      type: object
+      required: [id, slug, title, summary, categoryId, status]
+      properties:
+        id: { type: string }
+        slug: { type: string }
+        title: { type: string }
+        summary: { type: string }
+        categoryId: { type: string }
+        status: { type: string, enum: [published, review_due] }
+    EducationCorrectionInput:
+      type: object
+      required: [reason]
+      properties:
+        reason: { type: string }
+        revisionId: { type: ["string", "null"], description: Explicit null records a general lesson correction; omission defaults to the lesson's published revision. Non-null IDs must belong to this lesson. }
+        replacementRevisionId: { type: ["string", "null"] }
+    EducationCorrection:
+      type: object
+      required: [id, lessonId, revisionId, kind, reason, actorClerkUserId, createdAt]
+      properties:
+        id: { type: string }
+        lessonId: { type: string }
+        revisionId: { type: ["string", "null"] }
+        kind: { type: string, enum: [correction, withdrawal] }
+        reason: { type: string }
+        replacementRevisionId: { type: ["string", "null"] }
+        actorClerkUserId: { type: string }
+        createdAt: { type: string, format: date-time }
+    EducationCompletion:
+      type: object
+      required: [lessonId, slug, title, completedAt, completionDisclaimer]
+      properties:
+        lessonId: { type: string }
+        slug: { type: string }
+        title: { type: string }
+        completedAt: { type: string, format: date-time }
+        completionDisclaimer: { type: string, const: "Educational activity only; not a clinical qualification." }
+    EducationCompletionList:
+      type: object
+      required: [items, completionDisclaimer]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/EducationCompletion" } }
+        completionDisclaimer: { type: string, const: "Educational activity only; not a clinical qualification." }
+    EducationVisibleCompletion:
+      type: object
+      required: [memberId, preferredName, completedAt]
+      properties:
+        memberId: { type: string }
+        preferredName: { type: ["string", "null"] }
+        completedAt: { type: string, format: date-time }
+    EducationVisibleCompletionList:
+      type: object
+      required: [items, completionDisclaimer]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/EducationVisibleCompletion" } }
+        completionDisclaimer: { type: string, const: "Educational activity only; not a clinical qualification." }
 

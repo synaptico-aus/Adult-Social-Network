@@ -15,6 +15,11 @@ import * as zod from 'zod';
 export const HealthCheckResponse = zod.object({
   "status": zod.string()
 })
+
+
+
+
+
 export const completeOnboardingBodyAcceptedDocumentsMin = 3;
 
 
@@ -2942,6 +2947,1127 @@ export const AccessMessageReportEvidenceResponse = zod.object({
   "context": zod.array(zod.object({
 
 }).passthrough())
+})
+
+
+export const ListEducationCategoriesResponse = zod.object({
+  "items": zod.array(zod.object({
+  "id": zod.string(),
+  "slug": zod.enum(['understanding', 'communication', 'support', 'safety', 'resources']),
+  "name": zod.string(),
+  "description": zod.string().nullish(),
+  "sortOrder": zod.number().int()
+}))
+})
+
+
+export const searchEducationQueryLimitMax = 50;
+
+
+
+export const SearchEducationQueryParams = zod.object({
+  "q": zod.coerce.string().optional(),
+  "category": zod.coerce.string().optional(),
+  "limit": zod.coerce.number().int().min(1).max(searchEducationQueryLimitMax).optional(),
+  "cursor": zod.coerce.string().optional()
+})
+
+export const SearchEducationResponse = zod.object({
+  "items": zod.array(zod.object({
+  "id": zod.string(),
+  "slug": zod.string(),
+  "title": zod.string(),
+  "summary": zod.string(),
+  "categoryId": zod.enum(['education-understanding', 'education-communication', 'education-support', 'education-safety', 'education-resources']),
+  "status": zod.enum(['published', 'review_due']),
+  "reviewDue": zod.boolean(),
+  "publishedAt": zod.coerce.date().nullish(),
+  "reviewDueAt": zod.coerce.date().nullish(),
+  "revision": zod.object({
+  "id": zod.string(),
+  "version": zod.number().int(),
+  "title": zod.string(),
+  "summary": zod.string(),
+  "body": zod.string().describe('Plain text only; never trusted HTML'),
+  "region": zod.string(),
+  "educationalWording": zod.string(),
+  "accessibleMedia": zod.object({
+  "kind": zod.string().optional(),
+  "url": zod.string().url().optional(),
+  "altText": zod.string().optional(),
+  "transcript": zod.string().optional(),
+  "durationSeconds": zod.number().optional(),
+  "width": zod.number().int().optional(),
+  "height": zod.number().int().optional()
+}).nullish(),
+  "status": zod.enum(['published', 'review_due']),
+  "sources": zod.array(zod.object({
+  "id": zod.string(),
+  "revisionId": zod.string(),
+  "kind": zod.enum(['historical', 'historical_population_research', 'current_evidence', 'guidance', 'service', 'licensed_link']),
+  "citation": zod.string(),
+  "url": zod.string().url(),
+  "provenance": zod.string(),
+  "sourceDate": zod.coerce.date().nullish(),
+  "verifiedAt": zod.coerce.date().nullish(),
+  "evidenceCheckedAt": zod.coerce.date().nullish(),
+  "region": zod.string(),
+  "rightsStatus": zod.enum(['original', 'permitted', 'link_only']),
+  "rightsPermissions": zod.string(),
+  "currentEvidenceSourceId": zod.string().nullish()
+}))
+})
+})),
+  "nextCursor": zod.string().nullable()
+})
+
+
+export const searchEducationExplicitQueryLimitMax = 50;
+
+
+
+export const SearchEducationExplicitQueryParams = zod.object({
+  "q": zod.coerce.string().optional(),
+  "category": zod.coerce.string().optional(),
+  "limit": zod.coerce.number().int().min(1).max(searchEducationExplicitQueryLimitMax).optional(),
+  "cursor": zod.coerce.string().optional()
+})
+
+export const SearchEducationExplicitResponse = zod.object({
+  "items": zod.array(zod.object({
+  "id": zod.string(),
+  "slug": zod.string(),
+  "title": zod.string(),
+  "summary": zod.string(),
+  "categoryId": zod.enum(['education-understanding', 'education-communication', 'education-support', 'education-safety', 'education-resources']),
+  "status": zod.enum(['published', 'review_due']),
+  "reviewDue": zod.boolean(),
+  "publishedAt": zod.coerce.date().nullish(),
+  "reviewDueAt": zod.coerce.date().nullish(),
+  "revision": zod.object({
+  "id": zod.string(),
+  "version": zod.number().int(),
+  "title": zod.string(),
+  "summary": zod.string(),
+  "body": zod.string().describe('Plain text only; never trusted HTML'),
+  "region": zod.string(),
+  "educationalWording": zod.string(),
+  "accessibleMedia": zod.object({
+  "kind": zod.string().optional(),
+  "url": zod.string().url().optional(),
+  "altText": zod.string().optional(),
+  "transcript": zod.string().optional(),
+  "durationSeconds": zod.number().optional(),
+  "width": zod.number().int().optional(),
+  "height": zod.number().int().optional()
+}).nullish(),
+  "status": zod.enum(['published', 'review_due']),
+  "sources": zod.array(zod.object({
+  "id": zod.string(),
+  "revisionId": zod.string(),
+  "kind": zod.enum(['historical', 'historical_population_research', 'current_evidence', 'guidance', 'service', 'licensed_link']),
+  "citation": zod.string(),
+  "url": zod.string().url(),
+  "provenance": zod.string(),
+  "sourceDate": zod.coerce.date().nullish(),
+  "verifiedAt": zod.coerce.date().nullish(),
+  "evidenceCheckedAt": zod.coerce.date().nullish(),
+  "region": zod.string(),
+  "rightsStatus": zod.enum(['original', 'permitted', 'link_only']),
+  "rightsPermissions": zod.string(),
+  "currentEvidenceSourceId": zod.string().nullish()
+}))
+})
+})),
+  "nextCursor": zod.string().nullable()
+})
+
+
+export const ListMyEducationCompletionsResponse = zod.object({
+  "items": zod.array(zod.object({
+  "lessonId": zod.string(),
+  "slug": zod.string(),
+  "title": zod.string(),
+  "completedAt": zod.coerce.date(),
+  "completionDisclaimer": zod.literal("Educational activity only; not a clinical qualification.")
+})),
+  "completionDisclaimer": zod.literal("Educational activity only; not a clinical qualification.")
+})
+
+
+export const ListVisibleEducationCompletionsParams = zod.object({
+  "lessonId": zod.coerce.string()
+})
+
+export const ListVisibleEducationCompletionsResponse = zod.object({
+  "items": zod.array(zod.object({
+  "memberId": zod.string(),
+  "preferredName": zod.string().nullable(),
+  "completedAt": zod.coerce.date()
+})),
+  "completionDisclaimer": zod.literal("Educational activity only; not a clinical qualification.")
+})
+
+
+export const GetEducationParams = zod.object({
+  "slug": zod.coerce.string()
+})
+
+export const GetEducationResponse = zod.object({
+  "id": zod.string(),
+  "slug": zod.string(),
+  "title": zod.string(),
+  "summary": zod.string(),
+  "categoryId": zod.enum(['education-understanding', 'education-communication', 'education-support', 'education-safety', 'education-resources']),
+  "status": zod.enum(['published', 'review_due']),
+  "reviewDue": zod.boolean(),
+  "publishedAt": zod.coerce.date().nullish(),
+  "reviewDueAt": zod.coerce.date().nullish(),
+  "revision": zod.object({
+  "id": zod.string(),
+  "version": zod.number().int(),
+  "title": zod.string(),
+  "summary": zod.string(),
+  "body": zod.string().describe('Plain text only; never trusted HTML'),
+  "region": zod.string(),
+  "educationalWording": zod.string(),
+  "accessibleMedia": zod.object({
+  "kind": zod.string().optional(),
+  "url": zod.string().url().optional(),
+  "altText": zod.string().optional(),
+  "transcript": zod.string().optional(),
+  "durationSeconds": zod.number().optional(),
+  "width": zod.number().int().optional(),
+  "height": zod.number().int().optional()
+}).nullish(),
+  "status": zod.enum(['published', 'review_due']),
+  "sources": zod.array(zod.object({
+  "id": zod.string(),
+  "revisionId": zod.string(),
+  "kind": zod.enum(['historical', 'historical_population_research', 'current_evidence', 'guidance', 'service', 'licensed_link']),
+  "citation": zod.string(),
+  "url": zod.string().url(),
+  "provenance": zod.string(),
+  "sourceDate": zod.coerce.date().nullish(),
+  "verifiedAt": zod.coerce.date().nullish(),
+  "evidenceCheckedAt": zod.coerce.date().nullish(),
+  "region": zod.string(),
+  "rightsStatus": zod.enum(['original', 'permitted', 'link_only']),
+  "rightsPermissions": zod.string(),
+  "currentEvidenceSourceId": zod.string().nullish()
+}))
+})
+})
+
+
+export const GetMyEducationResponse = zod.object({
+  "saves": zod.array(zod.object({
+  "id": zod.string(),
+  "memberId": zod.string(),
+  "lessonId": zod.string(),
+  "createdAt": zod.coerce.date(),
+  "lesson": zod.object({
+  "id": zod.string(),
+  "slug": zod.string(),
+  "title": zod.string(),
+  "summary": zod.string(),
+  "categoryId": zod.string(),
+  "status": zod.enum(['published', 'review_due'])
+})
+})),
+  "progress": zod.array(zod.object({
+  "lessonId": zod.string(),
+  "percent": zod.number().int().nullish(),
+  "position": zod.string().nullish(),
+  "completedAt": zod.coerce.date().nullish(),
+  "completionOptIn": zod.boolean(),
+  "completionDisclaimer": zod.string(),
+  "lesson": zod.object({
+  "id": zod.string(),
+  "slug": zod.string(),
+  "title": zod.string(),
+  "summary": zod.string(),
+  "categoryId": zod.string(),
+  "status": zod.enum(['published', 'review_due'])
+})
+})),
+  "continue": zod.object({
+  "lessonId": zod.string().optional(),
+  "revisionId": zod.string().nullish(),
+  "position": zod.string().nullish(),
+  "percent": zod.number().int().nullish()
+}).nullable()
+})
+
+
+export const SaveEducationParams = zod.object({
+  "lessonId": zod.coerce.string()
+})
+
+export const SaveEducationResponse = zod.object({
+  "id": zod.string(),
+  "memberId": zod.string(),
+  "lessonId": zod.string(),
+  "createdAt": zod.coerce.date(),
+  "lesson": zod.object({
+  "id": zod.string(),
+  "slug": zod.string(),
+  "title": zod.string(),
+  "summary": zod.string(),
+  "categoryId": zod.string(),
+  "status": zod.enum(['published', 'review_due'])
+})
+})
+
+
+export const RemoveEducationSaveParams = zod.object({
+  "lessonId": zod.coerce.string()
+})
+
+export const RemoveEducationSaveResponse = zod.void()
+
+
+export const UpdateEducationProgressParams = zod.object({
+  "lessonId": zod.coerce.string()
+})
+
+export const updateEducationProgressBodyPercentMin = 0;
+export const updateEducationProgressBodyPercentMax = 100;
+
+export const updateEducationProgressBodyCompletionOptInDefault = false;
+
+export const UpdateEducationProgressBody = zod.object({
+  "percent": zod.number().int().min(updateEducationProgressBodyPercentMin).max(updateEducationProgressBodyPercentMax).nullish(),
+  "position": zod.string().nullish(),
+  "completed": zod.boolean().optional(),
+  "completionOptIn": zod.boolean().default(updateEducationProgressBodyCompletionOptInDefault)
+})
+
+export const UpdateEducationProgressResponse = zod.object({
+  "lessonId": zod.string(),
+  "percent": zod.number().int().nullish(),
+  "position": zod.string().nullish(),
+  "completedAt": zod.coerce.date().nullish(),
+  "completionOptIn": zod.boolean(),
+  "completionDisclaimer": zod.string(),
+  "lesson": zod.object({
+  "id": zod.string(),
+  "slug": zod.string(),
+  "title": zod.string(),
+  "summary": zod.string(),
+  "categoryId": zod.string(),
+  "status": zod.enum(['published', 'review_due'])
+})
+})
+
+
+export const ResetEducationProgressParams = zod.object({
+  "lessonId": zod.coerce.string()
+})
+
+export const ResetEducationProgressResponse = zod.void()
+
+
+export const SetEducationCompletionOptInParams = zod.object({
+  "lessonId": zod.coerce.string()
+})
+
+export const SetEducationCompletionOptInBody = zod.object({
+  "optIn": zod.boolean()
+})
+
+export const SetEducationCompletionOptInResponse = zod.object({
+  "lessonId": zod.string(),
+  "percent": zod.number().int().nullish(),
+  "position": zod.string().nullish(),
+  "completedAt": zod.coerce.date().nullish(),
+  "completionOptIn": zod.boolean(),
+  "completionDisclaimer": zod.string(),
+  "lesson": zod.object({
+  "id": zod.string(),
+  "slug": zod.string(),
+  "title": zod.string(),
+  "summary": zod.string(),
+  "categoryId": zod.string(),
+  "status": zod.enum(['published', 'review_due'])
+})
+})
+
+
+export const ListStaffEducationResponse = zod.object({
+  "items": zod.array(zod.object({
+  "id": zod.string(),
+  "categoryId": zod.enum(['education-understanding', 'education-communication', 'education-support', 'education-safety', 'education-resources']),
+  "slug": zod.string(),
+  "title": zod.string(),
+  "seedOrigin": zod.enum(['staff', 'seed']),
+  "status": zod.enum(['draft', 'review', 'published', 'review_due', 'archived']),
+  "authorClerkUserId": zod.string(),
+  "currentRevisionId": zod.string().nullable(),
+  "publishedRevisionId": zod.string().nullable(),
+  "currentRevision": zod.union([zod.object({
+  "id": zod.string(),
+  "lessonId": zod.string(),
+  "version": zod.number().int(),
+  "title": zod.string(),
+  "summary": zod.string(),
+  "body": zod.string().describe('Plain text only; never trusted HTML'),
+  "region": zod.string(),
+  "educationalWording": zod.string(),
+  "avoidsBlameAndGuarantees": zod.boolean().optional(),
+  "avoidsBlameAttestation": zod.boolean().optional(),
+  "avoidsIndividualGuaranteesAttestation": zod.boolean().optional(),
+  "restrictedContentLinkedOnly": zod.boolean().optional(),
+  "contentRightsConfirmed": zod.boolean().optional(),
+  "containsCopiedRestrictedContent": zod.boolean().optional(),
+  "status": zod.enum(['draft', 'review', 'published', 'rejected']),
+  "authorClerkUserId": zod.string(),
+  "reviewerClerkUserId": zod.string().nullish(),
+  "reviewedAt": zod.coerce.date().nullish(),
+  "accessibleMedia": zod.object({
+  "kind": zod.string().optional(),
+  "url": zod.string().url().optional(),
+  "altText": zod.string().optional(),
+  "transcript": zod.string().optional(),
+  "durationSeconds": zod.number().optional(),
+  "width": zod.number().int().optional(),
+  "height": zod.number().int().optional()
+}).nullish(),
+  "createdAt": zod.coerce.date().optional(),
+  "sources": zod.array(zod.object({
+  "id": zod.string(),
+  "revisionId": zod.string(),
+  "kind": zod.enum(['historical', 'historical_population_research', 'current_evidence', 'guidance', 'service', 'licensed_link']),
+  "citation": zod.string(),
+  "url": zod.string().url(),
+  "provenance": zod.string(),
+  "sourceDate": zod.coerce.date().nullish(),
+  "verifiedAt": zod.coerce.date().nullish(),
+  "evidenceCheckedAt": zod.coerce.date().nullish(),
+  "region": zod.string(),
+  "rightsStatus": zod.enum(['original', 'permitted', 'link_only']),
+  "rightsPermissions": zod.string(),
+  "currentEvidenceSourceId": zod.string().nullish()
+}))
+}),zod.null()]),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+}))
+})
+
+
+export const createEducationBodyOneBodyMax = 100000;
+
+
+export const createEducationBodyOneContainsCopiedRestrictedContentDefault = false;
+
+
+export const CreateEducationBody = zod.object({
+  "title": zod.string(),
+  "summary": zod.string(),
+  "body": zod.string().min(1).max(createEducationBodyOneBodyMax).describe('Plain text only. HTML is not trusted or accepted; clients render text.'),
+  "region": zod.string().min(1),
+  "educationalWording": zod.string(),
+  "avoidsBlameAndGuarantees": zod.boolean(),
+  "avoidsBlameAttestation": zod.boolean().optional(),
+  "avoidsIndividualGuaranteesAttestation": zod.boolean().optional(),
+  "restrictedContentLinkedOnly": zod.boolean(),
+  "contentRightsConfirmed": zod.boolean(),
+  "containsCopiedRestrictedContent": zod.boolean().default(createEducationBodyOneContainsCopiedRestrictedContentDefault).describe('Declaration only; not automated plagiarism detection.'),
+  "accessibleMedia": zod.object({
+  "kind": zod.string().optional(),
+  "url": zod.string().url().optional(),
+  "altText": zod.string().optional(),
+  "transcript": zod.string().optional(),
+  "durationSeconds": zod.number().optional(),
+  "width": zod.number().int().optional(),
+  "height": zod.number().int().optional()
+}).nullish(),
+  "sources": zod.array(zod.object({
+  "kind": zod.enum(['historical', 'historical_population_research', 'current_evidence', 'guidance', 'service', 'licensed_link']),
+  "citation": zod.string(),
+  "url": zod.string().url(),
+  "provenance": zod.string(),
+  "sourceDate": zod.coerce.date().nullish(),
+  "verifiedAt": zod.coerce.date().nullish(),
+  "evidenceCheckedAt": zod.coerce.date().nullish(),
+  "region": zod.string(),
+  "rightsStatus": zod.enum(['original', 'permitted', 'link_only']),
+  "rightsPermissions": zod.string()
+})).min(1)
+}).and(zod.object({
+  "categoryId": zod.enum(['education-understanding', 'education-communication', 'education-support', 'education-safety', 'education-resources']),
+  "slug": zod.string()
+}))
+
+export const CreateEducationResponse = zod.object({
+  "id": zod.string(),
+  "categoryId": zod.enum(['education-understanding', 'education-communication', 'education-support', 'education-safety', 'education-resources']),
+  "slug": zod.string(),
+  "title": zod.string(),
+  "seedOrigin": zod.enum(['staff', 'seed']),
+  "status": zod.enum(['draft', 'review', 'published', 'review_due', 'archived']),
+  "authorClerkUserId": zod.string(),
+  "currentRevisionId": zod.string().nullable(),
+  "publishedRevisionId": zod.string().nullable(),
+  "currentRevision": zod.union([zod.object({
+  "id": zod.string(),
+  "lessonId": zod.string(),
+  "version": zod.number().int(),
+  "title": zod.string(),
+  "summary": zod.string(),
+  "body": zod.string().describe('Plain text only; never trusted HTML'),
+  "region": zod.string(),
+  "educationalWording": zod.string(),
+  "avoidsBlameAndGuarantees": zod.boolean().optional(),
+  "avoidsBlameAttestation": zod.boolean().optional(),
+  "avoidsIndividualGuaranteesAttestation": zod.boolean().optional(),
+  "restrictedContentLinkedOnly": zod.boolean().optional(),
+  "contentRightsConfirmed": zod.boolean().optional(),
+  "containsCopiedRestrictedContent": zod.boolean().optional(),
+  "status": zod.enum(['draft', 'review', 'published', 'rejected']),
+  "authorClerkUserId": zod.string(),
+  "reviewerClerkUserId": zod.string().nullish(),
+  "reviewedAt": zod.coerce.date().nullish(),
+  "accessibleMedia": zod.object({
+  "kind": zod.string().optional(),
+  "url": zod.string().url().optional(),
+  "altText": zod.string().optional(),
+  "transcript": zod.string().optional(),
+  "durationSeconds": zod.number().optional(),
+  "width": zod.number().int().optional(),
+  "height": zod.number().int().optional()
+}).nullish(),
+  "createdAt": zod.coerce.date().optional(),
+  "sources": zod.array(zod.object({
+  "id": zod.string(),
+  "revisionId": zod.string(),
+  "kind": zod.enum(['historical', 'historical_population_research', 'current_evidence', 'guidance', 'service', 'licensed_link']),
+  "citation": zod.string(),
+  "url": zod.string().url(),
+  "provenance": zod.string(),
+  "sourceDate": zod.coerce.date().nullish(),
+  "verifiedAt": zod.coerce.date().nullish(),
+  "evidenceCheckedAt": zod.coerce.date().nullish(),
+  "region": zod.string(),
+  "rightsStatus": zod.enum(['original', 'permitted', 'link_only']),
+  "rightsPermissions": zod.string(),
+  "currentEvidenceSourceId": zod.string().nullish()
+}))
+}),zod.null()]),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+export const GetStaffEducationParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const GetStaffEducationResponse = zod.object({
+  "lesson": zod.object({
+  "id": zod.string(),
+  "categoryId": zod.enum(['education-understanding', 'education-communication', 'education-support', 'education-safety', 'education-resources']),
+  "slug": zod.string(),
+  "title": zod.string(),
+  "seedOrigin": zod.enum(['staff', 'seed']),
+  "status": zod.enum(['draft', 'review', 'published', 'review_due', 'archived']),
+  "authorClerkUserId": zod.string(),
+  "currentRevisionId": zod.string().nullable(),
+  "publishedRevisionId": zod.string().nullable(),
+  "currentRevision": zod.union([zod.object({
+  "id": zod.string(),
+  "lessonId": zod.string(),
+  "version": zod.number().int(),
+  "title": zod.string(),
+  "summary": zod.string(),
+  "body": zod.string().describe('Plain text only; never trusted HTML'),
+  "region": zod.string(),
+  "educationalWording": zod.string(),
+  "avoidsBlameAndGuarantees": zod.boolean().optional(),
+  "avoidsBlameAttestation": zod.boolean().optional(),
+  "avoidsIndividualGuaranteesAttestation": zod.boolean().optional(),
+  "restrictedContentLinkedOnly": zod.boolean().optional(),
+  "contentRightsConfirmed": zod.boolean().optional(),
+  "containsCopiedRestrictedContent": zod.boolean().optional(),
+  "status": zod.enum(['draft', 'review', 'published', 'rejected']),
+  "authorClerkUserId": zod.string(),
+  "reviewerClerkUserId": zod.string().nullish(),
+  "reviewedAt": zod.coerce.date().nullish(),
+  "accessibleMedia": zod.object({
+  "kind": zod.string().optional(),
+  "url": zod.string().url().optional(),
+  "altText": zod.string().optional(),
+  "transcript": zod.string().optional(),
+  "durationSeconds": zod.number().optional(),
+  "width": zod.number().int().optional(),
+  "height": zod.number().int().optional()
+}).nullish(),
+  "createdAt": zod.coerce.date().optional(),
+  "sources": zod.array(zod.object({
+  "id": zod.string(),
+  "revisionId": zod.string(),
+  "kind": zod.enum(['historical', 'historical_population_research', 'current_evidence', 'guidance', 'service', 'licensed_link']),
+  "citation": zod.string(),
+  "url": zod.string().url(),
+  "provenance": zod.string(),
+  "sourceDate": zod.coerce.date().nullish(),
+  "verifiedAt": zod.coerce.date().nullish(),
+  "evidenceCheckedAt": zod.coerce.date().nullish(),
+  "region": zod.string(),
+  "rightsStatus": zod.enum(['original', 'permitted', 'link_only']),
+  "rightsPermissions": zod.string(),
+  "currentEvidenceSourceId": zod.string().nullish()
+}))
+}),zod.null()]),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+}),
+  "revisions": zod.array(zod.object({
+  "id": zod.string(),
+  "lessonId": zod.string(),
+  "version": zod.number().int(),
+  "title": zod.string(),
+  "summary": zod.string(),
+  "body": zod.string().describe('Plain text only; never trusted HTML'),
+  "region": zod.string(),
+  "educationalWording": zod.string(),
+  "avoidsBlameAndGuarantees": zod.boolean().optional(),
+  "avoidsBlameAttestation": zod.boolean().optional(),
+  "avoidsIndividualGuaranteesAttestation": zod.boolean().optional(),
+  "restrictedContentLinkedOnly": zod.boolean().optional(),
+  "contentRightsConfirmed": zod.boolean().optional(),
+  "containsCopiedRestrictedContent": zod.boolean().optional(),
+  "status": zod.enum(['draft', 'review', 'published', 'rejected']),
+  "authorClerkUserId": zod.string(),
+  "reviewerClerkUserId": zod.string().nullish(),
+  "reviewedAt": zod.coerce.date().nullish(),
+  "accessibleMedia": zod.object({
+  "kind": zod.string().optional(),
+  "url": zod.string().url().optional(),
+  "altText": zod.string().optional(),
+  "transcript": zod.string().optional(),
+  "durationSeconds": zod.number().optional(),
+  "width": zod.number().int().optional(),
+  "height": zod.number().int().optional()
+}).nullish(),
+  "createdAt": zod.coerce.date().optional(),
+  "sources": zod.array(zod.object({
+  "id": zod.string(),
+  "revisionId": zod.string(),
+  "kind": zod.enum(['historical', 'historical_population_research', 'current_evidence', 'guidance', 'service', 'licensed_link']),
+  "citation": zod.string(),
+  "url": zod.string().url(),
+  "provenance": zod.string(),
+  "sourceDate": zod.coerce.date().nullish(),
+  "verifiedAt": zod.coerce.date().nullish(),
+  "evidenceCheckedAt": zod.coerce.date().nullish(),
+  "region": zod.string(),
+  "rightsStatus": zod.enum(['original', 'permitted', 'link_only']),
+  "rightsPermissions": zod.string(),
+  "currentEvidenceSourceId": zod.string().nullish()
+}))
+})),
+  "corrections": zod.array(zod.object({
+  "id": zod.string(),
+  "lessonId": zod.string(),
+  "revisionId": zod.string().nullable(),
+  "kind": zod.enum(['correction', 'withdrawal']),
+  "reason": zod.string(),
+  "replacementRevisionId": zod.string().nullish(),
+  "actorClerkUserId": zod.string(),
+  "createdAt": zod.coerce.date()
+}))
+})
+
+
+export const CreateEducationRevisionParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const createEducationRevisionBodyBodyMax = 100000;
+
+
+export const createEducationRevisionBodyContainsCopiedRestrictedContentDefault = false;
+
+
+export const CreateEducationRevisionBody = zod.object({
+  "title": zod.string(),
+  "summary": zod.string(),
+  "body": zod.string().min(1).max(createEducationRevisionBodyBodyMax).describe('Plain text only. HTML is not trusted or accepted; clients render text.'),
+  "region": zod.string().min(1),
+  "educationalWording": zod.string(),
+  "avoidsBlameAndGuarantees": zod.boolean(),
+  "avoidsBlameAttestation": zod.boolean().optional(),
+  "avoidsIndividualGuaranteesAttestation": zod.boolean().optional(),
+  "restrictedContentLinkedOnly": zod.boolean(),
+  "contentRightsConfirmed": zod.boolean(),
+  "containsCopiedRestrictedContent": zod.boolean().default(createEducationRevisionBodyContainsCopiedRestrictedContentDefault).describe('Declaration only; not automated plagiarism detection.'),
+  "accessibleMedia": zod.object({
+  "kind": zod.string().optional(),
+  "url": zod.string().url().optional(),
+  "altText": zod.string().optional(),
+  "transcript": zod.string().optional(),
+  "durationSeconds": zod.number().optional(),
+  "width": zod.number().int().optional(),
+  "height": zod.number().int().optional()
+}).nullish(),
+  "sources": zod.array(zod.object({
+  "kind": zod.enum(['historical', 'historical_population_research', 'current_evidence', 'guidance', 'service', 'licensed_link']),
+  "citation": zod.string(),
+  "url": zod.string().url(),
+  "provenance": zod.string(),
+  "sourceDate": zod.coerce.date().nullish(),
+  "verifiedAt": zod.coerce.date().nullish(),
+  "evidenceCheckedAt": zod.coerce.date().nullish(),
+  "region": zod.string(),
+  "rightsStatus": zod.enum(['original', 'permitted', 'link_only']),
+  "rightsPermissions": zod.string()
+})).min(1)
+})
+
+export const CreateEducationRevisionResponse = zod.object({
+  "id": zod.string(),
+  "lessonId": zod.string(),
+  "version": zod.number().int(),
+  "title": zod.string(),
+  "summary": zod.string(),
+  "body": zod.string().describe('Plain text only; never trusted HTML'),
+  "region": zod.string(),
+  "educationalWording": zod.string(),
+  "avoidsBlameAndGuarantees": zod.boolean().optional(),
+  "avoidsBlameAttestation": zod.boolean().optional(),
+  "avoidsIndividualGuaranteesAttestation": zod.boolean().optional(),
+  "restrictedContentLinkedOnly": zod.boolean().optional(),
+  "contentRightsConfirmed": zod.boolean().optional(),
+  "containsCopiedRestrictedContent": zod.boolean().optional(),
+  "status": zod.enum(['draft', 'review', 'published', 'rejected']),
+  "authorClerkUserId": zod.string(),
+  "reviewerClerkUserId": zod.string().nullish(),
+  "reviewedAt": zod.coerce.date().nullish(),
+  "accessibleMedia": zod.object({
+  "kind": zod.string().optional(),
+  "url": zod.string().url().optional(),
+  "altText": zod.string().optional(),
+  "transcript": zod.string().optional(),
+  "durationSeconds": zod.number().optional(),
+  "width": zod.number().int().optional(),
+  "height": zod.number().int().optional()
+}).nullish(),
+  "createdAt": zod.coerce.date().optional(),
+  "sources": zod.array(zod.object({
+  "id": zod.string(),
+  "revisionId": zod.string(),
+  "kind": zod.enum(['historical', 'historical_population_research', 'current_evidence', 'guidance', 'service', 'licensed_link']),
+  "citation": zod.string(),
+  "url": zod.string().url(),
+  "provenance": zod.string(),
+  "sourceDate": zod.coerce.date().nullish(),
+  "verifiedAt": zod.coerce.date().nullish(),
+  "evidenceCheckedAt": zod.coerce.date().nullish(),
+  "region": zod.string(),
+  "rightsStatus": zod.enum(['original', 'permitted', 'link_only']),
+  "rightsPermissions": zod.string(),
+  "currentEvidenceSourceId": zod.string().nullish()
+}))
+})
+
+
+export const SubmitEducationReviewParams = zod.object({
+  "id": zod.coerce.string(),
+  "revisionId": zod.coerce.string()
+})
+
+export const SubmitEducationReviewResponse = zod.object({
+  "id": zod.string(),
+  "lessonId": zod.string(),
+  "version": zod.number().int(),
+  "title": zod.string(),
+  "summary": zod.string(),
+  "body": zod.string().describe('Plain text only; never trusted HTML'),
+  "region": zod.string(),
+  "educationalWording": zod.string(),
+  "avoidsBlameAndGuarantees": zod.boolean().optional(),
+  "avoidsBlameAttestation": zod.boolean().optional(),
+  "avoidsIndividualGuaranteesAttestation": zod.boolean().optional(),
+  "restrictedContentLinkedOnly": zod.boolean().optional(),
+  "contentRightsConfirmed": zod.boolean().optional(),
+  "containsCopiedRestrictedContent": zod.boolean().optional(),
+  "status": zod.enum(['draft', 'review', 'published', 'rejected']),
+  "authorClerkUserId": zod.string(),
+  "reviewerClerkUserId": zod.string().nullish(),
+  "reviewedAt": zod.coerce.date().nullish(),
+  "accessibleMedia": zod.object({
+  "kind": zod.string().optional(),
+  "url": zod.string().url().optional(),
+  "altText": zod.string().optional(),
+  "transcript": zod.string().optional(),
+  "durationSeconds": zod.number().optional(),
+  "width": zod.number().int().optional(),
+  "height": zod.number().int().optional()
+}).nullish(),
+  "createdAt": zod.coerce.date().optional(),
+  "sources": zod.array(zod.object({
+  "id": zod.string(),
+  "revisionId": zod.string(),
+  "kind": zod.enum(['historical', 'historical_population_research', 'current_evidence', 'guidance', 'service', 'licensed_link']),
+  "citation": zod.string(),
+  "url": zod.string().url(),
+  "provenance": zod.string(),
+  "sourceDate": zod.coerce.date().nullish(),
+  "verifiedAt": zod.coerce.date().nullish(),
+  "evidenceCheckedAt": zod.coerce.date().nullish(),
+  "region": zod.string(),
+  "rightsStatus": zod.enum(['original', 'permitted', 'link_only']),
+  "rightsPermissions": zod.string(),
+  "currentEvidenceSourceId": zod.string().nullish()
+}))
+})
+
+
+export const ApproveEducationRevisionParams = zod.object({
+  "id": zod.coerce.string(),
+  "revisionId": zod.coerce.string()
+})
+
+export const ApproveEducationRevisionBody = zod.object({
+  "note": zod.string().optional()
+})
+
+export const ApproveEducationRevisionResponse = zod.object({
+  "id": zod.string(),
+  "status": zod.literal("approved"),
+  "reviewerClerkUserId": zod.string()
+})
+
+
+export const RejectEducationRevisionParams = zod.object({
+  "id": zod.coerce.string(),
+  "revisionId": zod.coerce.string()
+})
+
+
+
+
+export const RejectEducationRevisionBody = zod.object({
+  "reason": zod.string().min(1).describe('User-entered rejection reason')
+})
+
+export const RejectEducationRevisionResponse = zod.object({
+  "id": zod.string(),
+  "lessonId": zod.string(),
+  "version": zod.number().int(),
+  "title": zod.string(),
+  "summary": zod.string(),
+  "body": zod.string().describe('Plain text only; never trusted HTML'),
+  "region": zod.string(),
+  "educationalWording": zod.string(),
+  "avoidsBlameAndGuarantees": zod.boolean().optional(),
+  "avoidsBlameAttestation": zod.boolean().optional(),
+  "avoidsIndividualGuaranteesAttestation": zod.boolean().optional(),
+  "restrictedContentLinkedOnly": zod.boolean().optional(),
+  "contentRightsConfirmed": zod.boolean().optional(),
+  "containsCopiedRestrictedContent": zod.boolean().optional(),
+  "status": zod.enum(['draft', 'review', 'published', 'rejected']),
+  "authorClerkUserId": zod.string(),
+  "reviewerClerkUserId": zod.string().nullish(),
+  "reviewedAt": zod.coerce.date().nullish(),
+  "accessibleMedia": zod.object({
+  "kind": zod.string().optional(),
+  "url": zod.string().url().optional(),
+  "altText": zod.string().optional(),
+  "transcript": zod.string().optional(),
+  "durationSeconds": zod.number().optional(),
+  "width": zod.number().int().optional(),
+  "height": zod.number().int().optional()
+}).nullish(),
+  "createdAt": zod.coerce.date().optional(),
+  "sources": zod.array(zod.object({
+  "id": zod.string(),
+  "revisionId": zod.string(),
+  "kind": zod.enum(['historical', 'historical_population_research', 'current_evidence', 'guidance', 'service', 'licensed_link']),
+  "citation": zod.string(),
+  "url": zod.string().url(),
+  "provenance": zod.string(),
+  "sourceDate": zod.coerce.date().nullish(),
+  "verifiedAt": zod.coerce.date().nullish(),
+  "evidenceCheckedAt": zod.coerce.date().nullish(),
+  "region": zod.string(),
+  "rightsStatus": zod.enum(['original', 'permitted', 'link_only']),
+  "rightsPermissions": zod.string(),
+  "currentEvidenceSourceId": zod.string().nullish()
+}))
+})
+
+
+export const PublishEducationParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const PublishEducationResponse = zod.object({
+  "id": zod.string(),
+  "slug": zod.string(),
+  "title": zod.string(),
+  "summary": zod.string(),
+  "categoryId": zod.enum(['education-understanding', 'education-communication', 'education-support', 'education-safety', 'education-resources']),
+  "status": zod.enum(['published', 'review_due']),
+  "reviewDue": zod.boolean(),
+  "publishedAt": zod.coerce.date().nullish(),
+  "reviewDueAt": zod.coerce.date().nullish(),
+  "revision": zod.object({
+  "id": zod.string(),
+  "version": zod.number().int(),
+  "title": zod.string(),
+  "summary": zod.string(),
+  "body": zod.string().describe('Plain text only; never trusted HTML'),
+  "region": zod.string(),
+  "educationalWording": zod.string(),
+  "accessibleMedia": zod.object({
+  "kind": zod.string().optional(),
+  "url": zod.string().url().optional(),
+  "altText": zod.string().optional(),
+  "transcript": zod.string().optional(),
+  "durationSeconds": zod.number().optional(),
+  "width": zod.number().int().optional(),
+  "height": zod.number().int().optional()
+}).nullish(),
+  "status": zod.enum(['published', 'review_due']),
+  "sources": zod.array(zod.object({
+  "id": zod.string(),
+  "revisionId": zod.string(),
+  "kind": zod.enum(['historical', 'historical_population_research', 'current_evidence', 'guidance', 'service', 'licensed_link']),
+  "citation": zod.string(),
+  "url": zod.string().url(),
+  "provenance": zod.string(),
+  "sourceDate": zod.coerce.date().nullish(),
+  "verifiedAt": zod.coerce.date().nullish(),
+  "evidenceCheckedAt": zod.coerce.date().nullish(),
+  "region": zod.string(),
+  "rightsStatus": zod.enum(['original', 'permitted', 'link_only']),
+  "rightsPermissions": zod.string(),
+  "currentEvidenceSourceId": zod.string().nullish()
+}))
+})
+})
+
+
+export const MarkEducationReviewDueParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const MarkEducationReviewDueResponse = zod.object({
+  "id": zod.string(),
+  "categoryId": zod.enum(['education-understanding', 'education-communication', 'education-support', 'education-safety', 'education-resources']),
+  "slug": zod.string(),
+  "title": zod.string(),
+  "seedOrigin": zod.enum(['staff', 'seed']),
+  "status": zod.enum(['draft', 'review', 'published', 'review_due', 'archived']),
+  "authorClerkUserId": zod.string(),
+  "currentRevisionId": zod.string().nullable(),
+  "publishedRevisionId": zod.string().nullable(),
+  "currentRevision": zod.union([zod.object({
+  "id": zod.string(),
+  "lessonId": zod.string(),
+  "version": zod.number().int(),
+  "title": zod.string(),
+  "summary": zod.string(),
+  "body": zod.string().describe('Plain text only; never trusted HTML'),
+  "region": zod.string(),
+  "educationalWording": zod.string(),
+  "avoidsBlameAndGuarantees": zod.boolean().optional(),
+  "avoidsBlameAttestation": zod.boolean().optional(),
+  "avoidsIndividualGuaranteesAttestation": zod.boolean().optional(),
+  "restrictedContentLinkedOnly": zod.boolean().optional(),
+  "contentRightsConfirmed": zod.boolean().optional(),
+  "containsCopiedRestrictedContent": zod.boolean().optional(),
+  "status": zod.enum(['draft', 'review', 'published', 'rejected']),
+  "authorClerkUserId": zod.string(),
+  "reviewerClerkUserId": zod.string().nullish(),
+  "reviewedAt": zod.coerce.date().nullish(),
+  "accessibleMedia": zod.object({
+  "kind": zod.string().optional(),
+  "url": zod.string().url().optional(),
+  "altText": zod.string().optional(),
+  "transcript": zod.string().optional(),
+  "durationSeconds": zod.number().optional(),
+  "width": zod.number().int().optional(),
+  "height": zod.number().int().optional()
+}).nullish(),
+  "createdAt": zod.coerce.date().optional(),
+  "sources": zod.array(zod.object({
+  "id": zod.string(),
+  "revisionId": zod.string(),
+  "kind": zod.enum(['historical', 'historical_population_research', 'current_evidence', 'guidance', 'service', 'licensed_link']),
+  "citation": zod.string(),
+  "url": zod.string().url(),
+  "provenance": zod.string(),
+  "sourceDate": zod.coerce.date().nullish(),
+  "verifiedAt": zod.coerce.date().nullish(),
+  "evidenceCheckedAt": zod.coerce.date().nullish(),
+  "region": zod.string(),
+  "rightsStatus": zod.enum(['original', 'permitted', 'link_only']),
+  "rightsPermissions": zod.string(),
+  "currentEvidenceSourceId": zod.string().nullish()
+}))
+}),zod.null()]),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+export const ArchiveEducationParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const ArchiveEducationResponse = zod.object({
+  "id": zod.string(),
+  "categoryId": zod.enum(['education-understanding', 'education-communication', 'education-support', 'education-safety', 'education-resources']),
+  "slug": zod.string(),
+  "title": zod.string(),
+  "seedOrigin": zod.enum(['staff', 'seed']),
+  "status": zod.enum(['draft', 'review', 'published', 'review_due', 'archived']),
+  "authorClerkUserId": zod.string(),
+  "currentRevisionId": zod.string().nullable(),
+  "publishedRevisionId": zod.string().nullable(),
+  "currentRevision": zod.union([zod.object({
+  "id": zod.string(),
+  "lessonId": zod.string(),
+  "version": zod.number().int(),
+  "title": zod.string(),
+  "summary": zod.string(),
+  "body": zod.string().describe('Plain text only; never trusted HTML'),
+  "region": zod.string(),
+  "educationalWording": zod.string(),
+  "avoidsBlameAndGuarantees": zod.boolean().optional(),
+  "avoidsBlameAttestation": zod.boolean().optional(),
+  "avoidsIndividualGuaranteesAttestation": zod.boolean().optional(),
+  "restrictedContentLinkedOnly": zod.boolean().optional(),
+  "contentRightsConfirmed": zod.boolean().optional(),
+  "containsCopiedRestrictedContent": zod.boolean().optional(),
+  "status": zod.enum(['draft', 'review', 'published', 'rejected']),
+  "authorClerkUserId": zod.string(),
+  "reviewerClerkUserId": zod.string().nullish(),
+  "reviewedAt": zod.coerce.date().nullish(),
+  "accessibleMedia": zod.object({
+  "kind": zod.string().optional(),
+  "url": zod.string().url().optional(),
+  "altText": zod.string().optional(),
+  "transcript": zod.string().optional(),
+  "durationSeconds": zod.number().optional(),
+  "width": zod.number().int().optional(),
+  "height": zod.number().int().optional()
+}).nullish(),
+  "createdAt": zod.coerce.date().optional(),
+  "sources": zod.array(zod.object({
+  "id": zod.string(),
+  "revisionId": zod.string(),
+  "kind": zod.enum(['historical', 'historical_population_research', 'current_evidence', 'guidance', 'service', 'licensed_link']),
+  "citation": zod.string(),
+  "url": zod.string().url(),
+  "provenance": zod.string(),
+  "sourceDate": zod.coerce.date().nullish(),
+  "verifiedAt": zod.coerce.date().nullish(),
+  "evidenceCheckedAt": zod.coerce.date().nullish(),
+  "region": zod.string(),
+  "rightsStatus": zod.enum(['original', 'permitted', 'link_only']),
+  "rightsPermissions": zod.string(),
+  "currentEvidenceSourceId": zod.string().nullish()
+}))
+}),zod.null()]),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+export const WithdrawEducationParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const WithdrawEducationBody = zod.object({
+  "reason": zod.string(),
+  "revisionId": zod.string().nullish().describe('Explicit null records a general lesson correction; omission defaults to the lesson\'s published revision. Non-null IDs must belong to this lesson.'),
+  "replacementRevisionId": zod.string().nullish()
+})
+
+export const WithdrawEducationResponse = zod.object({
+  "id": zod.string(),
+  "categoryId": zod.enum(['education-understanding', 'education-communication', 'education-support', 'education-safety', 'education-resources']),
+  "slug": zod.string(),
+  "title": zod.string(),
+  "seedOrigin": zod.enum(['staff', 'seed']),
+  "status": zod.enum(['draft', 'review', 'published', 'review_due', 'archived']),
+  "authorClerkUserId": zod.string(),
+  "currentRevisionId": zod.string().nullable(),
+  "publishedRevisionId": zod.string().nullable(),
+  "currentRevision": zod.union([zod.object({
+  "id": zod.string(),
+  "lessonId": zod.string(),
+  "version": zod.number().int(),
+  "title": zod.string(),
+  "summary": zod.string(),
+  "body": zod.string().describe('Plain text only; never trusted HTML'),
+  "region": zod.string(),
+  "educationalWording": zod.string(),
+  "avoidsBlameAndGuarantees": zod.boolean().optional(),
+  "avoidsBlameAttestation": zod.boolean().optional(),
+  "avoidsIndividualGuaranteesAttestation": zod.boolean().optional(),
+  "restrictedContentLinkedOnly": zod.boolean().optional(),
+  "contentRightsConfirmed": zod.boolean().optional(),
+  "containsCopiedRestrictedContent": zod.boolean().optional(),
+  "status": zod.enum(['draft', 'review', 'published', 'rejected']),
+  "authorClerkUserId": zod.string(),
+  "reviewerClerkUserId": zod.string().nullish(),
+  "reviewedAt": zod.coerce.date().nullish(),
+  "accessibleMedia": zod.object({
+  "kind": zod.string().optional(),
+  "url": zod.string().url().optional(),
+  "altText": zod.string().optional(),
+  "transcript": zod.string().optional(),
+  "durationSeconds": zod.number().optional(),
+  "width": zod.number().int().optional(),
+  "height": zod.number().int().optional()
+}).nullish(),
+  "createdAt": zod.coerce.date().optional(),
+  "sources": zod.array(zod.object({
+  "id": zod.string(),
+  "revisionId": zod.string(),
+  "kind": zod.enum(['historical', 'historical_population_research', 'current_evidence', 'guidance', 'service', 'licensed_link']),
+  "citation": zod.string(),
+  "url": zod.string().url(),
+  "provenance": zod.string(),
+  "sourceDate": zod.coerce.date().nullish(),
+  "verifiedAt": zod.coerce.date().nullish(),
+  "evidenceCheckedAt": zod.coerce.date().nullish(),
+  "region": zod.string(),
+  "rightsStatus": zod.enum(['original', 'permitted', 'link_only']),
+  "rightsPermissions": zod.string(),
+  "currentEvidenceSourceId": zod.string().nullish()
+}))
+}),zod.null()]),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+export const CorrectEducationParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const CorrectEducationBody = zod.object({
+  "reason": zod.string(),
+  "revisionId": zod.string().nullish().describe('Explicit null records a general lesson correction; omission defaults to the lesson\'s published revision. Non-null IDs must belong to this lesson.'),
+  "replacementRevisionId": zod.string().nullish()
+})
+
+export const CorrectEducationResponse = zod.object({
+  "id": zod.string(),
+  "lessonId": zod.string(),
+  "revisionId": zod.string().nullable(),
+  "kind": zod.enum(['correction', 'withdrawal']),
+  "reason": zod.string(),
+  "replacementRevisionId": zod.string().nullish(),
+  "actorClerkUserId": zod.string(),
+  "createdAt": zod.coerce.date()
 })
 
 

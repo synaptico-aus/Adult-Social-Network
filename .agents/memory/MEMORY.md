@@ -4,3 +4,4 @@
 - [Circle membership epochs](circle-membership-epochs.md) — history grants end when membership ends, and database time defines the join/history cutoff.
 - [Group block and host boundaries](group-block-host-boundaries.md) — group entry checks blocks against every member; welcome access needs independent training and exact assignment.
 - [Messaging authority locks](messaging-authority-locks.md) — lock pair before group before conversation; notification creation shares the same live-authority boundary.
+- [Education publication evidence](education-publication-evidence.md) — publish immutable revisions only after separate review, fresh evidence checks, rights confirmation, and a lesson lock.

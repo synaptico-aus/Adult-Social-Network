@@ -260,3 +260,10 @@ post-row locking.
 - Provider registration and queue support do not prove delivery. Native and
   background browser push remain incomplete until a real provider and devices
   are configured and verified.
+
+### Phase 11 education evidence boundary
+The requested Norton paper summary PDF is not present in the workspace. The
+education seed therefore contains taxonomy categories only and zero lessons.
+No paper-derived claim is published, and this phase does not make a
+production-ready claim. Public education is restricted to approved current
+revisions; private learning state is owner-bound and retractable.

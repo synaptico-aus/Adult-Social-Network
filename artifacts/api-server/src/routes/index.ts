@@ -11,6 +11,7 @@ import circlesRouter from "./circles";
 import groupsRouter from "./groups";
 import messagesRouter from "./messages";
 import notificationsRouter from "./notifications";
+import educationRouter from "./education";
 
 const router: IRouter = Router();
 
@@ -26,5 +27,6 @@ router.use(circlesRouter);
 router.use(groupsRouter);
 router.use(notificationsRouter);
 router.use(messagesRouter);
+router.use(educationRouter);
 
 export default router;

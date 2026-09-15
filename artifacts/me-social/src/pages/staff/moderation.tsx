@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { 
-  ShieldCheck, AlertTriangle, Eye, Gavel, FileCheck, Search, Loader2 
+  ShieldCheck, AlertTriangle, Eye, Gavel, FileCheck, Search, Loader2, BookOpen
 } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { Button } from "@/components/ui/button";
@@ -370,19 +370,29 @@ export default function StaffModerationPage() {
         />
       </div>
 
-      <div className="bg-primary/5 border border-primary/20 p-6 rounded-[2rem] shadow-sm flex items-start gap-4">
-        <ShieldCheck className="w-8 h-8 text-primary shrink-0 mt-1" />
-        <div>
-          <h3 className="font-semibold text-lg text-primary">Active Staff Session</h3>
-          <p className="text-muted-foreground text-sm mt-1">Role: <span className="uppercase font-bold tracking-wider">{caps.role}</span></p>
-          <div className="flex flex-wrap gap-2 mt-3">
-            {caps.capabilities.map(c => (
-              <span key={c} className="bg-card border border-border px-2 py-1 rounded text-xs font-medium">
-                {c}
-              </span>
-            ))}
+      <div className="bg-primary/5 border border-primary/20 p-6 rounded-[2rem] shadow-sm flex items-start justify-between gap-4">
+        <div className="flex items-start gap-4">
+          <ShieldCheck className="w-8 h-8 text-primary shrink-0 mt-1" />
+          <div>
+            <h3 className="font-semibold text-lg text-primary">Active Staff Session</h3>
+            <p className="text-muted-foreground text-sm mt-1">Role: <span className="uppercase font-bold tracking-wider">{caps.role}</span></p>
+            <div className="flex flex-wrap gap-2 mt-3">
+              {caps.capabilities.map(c => (
+                <span key={c} className="bg-card border border-border px-2 py-1 rounded text-xs font-medium">
+                  {c}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
+
+        {caps.capabilities.includes("education.write") && (
+          <Link href="/staff/education">
+            <Button variant="outline" className="rounded-xl gap-2 hidden sm:flex bg-card">
+              <BookOpen className="w-4 h-4" /> Curriculum
+            </Button>
+          </Link>
+        )}
       </div>
 
       <ErrorBoundary>

@@ -224,6 +224,7 @@ export interface Group {
 export type GroupSuggestion = Group & {
   matchedChoices: string[];
 };
+
 export type GroupMemberRole = typeof GroupMemberRole[keyof typeof GroupMemberRole];
 
 
@@ -1809,6 +1810,466 @@ export interface MessageEvidenceResponse {
   context: MessageEvidenceResponseContextItem[];
 }
 
+export type EducationCategorySlug = typeof EducationCategorySlug[keyof typeof EducationCategorySlug];
+
+
+export const EducationCategorySlug = {
+  understanding: 'understanding',
+  communication: 'communication',
+  support: 'support',
+  safety: 'safety',
+  resources: 'resources',
+} as const;
+
+export interface EducationCategory {
+  id: string;
+  slug: EducationCategorySlug;
+  name: string;
+  /** @nullable */
+  description?: string | null;
+  sortOrder: number;
+}
+
+export interface EducationCategoryList {
+  items: EducationCategory[];
+}
+
+export type EducationSourceKind = typeof EducationSourceKind[keyof typeof EducationSourceKind];
+
+
+export const EducationSourceKind = {
+  historical: 'historical',
+  historical_population_research: 'historical_population_research',
+  current_evidence: 'current_evidence',
+  guidance: 'guidance',
+  service: 'service',
+  licensed_link: 'licensed_link',
+} as const;
+
+export type EducationSourceRightsStatus = typeof EducationSourceRightsStatus[keyof typeof EducationSourceRightsStatus];
+
+
+export const EducationSourceRightsStatus = {
+  original: 'original',
+  permitted: 'permitted',
+  link_only: 'link_only',
+} as const;
+
+export interface EducationSource {
+  id: string;
+  revisionId: string;
+  kind: EducationSourceKind;
+  citation: string;
+  url: string;
+  provenance: string;
+  /** @nullable */
+  sourceDate?: string | null;
+  /** @nullable */
+  verifiedAt?: string | null;
+  /** @nullable */
+  evidenceCheckedAt?: string | null;
+  region: string;
+  rightsStatus: EducationSourceRightsStatus;
+  rightsPermissions: string;
+  /** @nullable */
+  currentEvidenceSourceId?: string | null;
+}
+
+export type EducationSourceInputKind = typeof EducationSourceInputKind[keyof typeof EducationSourceInputKind];
+
+
+export const EducationSourceInputKind = {
+  historical: 'historical',
+  historical_population_research: 'historical_population_research',
+  current_evidence: 'current_evidence',
+  guidance: 'guidance',
+  service: 'service',
+  licensed_link: 'licensed_link',
+} as const;
+
+export type EducationSourceInputRightsStatus = typeof EducationSourceInputRightsStatus[keyof typeof EducationSourceInputRightsStatus];
+
+
+export const EducationSourceInputRightsStatus = {
+  original: 'original',
+  permitted: 'permitted',
+  link_only: 'link_only',
+} as const;
+
+export interface EducationSourceInput {
+  kind: EducationSourceInputKind;
+  citation: string;
+  url: string;
+  provenance: string;
+  /** @nullable */
+  sourceDate?: string | null;
+  /** @nullable */
+  verifiedAt?: string | null;
+  /** @nullable */
+  evidenceCheckedAt?: string | null;
+  region: string;
+  rightsStatus: EducationSourceInputRightsStatus;
+  rightsPermissions: string;
+}
+
+/**
+ * @nullable
+ */
+export type EducationAccessibleMedia = {
+  kind?: string;
+  url?: string;
+  altText?: string;
+  transcript?: string;
+  durationSeconds?: number;
+  width?: number;
+  height?: number;
+} | null;
+
+export interface EducationRevisionInput {
+  title: string;
+  summary: string;
+  /**
+     * Plain text only. HTML is not trusted or accepted; clients render text.
+     * @minLength 1
+     * @maxLength 100000
+     */
+  body: string;
+  /** @minLength 1 */
+  region: string;
+  educationalWording: string;
+  avoidsBlameAndGuarantees: boolean;
+  avoidsBlameAttestation?: boolean;
+  avoidsIndividualGuaranteesAttestation?: boolean;
+  restrictedContentLinkedOnly: boolean;
+  contentRightsConfirmed: boolean;
+  /** Declaration only; not automated plagiarism detection. */
+  containsCopiedRestrictedContent?: boolean;
+  accessibleMedia?: EducationAccessibleMedia | null;
+  /** @minItems 1 */
+  sources: EducationSourceInput[];
+}
+
+export type EducationLessonInputCategoryId = typeof EducationLessonInputCategoryId[keyof typeof EducationLessonInputCategoryId];
+
+
+export const EducationLessonInputCategoryId = {
+  'education-understanding': 'education-understanding',
+  'education-communication': 'education-communication',
+  'education-support': 'education-support',
+  'education-safety': 'education-safety',
+  'education-resources': 'education-resources',
+} as const;
+
+export type EducationLessonInput = EducationRevisionInput & {
+  categoryId: EducationLessonInputCategoryId;
+  slug: string;
+};
+
+export interface EducationReviewInput {
+  note?: string;
+}
+
+export interface EducationRejectInput {
+  /**
+     * User-entered rejection reason
+     * @minLength 1
+     */
+  reason: string;
+}
+
+export interface EducationApproval {
+  id: string;
+  status: 'approved';
+  reviewerClerkUserId: string;
+}
+
+export type EducationLessonCategoryId = typeof EducationLessonCategoryId[keyof typeof EducationLessonCategoryId];
+
+
+export const EducationLessonCategoryId = {
+  'education-understanding': 'education-understanding',
+  'education-communication': 'education-communication',
+  'education-support': 'education-support',
+  'education-safety': 'education-safety',
+  'education-resources': 'education-resources',
+} as const;
+
+export type EducationLessonStatus = typeof EducationLessonStatus[keyof typeof EducationLessonStatus];
+
+
+export const EducationLessonStatus = {
+  published: 'published',
+  review_due: 'review_due',
+} as const;
+
+export type EducationPublicRevisionStatus = typeof EducationPublicRevisionStatus[keyof typeof EducationPublicRevisionStatus];
+
+
+export const EducationPublicRevisionStatus = {
+  published: 'published',
+  review_due: 'review_due',
+} as const;
+
+export interface EducationPublicRevision {
+  id: string;
+  version: number;
+  title: string;
+  summary: string;
+  /** Plain text only; never trusted HTML */
+  body: string;
+  region: string;
+  educationalWording: string;
+  accessibleMedia?: EducationAccessibleMedia | null;
+  status: EducationPublicRevisionStatus;
+  sources: EducationSource[];
+}
+
+export interface EducationLesson {
+  id: string;
+  slug: string;
+  title: string;
+  summary: string;
+  categoryId: EducationLessonCategoryId;
+  status: EducationLessonStatus;
+  reviewDue: boolean;
+  /** @nullable */
+  publishedAt?: string | null;
+  /** @nullable */
+  reviewDueAt?: string | null;
+  revision: EducationPublicRevision;
+}
+
+export type EducationRevisionStatus = typeof EducationRevisionStatus[keyof typeof EducationRevisionStatus];
+
+
+export const EducationRevisionStatus = {
+  draft: 'draft',
+  review: 'review',
+  published: 'published',
+  rejected: 'rejected',
+} as const;
+
+export interface EducationRevision {
+  id: string;
+  lessonId: string;
+  version: number;
+  title: string;
+  summary: string;
+  /** Plain text only; never trusted HTML */
+  body: string;
+  region: string;
+  educationalWording: string;
+  avoidsBlameAndGuarantees?: boolean;
+  avoidsBlameAttestation?: boolean;
+  avoidsIndividualGuaranteesAttestation?: boolean;
+  restrictedContentLinkedOnly?: boolean;
+  contentRightsConfirmed?: boolean;
+  containsCopiedRestrictedContent?: boolean;
+  status: EducationRevisionStatus;
+  authorClerkUserId: string;
+  /** @nullable */
+  reviewerClerkUserId?: string | null;
+  /** @nullable */
+  reviewedAt?: string | null;
+  accessibleMedia?: EducationAccessibleMedia | null;
+  createdAt?: string;
+  sources: EducationSource[];
+}
+
+export type EducationStaffLessonCategoryId = typeof EducationStaffLessonCategoryId[keyof typeof EducationStaffLessonCategoryId];
+
+
+export const EducationStaffLessonCategoryId = {
+  'education-understanding': 'education-understanding',
+  'education-communication': 'education-communication',
+  'education-support': 'education-support',
+  'education-safety': 'education-safety',
+  'education-resources': 'education-resources',
+} as const;
+
+export type EducationStaffLessonSeedOrigin = typeof EducationStaffLessonSeedOrigin[keyof typeof EducationStaffLessonSeedOrigin];
+
+
+export const EducationStaffLessonSeedOrigin = {
+  staff: 'staff',
+  seed: 'seed',
+} as const;
+
+export type EducationStaffLessonStatus = typeof EducationStaffLessonStatus[keyof typeof EducationStaffLessonStatus];
+
+
+export const EducationStaffLessonStatus = {
+  draft: 'draft',
+  review: 'review',
+  published: 'published',
+  review_due: 'review_due',
+  archived: 'archived',
+} as const;
+
+export interface EducationStaffLesson {
+  id: string;
+  categoryId: EducationStaffLessonCategoryId;
+  slug: string;
+  title: string;
+  seedOrigin: EducationStaffLessonSeedOrigin;
+  status: EducationStaffLessonStatus;
+  authorClerkUserId: string;
+  /** @nullable */
+  currentRevisionId: string | null;
+  /** @nullable */
+  publishedRevisionId: string | null;
+  currentRevision: EducationRevision | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface EducationStaffLessonList {
+  items: EducationStaffLesson[];
+}
+
+export type EducationCorrectionKind = typeof EducationCorrectionKind[keyof typeof EducationCorrectionKind];
+
+
+export const EducationCorrectionKind = {
+  correction: 'correction',
+  withdrawal: 'withdrawal',
+} as const;
+
+export interface EducationCorrection {
+  id: string;
+  lessonId: string;
+  /** @nullable */
+  revisionId: string | null;
+  kind: EducationCorrectionKind;
+  reason: string;
+  /** @nullable */
+  replacementRevisionId?: string | null;
+  actorClerkUserId: string;
+  createdAt: string;
+}
+
+export interface EducationStaffDetail {
+  lesson: EducationStaffLesson;
+  revisions: EducationRevision[];
+  corrections: EducationCorrection[];
+}
+
+export interface EducationList {
+  items: EducationLesson[];
+  /** @nullable */
+  nextCursor: string | null;
+}
+
+export interface EducationProgressInput {
+  /**
+     * @minimum 0
+     * @maximum 100
+     * @nullable
+     */
+  percent?: number | null;
+  /** @nullable */
+  position?: string | null;
+  completed?: boolean;
+  completionOptIn?: boolean;
+}
+
+export interface EducationCompletionOptInInput {
+  optIn: boolean;
+}
+
+export type EducationLearningLessonStatus = typeof EducationLearningLessonStatus[keyof typeof EducationLearningLessonStatus];
+
+
+export const EducationLearningLessonStatus = {
+  published: 'published',
+  review_due: 'review_due',
+} as const;
+
+export interface EducationLearningLesson {
+  id: string;
+  slug: string;
+  title: string;
+  summary: string;
+  categoryId: string;
+  status: EducationLearningLessonStatus;
+}
+
+export interface EducationProgress {
+  lessonId: string;
+  /** @nullable */
+  percent?: number | null;
+  /** @nullable */
+  position?: string | null;
+  /** @nullable */
+  completedAt?: string | null;
+  completionOptIn: boolean;
+  completionDisclaimer: string;
+  lesson: EducationLearningLesson;
+}
+
+export interface EducationLearningSave {
+  id: string;
+  memberId: string;
+  lessonId: string;
+  createdAt: string;
+  lesson: EducationLearningLesson;
+}
+
+/**
+ * @nullable
+ */
+export type EducationContinue = {
+  lessonId?: string;
+  /** @nullable */
+  revisionId?: string | null;
+  /** @nullable */
+  position?: string | null;
+  /** @nullable */
+  percent?: number | null;
+} | null;
+
+export interface EducationOverview {
+  saves: EducationLearningSave[];
+  progress: EducationProgress[];
+  continue: EducationContinue | null;
+}
+
+export interface EducationCorrectionInput {
+  reason: string;
+  /**
+     * Explicit null records a general lesson correction; omission defaults to the lesson's published revision. Non-null IDs must belong to this lesson.
+     * @nullable
+     */
+  revisionId?: string | null;
+  /** @nullable */
+  replacementRevisionId?: string | null;
+}
+
+export interface EducationCompletion {
+  lessonId: string;
+  slug: string;
+  title: string;
+  completedAt: string;
+  completionDisclaimer: 'Educational activity only; not a clinical qualification.';
+}
+
+export interface EducationCompletionList {
+  items: EducationCompletion[];
+  completionDisclaimer: 'Educational activity only; not a clinical qualification.';
+}
+
+export interface EducationVisibleCompletion {
+  memberId: string;
+  /** @nullable */
+  preferredName: string | null;
+  completedAt: string;
+}
+
+export interface EducationVisibleCompletionList {
+  items: EducationVisibleCompletion[];
+  completionDisclaimer: 'Educational activity only; not a clinical qualification.';
+}
+
 export type ListFriendRequestsParams = {
 /**
  * @minimum 1
@@ -1820,6 +2281,7 @@ limit?: number;
  */
 cursor?: string;
 };
+
 export type ListFriendsParams = {
 /**
  * @minimum 1
@@ -1906,6 +2368,28 @@ export type ListNotificationsParams = {
 /**
  * @minimum 1
  * @maximum 100
+ */
+limit?: number;
+cursor?: string;
+};
+
+export type SearchEducationParams = {
+q?: string;
+category?: string;
+/**
+ * @minimum 1
+ * @maximum 50
+ */
+limit?: number;
+cursor?: string;
+};
+
+export type SearchEducationExplicitParams = {
+q?: string;
+category?: string;
+/**
+ * @minimum 1
+ * @maximum 50
  */
 limit?: number;
 cursor?: string;

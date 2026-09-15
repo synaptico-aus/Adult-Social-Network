@@ -342,3 +342,21 @@ Phase 3 is verified in development. Production release still depends on Phase 2 
 | Phase 10 DB-backed HTTP gate | Passed: 14 scenarios, including 20 repeated accept/block races |
 | Full API and policy suite | Passed: 93 tests |
 | Authorization architecture review | Passed with no blocker, high, or medium findings |
+
+## Phase 11 education boundary
+
+- [x] Taxonomy categories are seeded without lessons.
+- [x] The supplied `PDF PD MOOC - Norton paper summary.pdf` is missing; no
+  paper-derived claim is seeded or published.
+- [x] Education revisions, source rights/provenance, corrections,
+  withdrawals, private owner state, and lifecycle gates are represented.
+- [ ] Production readiness is not claimed; deployment and operational review
+  remain required.
+- [x] Six focused Phase 11 real-route tests passed. Schema push, API/libs
+  typechecking, code generation, and diff checks passed.
+- [x] Four frontend lifecycle/date/cache contract tests passed.
+- [x] The final architecture review passed with no blocker, high, or medium
+  findings.
+- [x] The full 99-test API run passed 98 tests; its sole failure was the
+  previously documented Phase 6 pagination-ordering flake, which passed 12/12
+  immediately in isolation.

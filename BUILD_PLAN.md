@@ -249,9 +249,23 @@ Expo/React Native clients for iOS and Android, tablet layouts, device accessibil
 
 ## Phase 11 — Launch readiness
 
-**Status: Not started**
+**Status: In progress**
 
 Security, accessibility, privacy, moderation, performance, operational, legal, and store-release verification. No public launch occurs before this phase is verified.
+
+### Phase 11 education implementation boundary
+
+- Added the education taxonomy, immutable revision history, traceable sources,
+  corrections/withdrawals, private saves/progress, owner export/deletion
+  cleanup, public approved-content filtering, and capability/MFA-gated staff
+  lifecycle routes.
+- `PDF PD MOOC - Norton paper summary.pdf` is missing. Only taxonomy
+  categories are seeded: zero lessons and zero paper-derived claims are
+  published. This is not a production-ready claim.
+- The focused Phase 11 real-route test gate passed six scenarios. Schema push,
+  four frontend lifecycle/contract checks, API/libs typechecking, code
+  generation, and diff checks passed. The final architecture review reported no
+  blocker, high, or medium findings.
 ### Phase 5 implementation record
 
 - Added transactional friend requests and mutual friendships, directional

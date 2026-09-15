@@ -40,6 +40,9 @@ import ThisIsMe from '@/pages/this-is-me';
 import ProfilePrivacy from '@/pages/profile-privacy';
 import ComponentsPreview from '@/pages/components-preview';
 import UnderstandingDementia from '@/pages/understanding-dementia';
+import EducationDetail from '@/pages/education-detail';
+import MyLearning from '@/pages/my-learning';
+import StaffEducationPage from '@/pages/staff/education';
 import About from '@/pages/about';
 import AccountSecurity from '@/pages/account-security';
 import Onboarding from '@/pages/onboarding';
@@ -164,8 +167,11 @@ function Router() {
                   <Route path="/account/security"><RequireMember><AccountSecurity /></RequireMember></Route>
                   <Route path="/safety"><RequireMember><SafetyPage /></RequireMember></Route>
                   <Route path="/staff/moderation"><RequireMember><StaffModerationPage /></RequireMember></Route>
+                  <Route path="/staff/education"><RequireMember><StaffEducationPage /></RequireMember></Route>
                   <Route path="/components-preview" component={ComponentsPreview} />
                   <Route path="/understanding-dementia" component={UnderstandingDementia} />
+                  <Route path="/understanding-dementia/:slug" component={EducationDetail} />
+                  <Route path="/me/learning"><RequireMember><MyLearning /></RequireMember></Route>
                   <Route component={NotFound} />
                 </Switch>
               </AppLayout>

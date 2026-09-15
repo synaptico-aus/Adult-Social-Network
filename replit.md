@@ -128,3 +128,9 @@ same transaction. Internal shares store only a source reference and cannot widen
 its audience. Retained evidence is immutable, policy-versioned, capability/MFA
 gated, and access-audited. Feed order is reverse chronological only; never rank
 for distress, conflict, engagement, or prolonged scrolling.
+
+### Phase 11 education boundary
+The education PDF `PDF PD MOOC - Norton paper summary.pdf` is missing. Only
+taxonomy categories are seeded: zero lessons and zero paper-derived claims
+are published. Education completion is not a clinical qualification, and this
+implementation makes no production-ready claim.

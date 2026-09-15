@@ -36,3 +36,20 @@ export function requireStaffCapability(capability: string): RequestHandler[] {
     next();
   }];
 }
+
+/** Read-only education records are available to any active education role. */
+export const requireStaffEducationRead: RequestHandler[] = [
+  ...requireStaffMfa,
+  async (req, res, next) => {
+    const auth = getAuth(req);
+    const assignment = (await db.select().from(staffRoleAssignmentsTable)
+      .where(and(eq(staffRoleAssignmentsTable.clerkUserId, auth.userId!), eq(staffRoleAssignmentsTable.active, true))).limit(1))[0];
+    if (!assignment || ![
+      "education.author", "education.review", "education.publish",
+    ].some((capability) => roleHasCapability(assignment.role, capability, assignment.capabilities))) {
+      res.status(403).json({ error: "Education staff capability is required" });
+      return;
+    }
+    next();
+  },
+];
