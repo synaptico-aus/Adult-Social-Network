@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PostCard } from '@/components/posts/post-card';
 import { VideoPlayer } from '@/components/media/video-player';
+import { selectReadyReel } from '@/lib/reel-media';
 
 export default function ReelsPage() {
   const [cursor, setCursor] = useState<string | undefined>();
@@ -15,7 +16,7 @@ export default function ReelsPage() {
   const touch = useRef<{ x: number; y: number } | null>(null);
   const items = data?.items ?? [];
   const post = items[index];
-  const video = post?.mediaAssets?.find((m) => m.kind === 'video');
+  const video = selectReadyReel(post?.mediaAssets);
 
   useEffect(() => { setIndex(0); }, [cursor]);
 

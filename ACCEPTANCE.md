@@ -423,6 +423,7 @@ Implementation and coverage details: `docs/phase13-video.md`.
 | Pause/mute | Active Pause control observed and mute verified; isolated mid-clip manual pause timing not separately verified with the short fixture |
 | 390px mobile viewport | Passed bounds check without horizontal overflow; this is not native-device validation |
 | Finite Next/Previous navigation | Passed with only the `/reels` feed response temporarily intercepted; actual authenticated media endpoints were not mocked |
+| Mixed-post reel selection | 3 unit tests passed: selects only a ready reel, skips regular/held/quarantined/rejected videos, and handles missing media |
 | Browser removal/cleanup | Owner cancel and Remove returned 204; both fixture assets became cancelled; no test posts remained |
 | Staff review in a real fresh-MFA browser session | Not verified; API capability/MFA gates remain enforced |
 | Real native iOS/Android devices and OS lifecycle | Not verified; no native artifact/device is available |
