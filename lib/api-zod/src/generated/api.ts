@@ -8,6 +8,355 @@
 import * as zod from 'zod';
 
 
+export const listResourcesQueryQMax = 200;
+
+
+
+export const ListResourcesQueryParams = zod.object({
+  "q": zod.coerce.string().max(listResourcesQueryQMax).optional(),
+  "category": zod.coerce.string().optional(),
+  "region": zod.coerce.string().optional()
+})
+
+export const ListResourcesResponse = zod.object({
+  "items": zod.array(zod.object({
+  "id": zod.string(),
+  "url": zod.string(),
+  "domain": zod.string(),
+  "title": zod.string(),
+  "category": zod.string(),
+  "region": zod.string(),
+  "sourceDate": zod.coerce.date().nullable(),
+  "preview": zod.string(),
+  "previewPermission": zod.string(),
+  "embedAuthorized": zod.boolean(),
+  "embedUrl": zod.string().nullable(),
+  "status": zod.enum(['draft', 'reviewed', 'removed']),
+  "reviewedBy": zod.string().nullable(),
+  "reviewedAt": zod.coerce.date().nullable(),
+  "lastCheckedAt": zod.coerce.date().nullable(),
+  "linkState": zod.enum(['unchecked', 'reachable', 'unavailable', 'redirected']),
+  "stale": zod.boolean(),
+  "removalReason": zod.string().nullable()
+}))
+})
+
+
+export const GetResourceParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const GetResourceResponse = zod.object({
+  "id": zod.string(),
+  "url": zod.string(),
+  "domain": zod.string(),
+  "title": zod.string(),
+  "category": zod.string(),
+  "region": zod.string(),
+  "sourceDate": zod.coerce.date().nullable(),
+  "preview": zod.string(),
+  "previewPermission": zod.string(),
+  "embedAuthorized": zod.boolean(),
+  "embedUrl": zod.string().nullable(),
+  "status": zod.enum(['draft', 'reviewed', 'removed']),
+  "reviewedBy": zod.string().nullable(),
+  "reviewedAt": zod.coerce.date().nullable(),
+  "lastCheckedAt": zod.coerce.date().nullable(),
+  "linkState": zod.enum(['unchecked', 'reachable', 'unavailable', 'redirected']),
+  "stale": zod.boolean(),
+  "removalReason": zod.string().nullable()
+})
+
+
+export const ReportResourceParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const reportResourceBodyReasonMax = 1000;
+
+
+
+export const ReportResourceBody = zod.object({
+  "reason": zod.string().min(1).max(reportResourceBodyReasonMax)
+})
+
+export const ReportResourceResponse = zod.object({
+  "id": zod.string(),
+  "resourceId": zod.string(),
+  "reason": zod.string(),
+  "status": zod.enum(['open', 'resolved']),
+  "resolution": zod.string().nullable(),
+  "createdAt": zod.coerce.date()
+})
+
+
+export const ListStaffResourcesResponse = zod.object({
+  "items": zod.array(zod.object({
+  "id": zod.string(),
+  "url": zod.string(),
+  "domain": zod.string(),
+  "title": zod.string(),
+  "category": zod.string(),
+  "region": zod.string(),
+  "sourceDate": zod.coerce.date().nullable(),
+  "preview": zod.string(),
+  "previewPermission": zod.string(),
+  "embedAuthorized": zod.boolean(),
+  "embedUrl": zod.string().nullable(),
+  "status": zod.enum(['draft', 'reviewed', 'removed']),
+  "reviewedBy": zod.string().nullable(),
+  "reviewedAt": zod.coerce.date().nullable(),
+  "lastCheckedAt": zod.coerce.date().nullable(),
+  "linkState": zod.enum(['unchecked', 'reachable', 'unavailable', 'redirected']),
+  "stale": zod.boolean(),
+  "removalReason": zod.string().nullable()
+}))
+})
+
+
+export const createResourceBodyUrlMax = 2048;
+
+export const createResourceBodyTitleMax = 200;
+
+export const createResourceBodyRegionMax = 100;
+
+export const createResourceBodyPreviewMax = 300;
+
+export const createResourceBodyPreviewPermissionMax = 500;
+
+
+
+export const CreateResourceBody = zod.object({
+  "url": zod.string().max(createResourceBodyUrlMax),
+  "title": zod.string().min(1).max(createResourceBodyTitleMax),
+  "category": zod.enum(['article', 'news', 'podcast', 'music', 'video', 'event', 'helpline', 'research', 'organisation']),
+  "region": zod.string().min(1).max(createResourceBodyRegionMax),
+  "sourceDate": zod.coerce.date().nullish(),
+  "preview": zod.string().max(createResourceBodyPreviewMax).describe('Original summary or explicitly permitted short preview only'),
+  "previewPermission": zod.string().max(createResourceBodyPreviewPermissionMax).describe('Required permission or original-summary provenance when preview is nonempty'),
+  "embedAuthorized": zod.boolean().describe('Staff confirms provider authorises embedding; only recognised YouTube and Spotify URLs supported')
+})
+
+export const CreateResourceResponse = zod.object({
+  "id": zod.string(),
+  "url": zod.string(),
+  "domain": zod.string(),
+  "title": zod.string(),
+  "category": zod.string(),
+  "region": zod.string(),
+  "sourceDate": zod.coerce.date().nullable(),
+  "preview": zod.string(),
+  "previewPermission": zod.string(),
+  "embedAuthorized": zod.boolean(),
+  "embedUrl": zod.string().nullable(),
+  "status": zod.enum(['draft', 'reviewed', 'removed']),
+  "reviewedBy": zod.string().nullable(),
+  "reviewedAt": zod.coerce.date().nullable(),
+  "lastCheckedAt": zod.coerce.date().nullable(),
+  "linkState": zod.enum(['unchecked', 'reachable', 'unavailable', 'redirected']),
+  "stale": zod.boolean(),
+  "removalReason": zod.string().nullable()
+})
+
+
+export const previewResourceBodyUrlMax = 2048;
+
+
+
+export const PreviewResourceBody = zod.object({
+  "url": zod.string().max(previewResourceBodyUrlMax)
+})
+
+export const PreviewResourceResponse = zod.object({
+  "url": zod.string(),
+  "domain": zod.string(),
+  "title": zod.string(),
+  "description": zod.string().describe('Plain metadata suggestion; not automatically published or licensed'),
+  "sourceDate": zod.coerce.date().nullable()
+})
+
+
+export const UpdateResourceParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const updateResourceBodyUrlMax = 2048;
+
+export const updateResourceBodyTitleMax = 200;
+
+export const updateResourceBodyRegionMax = 100;
+
+export const updateResourceBodyPreviewMax = 300;
+
+export const updateResourceBodyPreviewPermissionMax = 500;
+
+
+
+export const UpdateResourceBody = zod.object({
+  "url": zod.string().max(updateResourceBodyUrlMax),
+  "title": zod.string().min(1).max(updateResourceBodyTitleMax),
+  "category": zod.enum(['article', 'news', 'podcast', 'music', 'video', 'event', 'helpline', 'research', 'organisation']),
+  "region": zod.string().min(1).max(updateResourceBodyRegionMax),
+  "sourceDate": zod.coerce.date().nullish(),
+  "preview": zod.string().max(updateResourceBodyPreviewMax).describe('Original summary or explicitly permitted short preview only'),
+  "previewPermission": zod.string().max(updateResourceBodyPreviewPermissionMax).describe('Required permission or original-summary provenance when preview is nonempty'),
+  "embedAuthorized": zod.boolean().describe('Staff confirms provider authorises embedding; only recognised YouTube and Spotify URLs supported')
+})
+
+export const UpdateResourceResponse = zod.object({
+  "id": zod.string(),
+  "url": zod.string(),
+  "domain": zod.string(),
+  "title": zod.string(),
+  "category": zod.string(),
+  "region": zod.string(),
+  "sourceDate": zod.coerce.date().nullable(),
+  "preview": zod.string(),
+  "previewPermission": zod.string(),
+  "embedAuthorized": zod.boolean(),
+  "embedUrl": zod.string().nullable(),
+  "status": zod.enum(['draft', 'reviewed', 'removed']),
+  "reviewedBy": zod.string().nullable(),
+  "reviewedAt": zod.coerce.date().nullable(),
+  "lastCheckedAt": zod.coerce.date().nullable(),
+  "linkState": zod.enum(['unchecked', 'reachable', 'unavailable', 'redirected']),
+  "stale": zod.boolean(),
+  "removalReason": zod.string().nullable()
+})
+
+
+export const ReviewResourceParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const reviewResourceBodyReviewerNameMax = 100;
+
+export const reviewResourceBodyNoteMax = 1000;
+
+
+
+export const ReviewResourceBody = zod.object({
+  "reviewerName": zod.string().min(1).max(reviewResourceBodyReviewerNameMax).describe('Public reviewer attribution; authenticated actor separately recorded'),
+  "note": zod.string().min(1).max(reviewResourceBodyNoteMax),
+  "rightsConfirmed": zod.literal(true)
+})
+
+export const ReviewResourceResponse = zod.object({
+  "id": zod.string(),
+  "url": zod.string(),
+  "domain": zod.string(),
+  "title": zod.string(),
+  "category": zod.string(),
+  "region": zod.string(),
+  "sourceDate": zod.coerce.date().nullable(),
+  "preview": zod.string(),
+  "previewPermission": zod.string(),
+  "embedAuthorized": zod.boolean(),
+  "embedUrl": zod.string().nullable(),
+  "status": zod.enum(['draft', 'reviewed', 'removed']),
+  "reviewedBy": zod.string().nullable(),
+  "reviewedAt": zod.coerce.date().nullable(),
+  "lastCheckedAt": zod.coerce.date().nullable(),
+  "linkState": zod.enum(['unchecked', 'reachable', 'unavailable', 'redirected']),
+  "stale": zod.boolean(),
+  "removalReason": zod.string().nullable()
+})
+
+
+export const RemoveResourceParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const removeResourceBodyReasonMax = 1000;
+
+
+
+export const RemoveResourceBody = zod.object({
+  "reason": zod.string().min(1).max(removeResourceBodyReasonMax)
+})
+
+export const RemoveResourceResponse = zod.object({
+  "id": zod.string(),
+  "url": zod.string(),
+  "domain": zod.string(),
+  "title": zod.string(),
+  "category": zod.string(),
+  "region": zod.string(),
+  "sourceDate": zod.coerce.date().nullable(),
+  "preview": zod.string(),
+  "previewPermission": zod.string(),
+  "embedAuthorized": zod.boolean(),
+  "embedUrl": zod.string().nullable(),
+  "status": zod.enum(['draft', 'reviewed', 'removed']),
+  "reviewedBy": zod.string().nullable(),
+  "reviewedAt": zod.coerce.date().nullable(),
+  "lastCheckedAt": zod.coerce.date().nullable(),
+  "linkState": zod.enum(['unchecked', 'reachable', 'unavailable', 'redirected']),
+  "stale": zod.boolean(),
+  "removalReason": zod.string().nullable()
+})
+
+
+export const CheckResourceParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const CheckResourceResponse = zod.object({
+  "id": zod.string(),
+  "url": zod.string(),
+  "domain": zod.string(),
+  "title": zod.string(),
+  "category": zod.string(),
+  "region": zod.string(),
+  "sourceDate": zod.coerce.date().nullable(),
+  "preview": zod.string(),
+  "previewPermission": zod.string(),
+  "embedAuthorized": zod.boolean(),
+  "embedUrl": zod.string().nullable(),
+  "status": zod.enum(['draft', 'reviewed', 'removed']),
+  "reviewedBy": zod.string().nullable(),
+  "reviewedAt": zod.coerce.date().nullable(),
+  "lastCheckedAt": zod.coerce.date().nullable(),
+  "linkState": zod.enum(['unchecked', 'reachable', 'unavailable', 'redirected']),
+  "stale": zod.boolean(),
+  "removalReason": zod.string().nullable()
+})
+
+
+export const ListResourceReportsResponse = zod.object({
+  "items": zod.array(zod.object({
+  "id": zod.string(),
+  "resourceId": zod.string(),
+  "reason": zod.string(),
+  "status": zod.enum(['open', 'resolved']),
+  "resolution": zod.string().nullable(),
+  "createdAt": zod.coerce.date()
+}))
+})
+
+
+export const ResolveResourceReportParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const resolveResourceReportBodyReasonMax = 1000;
+
+
+
+export const ResolveResourceReportBody = zod.object({
+  "reason": zod.string().min(1).max(resolveResourceReportBodyReasonMax)
+})
+
+export const ResolveResourceReportResponse = zod.object({
+  "id": zod.string(),
+  "resourceId": zod.string(),
+  "reason": zod.string(),
+  "status": zod.enum(['open', 'resolved']),
+  "resolution": zod.string().nullable(),
+  "createdAt": zod.coerce.date()
+})
+
+
 /**
  * Returns server health status
  * @summary Health check
@@ -161,6 +510,14 @@ export const UpdatePrivacySettingsBody = zod.object({
 export const UpdatePrivacySettingsResponse = zod.unknown()
 
 
+export const listThisIsMeCardsResponseMediaAssetsItemCaptionsItemStartMin = 0;
+
+export const listThisIsMeCardsResponseMediaAssetsItemCaptionsItemEndExclusiveMin = 0;
+
+export const listThisIsMeCardsResponseMediaAssetsItemCaptionsItemTextMax = 500;
+
+
+
 export const ListThisIsMeCardsResponseItem = zod.object({
   "id": zod.string(),
   "kind": zod.enum(['things_i_enjoy', 'music_i_love', 'experiences_i_want_to_share', 'how_i_like_to_communicate']),
@@ -170,7 +527,7 @@ export const ListThisIsMeCardsResponseItem = zod.object({
   "mediaAssetIds": zod.array(zod.string()).optional(),
   "mediaAssets": zod.array(zod.object({
   "id": zod.string(),
-  "kind": zod.enum(['photo', 'audio']),
+  "kind": zod.enum(['photo', 'audio', 'video']),
   "contentType": zod.string().nullable(),
   "byteSize": zod.number().int().nullable(),
   "width": zod.number().int().nullable(),
@@ -181,7 +538,16 @@ export const ListThisIsMeCardsResponseItem = zod.object({
   "abuseState": zod.enum(['pending', 'allowed', 'blocked', 'unavailable', 'error']),
   "altText": zod.string().nullable(),
   "transcript": zod.string().nullable(),
-  "limitation": zod.string().nullable()
+  "limitation": zod.string().nullable(),
+  "videoFormat": zod.union([zod.literal('reel'),zod.literal('post'),zod.literal(null)]).nullish(),
+  "captions": zod.array(zod.object({
+  "start": zod.number().min(listThisIsMeCardsResponseMediaAssetsItemCaptionsItemStartMin),
+  "end": zod.number().gt(listThisIsMeCardsResponseMediaAssetsItemCaptionsItemEndExclusiveMin),
+  "text": zod.string().min(1).max(listThisIsMeCardsResponseMediaAssetsItemCaptionsItemTextMax)
+})).optional(),
+  "captionVersion": zod.number().int().optional(),
+  "captionState": zod.enum(['unavailable', 'provided', 'no_speech']).optional(),
+  "playbackVariants": zod.array(zod.enum(['standard', 'low', 'webm', 'thumbnail'])).optional()
 })).optional()
 })
 export const ListThisIsMeCardsResponse = zod.array(ListThisIsMeCardsResponseItem)
@@ -198,6 +564,14 @@ export const CreateThisIsMeCardBody = zod.object({
   "mediaAssetIds": zod.array(zod.string()).max(createThisIsMeCardBodyMediaAssetIdsMax).optional()
 })
 
+export const createThisIsMeCardResponseMediaAssetsItemCaptionsItemStartMin = 0;
+
+export const createThisIsMeCardResponseMediaAssetsItemCaptionsItemEndExclusiveMin = 0;
+
+export const createThisIsMeCardResponseMediaAssetsItemCaptionsItemTextMax = 500;
+
+
+
 export const CreateThisIsMeCardResponse = zod.object({
   "id": zod.string(),
   "kind": zod.enum(['things_i_enjoy', 'music_i_love', 'experiences_i_want_to_share', 'how_i_like_to_communicate']),
@@ -207,7 +581,7 @@ export const CreateThisIsMeCardResponse = zod.object({
   "mediaAssetIds": zod.array(zod.string()).optional(),
   "mediaAssets": zod.array(zod.object({
   "id": zod.string(),
-  "kind": zod.enum(['photo', 'audio']),
+  "kind": zod.enum(['photo', 'audio', 'video']),
   "contentType": zod.string().nullable(),
   "byteSize": zod.number().int().nullable(),
   "width": zod.number().int().nullable(),
@@ -218,7 +592,16 @@ export const CreateThisIsMeCardResponse = zod.object({
   "abuseState": zod.enum(['pending', 'allowed', 'blocked', 'unavailable', 'error']),
   "altText": zod.string().nullable(),
   "transcript": zod.string().nullable(),
-  "limitation": zod.string().nullable()
+  "limitation": zod.string().nullable(),
+  "videoFormat": zod.union([zod.literal('reel'),zod.literal('post'),zod.literal(null)]).nullish(),
+  "captions": zod.array(zod.object({
+  "start": zod.number().min(createThisIsMeCardResponseMediaAssetsItemCaptionsItemStartMin),
+  "end": zod.number().gt(createThisIsMeCardResponseMediaAssetsItemCaptionsItemEndExclusiveMin),
+  "text": zod.string().min(1).max(createThisIsMeCardResponseMediaAssetsItemCaptionsItemTextMax)
+})).optional(),
+  "captionVersion": zod.number().int().optional(),
+  "captionState": zod.enum(['unavailable', 'provided', 'no_speech']).optional(),
+  "playbackVariants": zod.array(zod.enum(['standard', 'low', 'webm', 'thumbnail'])).optional()
 })).optional()
 })
 
@@ -825,6 +1208,14 @@ export const ListOwnPostsQueryParams = zod.object({
   "authorMemberId": zod.coerce.string().optional()
 })
 
+export const listOwnPostsResponseItemsItemMediaAssetsItemCaptionsItemStartMin = 0;
+
+export const listOwnPostsResponseItemsItemMediaAssetsItemCaptionsItemEndExclusiveMin = 0;
+
+export const listOwnPostsResponseItemsItemMediaAssetsItemCaptionsItemTextMax = 500;
+
+
+
 export const ListOwnPostsResponse = zod.object({
   "items": zod.array(zod.object({
   "id": zod.string(),
@@ -850,7 +1241,7 @@ export const ListOwnPostsResponse = zod.object({
   "originalAvailable": zod.boolean().optional(),
   "mediaAssets": zod.array(zod.object({
   "id": zod.string(),
-  "kind": zod.enum(['photo', 'audio']),
+  "kind": zod.enum(['photo', 'audio', 'video']),
   "contentType": zod.string().nullable(),
   "byteSize": zod.number().int().nullable(),
   "width": zod.number().int().nullable(),
@@ -861,7 +1252,16 @@ export const ListOwnPostsResponse = zod.object({
   "abuseState": zod.enum(['pending', 'allowed', 'blocked', 'unavailable', 'error']),
   "altText": zod.string().nullable(),
   "transcript": zod.string().nullable(),
-  "limitation": zod.string().nullable()
+  "limitation": zod.string().nullable(),
+  "videoFormat": zod.union([zod.literal('reel'),zod.literal('post'),zod.literal(null)]).nullish(),
+  "captions": zod.array(zod.object({
+  "start": zod.number().min(listOwnPostsResponseItemsItemMediaAssetsItemCaptionsItemStartMin),
+  "end": zod.number().gt(listOwnPostsResponseItemsItemMediaAssetsItemCaptionsItemEndExclusiveMin),
+  "text": zod.string().min(1).max(listOwnPostsResponseItemsItemMediaAssetsItemCaptionsItemTextMax)
+})).optional(),
+  "captionVersion": zod.number().int().optional(),
+  "captionState": zod.enum(['unavailable', 'provided', 'no_speech']).optional(),
+  "playbackVariants": zod.array(zod.enum(['standard', 'low', 'webm', 'thumbnail'])).optional()
 })).optional()
 })),
   "nextCursor": zod.string().nullable()
@@ -890,6 +1290,14 @@ export const CreatePostBody = zod.object({
   "mediaAssetIds": zod.array(zod.string()).max(createPostBodyMediaAssetIdsMax).optional()
 })
 
+export const createPostResponseMediaAssetsItemCaptionsItemStartMin = 0;
+
+export const createPostResponseMediaAssetsItemCaptionsItemEndExclusiveMin = 0;
+
+export const createPostResponseMediaAssetsItemCaptionsItemTextMax = 500;
+
+
+
 export const CreatePostResponse = zod.object({
   "id": zod.string(),
   "authorMemberId": zod.string(),
@@ -914,7 +1322,7 @@ export const CreatePostResponse = zod.object({
   "originalAvailable": zod.boolean().optional(),
   "mediaAssets": zod.array(zod.object({
   "id": zod.string(),
-  "kind": zod.enum(['photo', 'audio']),
+  "kind": zod.enum(['photo', 'audio', 'video']),
   "contentType": zod.string().nullable(),
   "byteSize": zod.number().int().nullable(),
   "width": zod.number().int().nullable(),
@@ -925,7 +1333,16 @@ export const CreatePostResponse = zod.object({
   "abuseState": zod.enum(['pending', 'allowed', 'blocked', 'unavailable', 'error']),
   "altText": zod.string().nullable(),
   "transcript": zod.string().nullable(),
-  "limitation": zod.string().nullable()
+  "limitation": zod.string().nullable(),
+  "videoFormat": zod.union([zod.literal('reel'),zod.literal('post'),zod.literal(null)]).nullish(),
+  "captions": zod.array(zod.object({
+  "start": zod.number().min(createPostResponseMediaAssetsItemCaptionsItemStartMin),
+  "end": zod.number().gt(createPostResponseMediaAssetsItemCaptionsItemEndExclusiveMin),
+  "text": zod.string().min(1).max(createPostResponseMediaAssetsItemCaptionsItemTextMax)
+})).optional(),
+  "captionVersion": zod.number().int().optional(),
+  "captionState": zod.enum(['unavailable', 'provided', 'no_speech']).optional(),
+  "playbackVariants": zod.array(zod.enum(['standard', 'low', 'webm', 'thumbnail'])).optional()
 })).optional()
 })
 
@@ -933,6 +1350,14 @@ export const CreatePostResponse = zod.object({
 export const GetPostParams = zod.object({
   "id": zod.coerce.string()
 })
+
+export const getPostResponseMediaAssetsItemCaptionsItemStartMin = 0;
+
+export const getPostResponseMediaAssetsItemCaptionsItemEndExclusiveMin = 0;
+
+export const getPostResponseMediaAssetsItemCaptionsItemTextMax = 500;
+
+
 
 export const GetPostResponse = zod.object({
   "id": zod.string(),
@@ -958,7 +1383,7 @@ export const GetPostResponse = zod.object({
   "originalAvailable": zod.boolean().optional(),
   "mediaAssets": zod.array(zod.object({
   "id": zod.string(),
-  "kind": zod.enum(['photo', 'audio']),
+  "kind": zod.enum(['photo', 'audio', 'video']),
   "contentType": zod.string().nullable(),
   "byteSize": zod.number().int().nullable(),
   "width": zod.number().int().nullable(),
@@ -969,7 +1394,16 @@ export const GetPostResponse = zod.object({
   "abuseState": zod.enum(['pending', 'allowed', 'blocked', 'unavailable', 'error']),
   "altText": zod.string().nullable(),
   "transcript": zod.string().nullable(),
-  "limitation": zod.string().nullable()
+  "limitation": zod.string().nullable(),
+  "videoFormat": zod.union([zod.literal('reel'),zod.literal('post'),zod.literal(null)]).nullish(),
+  "captions": zod.array(zod.object({
+  "start": zod.number().min(getPostResponseMediaAssetsItemCaptionsItemStartMin),
+  "end": zod.number().gt(getPostResponseMediaAssetsItemCaptionsItemEndExclusiveMin),
+  "text": zod.string().min(1).max(getPostResponseMediaAssetsItemCaptionsItemTextMax)
+})).optional(),
+  "captionVersion": zod.number().int().optional(),
+  "captionState": zod.enum(['unavailable', 'provided', 'no_speech']).optional(),
+  "playbackVariants": zod.array(zod.enum(['standard', 'low', 'webm', 'thumbnail'])).optional()
 })).optional()
 })
 
@@ -1029,6 +1463,14 @@ export const GetFeedQueryParams = zod.object({
   "cursor": zod.coerce.string().optional()
 })
 
+export const getFeedResponseItemsItemMediaAssetsItemCaptionsItemStartMin = 0;
+
+export const getFeedResponseItemsItemMediaAssetsItemCaptionsItemEndExclusiveMin = 0;
+
+export const getFeedResponseItemsItemMediaAssetsItemCaptionsItemTextMax = 500;
+
+
+
 export const GetFeedResponse = zod.object({
   "items": zod.array(zod.object({
   "id": zod.string(),
@@ -1054,7 +1496,7 @@ export const GetFeedResponse = zod.object({
   "originalAvailable": zod.boolean().optional(),
   "mediaAssets": zod.array(zod.object({
   "id": zod.string(),
-  "kind": zod.enum(['photo', 'audio']),
+  "kind": zod.enum(['photo', 'audio', 'video']),
   "contentType": zod.string().nullable(),
   "byteSize": zod.number().int().nullable(),
   "width": zod.number().int().nullable(),
@@ -1065,7 +1507,16 @@ export const GetFeedResponse = zod.object({
   "abuseState": zod.enum(['pending', 'allowed', 'blocked', 'unavailable', 'error']),
   "altText": zod.string().nullable(),
   "transcript": zod.string().nullable(),
-  "limitation": zod.string().nullable()
+  "limitation": zod.string().nullable(),
+  "videoFormat": zod.union([zod.literal('reel'),zod.literal('post'),zod.literal(null)]).nullish(),
+  "captions": zod.array(zod.object({
+  "start": zod.number().min(getFeedResponseItemsItemMediaAssetsItemCaptionsItemStartMin),
+  "end": zod.number().gt(getFeedResponseItemsItemMediaAssetsItemCaptionsItemEndExclusiveMin),
+  "text": zod.string().min(1).max(getFeedResponseItemsItemMediaAssetsItemCaptionsItemTextMax)
+})).optional(),
+  "captionVersion": zod.number().int().optional(),
+  "captionState": zod.enum(['unavailable', 'provided', 'no_speech']).optional(),
+  "playbackVariants": zod.array(zod.enum(['standard', 'low', 'webm', 'thumbnail'])).optional()
 })).optional()
 })),
   "nextCursor": zod.string().nullable()
@@ -1185,6 +1636,14 @@ export const ListSavedPostsQueryParams = zod.object({
   "cursor": zod.coerce.string().optional()
 })
 
+export const listSavedPostsResponseItemsItemMediaAssetsItemCaptionsItemStartMin = 0;
+
+export const listSavedPostsResponseItemsItemMediaAssetsItemCaptionsItemEndExclusiveMin = 0;
+
+export const listSavedPostsResponseItemsItemMediaAssetsItemCaptionsItemTextMax = 500;
+
+
+
 export const ListSavedPostsResponse = zod.object({
   "items": zod.array(zod.object({
   "id": zod.string(),
@@ -1210,7 +1669,7 @@ export const ListSavedPostsResponse = zod.object({
   "originalAvailable": zod.boolean().optional(),
   "mediaAssets": zod.array(zod.object({
   "id": zod.string(),
-  "kind": zod.enum(['photo', 'audio']),
+  "kind": zod.enum(['photo', 'audio', 'video']),
   "contentType": zod.string().nullable(),
   "byteSize": zod.number().int().nullable(),
   "width": zod.number().int().nullable(),
@@ -1221,7 +1680,16 @@ export const ListSavedPostsResponse = zod.object({
   "abuseState": zod.enum(['pending', 'allowed', 'blocked', 'unavailable', 'error']),
   "altText": zod.string().nullable(),
   "transcript": zod.string().nullable(),
-  "limitation": zod.string().nullable()
+  "limitation": zod.string().nullable(),
+  "videoFormat": zod.union([zod.literal('reel'),zod.literal('post'),zod.literal(null)]).nullish(),
+  "captions": zod.array(zod.object({
+  "start": zod.number().min(listSavedPostsResponseItemsItemMediaAssetsItemCaptionsItemStartMin),
+  "end": zod.number().gt(listSavedPostsResponseItemsItemMediaAssetsItemCaptionsItemEndExclusiveMin),
+  "text": zod.string().min(1).max(listSavedPostsResponseItemsItemMediaAssetsItemCaptionsItemTextMax)
+})).optional(),
+  "captionVersion": zod.number().int().optional(),
+  "captionState": zod.enum(['unavailable', 'provided', 'no_speech']).optional(),
+  "playbackVariants": zod.array(zod.enum(['standard', 'low', 'webm', 'thumbnail'])).optional()
 })).optional()
 })),
   "nextCursor": zod.string().nullable()
@@ -1434,6 +1902,14 @@ export const ListCirclePostsParams = zod.object({
   "circleId": zod.coerce.string()
 })
 
+export const listCirclePostsResponseItemsItemMediaAssetsItemCaptionsItemStartMin = 0;
+
+export const listCirclePostsResponseItemsItemMediaAssetsItemCaptionsItemEndExclusiveMin = 0;
+
+export const listCirclePostsResponseItemsItemMediaAssetsItemCaptionsItemTextMax = 500;
+
+
+
 export const ListCirclePostsResponse = zod.object({
   "items": zod.array(zod.object({
   "id": zod.string(),
@@ -1459,7 +1935,7 @@ export const ListCirclePostsResponse = zod.object({
   "originalAvailable": zod.boolean().optional(),
   "mediaAssets": zod.array(zod.object({
   "id": zod.string(),
-  "kind": zod.enum(['photo', 'audio']),
+  "kind": zod.enum(['photo', 'audio', 'video']),
   "contentType": zod.string().nullable(),
   "byteSize": zod.number().int().nullable(),
   "width": zod.number().int().nullable(),
@@ -1470,7 +1946,16 @@ export const ListCirclePostsResponse = zod.object({
   "abuseState": zod.enum(['pending', 'allowed', 'blocked', 'unavailable', 'error']),
   "altText": zod.string().nullable(),
   "transcript": zod.string().nullable(),
-  "limitation": zod.string().nullable()
+  "limitation": zod.string().nullable(),
+  "videoFormat": zod.union([zod.literal('reel'),zod.literal('post'),zod.literal(null)]).nullish(),
+  "captions": zod.array(zod.object({
+  "start": zod.number().min(listCirclePostsResponseItemsItemMediaAssetsItemCaptionsItemStartMin),
+  "end": zod.number().gt(listCirclePostsResponseItemsItemMediaAssetsItemCaptionsItemEndExclusiveMin),
+  "text": zod.string().min(1).max(listCirclePostsResponseItemsItemMediaAssetsItemCaptionsItemTextMax)
+})).optional(),
+  "captionVersion": zod.number().int().optional(),
+  "captionState": zod.enum(['unavailable', 'provided', 'no_speech']).optional(),
+  "playbackVariants": zod.array(zod.enum(['standard', 'low', 'webm', 'thumbnail'])).optional()
 })).optional()
 })),
   "nextCursor": zod.string().nullable()
@@ -2013,6 +2498,14 @@ export const ListGroupPostsParams = zod.object({
   "groupId": zod.coerce.string()
 })
 
+export const listGroupPostsResponseItemsItemMediaAssetsItemCaptionsItemStartMin = 0;
+
+export const listGroupPostsResponseItemsItemMediaAssetsItemCaptionsItemEndExclusiveMin = 0;
+
+export const listGroupPostsResponseItemsItemMediaAssetsItemCaptionsItemTextMax = 500;
+
+
+
 export const ListGroupPostsResponse = zod.object({
   "items": zod.array(zod.object({
   "id": zod.string(),
@@ -2038,7 +2531,7 @@ export const ListGroupPostsResponse = zod.object({
   "originalAvailable": zod.boolean().optional(),
   "mediaAssets": zod.array(zod.object({
   "id": zod.string(),
-  "kind": zod.enum(['photo', 'audio']),
+  "kind": zod.enum(['photo', 'audio', 'video']),
   "contentType": zod.string().nullable(),
   "byteSize": zod.number().int().nullable(),
   "width": zod.number().int().nullable(),
@@ -2049,7 +2542,16 @@ export const ListGroupPostsResponse = zod.object({
   "abuseState": zod.enum(['pending', 'allowed', 'blocked', 'unavailable', 'error']),
   "altText": zod.string().nullable(),
   "transcript": zod.string().nullable(),
-  "limitation": zod.string().nullable()
+  "limitation": zod.string().nullable(),
+  "videoFormat": zod.union([zod.literal('reel'),zod.literal('post'),zod.literal(null)]).nullish(),
+  "captions": zod.array(zod.object({
+  "start": zod.number().min(listGroupPostsResponseItemsItemMediaAssetsItemCaptionsItemStartMin),
+  "end": zod.number().gt(listGroupPostsResponseItemsItemMediaAssetsItemCaptionsItemEndExclusiveMin),
+  "text": zod.string().min(1).max(listGroupPostsResponseItemsItemMediaAssetsItemCaptionsItemTextMax)
+})).optional(),
+  "captionVersion": zod.number().int().optional(),
+  "captionState": zod.enum(['unavailable', 'provided', 'no_speech']).optional(),
+  "playbackVariants": zod.array(zod.enum(['standard', 'low', 'webm', 'thumbnail'])).optional()
 })).optional()
 })),
   "nextCursor": zod.string().nullable()
@@ -2111,17 +2613,26 @@ export const requestMediaUploadBodyAltTextMax = 1000;
 
 
 export const RequestMediaUploadBody = zod.object({
-  "kind": zod.enum(['photo', 'audio']),
+  "kind": zod.enum(['photo', 'audio', 'video']),
   "contentType": zod.string(),
   "size": zod.number().int().min(1),
   "clientIdempotencyKey": zod.string().min(1).max(requestMediaUploadBodyClientIdempotencyKeyMax),
-  "altText": zod.string().min(1).max(requestMediaUploadBodyAltTextMax).optional()
+  "altText": zod.string().min(1).max(requestMediaUploadBodyAltTextMax).optional(),
+  "videoFormat": zod.enum(['reel', 'post']).optional()
 })
+
+export const requestMediaUploadResponseAssetCaptionsItemStartMin = 0;
+
+export const requestMediaUploadResponseAssetCaptionsItemEndExclusiveMin = 0;
+
+export const requestMediaUploadResponseAssetCaptionsItemTextMax = 500;
+
+
 
 export const RequestMediaUploadResponse = zod.object({
   "asset": zod.object({
   "id": zod.string(),
-  "kind": zod.enum(['photo', 'audio']),
+  "kind": zod.enum(['photo', 'audio', 'video']),
   "contentType": zod.string().nullable(),
   "byteSize": zod.number().int().nullable(),
   "width": zod.number().int().nullable(),
@@ -2132,7 +2643,16 @@ export const RequestMediaUploadResponse = zod.object({
   "abuseState": zod.enum(['pending', 'allowed', 'blocked', 'unavailable', 'error']),
   "altText": zod.string().nullable(),
   "transcript": zod.string().nullable(),
-  "limitation": zod.string().nullable()
+  "limitation": zod.string().nullable(),
+  "videoFormat": zod.union([zod.literal('reel'),zod.literal('post'),zod.literal(null)]).nullish(),
+  "captions": zod.array(zod.object({
+  "start": zod.number().min(requestMediaUploadResponseAssetCaptionsItemStartMin),
+  "end": zod.number().gt(requestMediaUploadResponseAssetCaptionsItemEndExclusiveMin),
+  "text": zod.string().min(1).max(requestMediaUploadResponseAssetCaptionsItemTextMax)
+})).optional(),
+  "captionVersion": zod.number().int().optional(),
+  "captionState": zod.enum(['unavailable', 'provided', 'no_speech']).optional(),
+  "playbackVariants": zod.array(zod.enum(['standard', 'low', 'webm', 'thumbnail'])).optional()
 }),
   "uploadURL": zod.string().url().nullable()
 })
@@ -2142,9 +2662,17 @@ export const CompleteMediaUploadParams = zod.object({
   "id": zod.coerce.string()
 })
 
+export const completeMediaUploadResponseCaptionsItemStartMin = 0;
+
+export const completeMediaUploadResponseCaptionsItemEndExclusiveMin = 0;
+
+export const completeMediaUploadResponseCaptionsItemTextMax = 500;
+
+
+
 export const CompleteMediaUploadResponse = zod.object({
   "id": zod.string(),
-  "kind": zod.enum(['photo', 'audio']),
+  "kind": zod.enum(['photo', 'audio', 'video']),
   "contentType": zod.string().nullable(),
   "byteSize": zod.number().int().nullable(),
   "width": zod.number().int().nullable(),
@@ -2155,7 +2683,16 @@ export const CompleteMediaUploadResponse = zod.object({
   "abuseState": zod.enum(['pending', 'allowed', 'blocked', 'unavailable', 'error']),
   "altText": zod.string().nullable(),
   "transcript": zod.string().nullable(),
-  "limitation": zod.string().nullable()
+  "limitation": zod.string().nullable(),
+  "videoFormat": zod.union([zod.literal('reel'),zod.literal('post'),zod.literal(null)]).nullish(),
+  "captions": zod.array(zod.object({
+  "start": zod.number().min(completeMediaUploadResponseCaptionsItemStartMin),
+  "end": zod.number().gt(completeMediaUploadResponseCaptionsItemEndExclusiveMin),
+  "text": zod.string().min(1).max(completeMediaUploadResponseCaptionsItemTextMax)
+})).optional(),
+  "captionVersion": zod.number().int().optional(),
+  "captionState": zod.enum(['unavailable', 'provided', 'no_speech']).optional(),
+  "playbackVariants": zod.array(zod.enum(['standard', 'low', 'webm', 'thumbnail'])).optional()
 })
 
 
@@ -2163,10 +2700,18 @@ export const RetryMediaUploadParams = zod.object({
   "id": zod.coerce.string()
 })
 
+export const retryMediaUploadResponseAssetCaptionsItemStartMin = 0;
+
+export const retryMediaUploadResponseAssetCaptionsItemEndExclusiveMin = 0;
+
+export const retryMediaUploadResponseAssetCaptionsItemTextMax = 500;
+
+
+
 export const RetryMediaUploadResponse = zod.object({
   "asset": zod.object({
   "id": zod.string(),
-  "kind": zod.enum(['photo', 'audio']),
+  "kind": zod.enum(['photo', 'audio', 'video']),
   "contentType": zod.string().nullable(),
   "byteSize": zod.number().int().nullable(),
   "width": zod.number().int().nullable(),
@@ -2177,7 +2722,16 @@ export const RetryMediaUploadResponse = zod.object({
   "abuseState": zod.enum(['pending', 'allowed', 'blocked', 'unavailable', 'error']),
   "altText": zod.string().nullable(),
   "transcript": zod.string().nullable(),
-  "limitation": zod.string().nullable()
+  "limitation": zod.string().nullable(),
+  "videoFormat": zod.union([zod.literal('reel'),zod.literal('post'),zod.literal(null)]).nullish(),
+  "captions": zod.array(zod.object({
+  "start": zod.number().min(retryMediaUploadResponseAssetCaptionsItemStartMin),
+  "end": zod.number().gt(retryMediaUploadResponseAssetCaptionsItemEndExclusiveMin),
+  "text": zod.string().min(1).max(retryMediaUploadResponseAssetCaptionsItemTextMax)
+})).optional(),
+  "captionVersion": zod.number().int().optional(),
+  "captionState": zod.enum(['unavailable', 'provided', 'no_speech']).optional(),
+  "playbackVariants": zod.array(zod.enum(['standard', 'low', 'webm', 'thumbnail'])).optional()
 }),
   "uploadURL": zod.string().url().nullable()
 })
@@ -2209,9 +2763,17 @@ export const UpdateMediaTranscriptBody = zod.object({
   "transcript": zod.string().min(1).max(updateMediaTranscriptBodyTranscriptMax)
 })
 
+export const updateMediaTranscriptResponseCaptionsItemStartMin = 0;
+
+export const updateMediaTranscriptResponseCaptionsItemEndExclusiveMin = 0;
+
+export const updateMediaTranscriptResponseCaptionsItemTextMax = 500;
+
+
+
 export const UpdateMediaTranscriptResponse = zod.object({
   "id": zod.string(),
-  "kind": zod.enum(['photo', 'audio']),
+  "kind": zod.enum(['photo', 'audio', 'video']),
   "contentType": zod.string().nullable(),
   "byteSize": zod.number().int().nullable(),
   "width": zod.number().int().nullable(),
@@ -2222,7 +2784,288 @@ export const UpdateMediaTranscriptResponse = zod.object({
   "abuseState": zod.enum(['pending', 'allowed', 'blocked', 'unavailable', 'error']),
   "altText": zod.string().nullable(),
   "transcript": zod.string().nullable(),
-  "limitation": zod.string().nullable()
+  "limitation": zod.string().nullable(),
+  "videoFormat": zod.union([zod.literal('reel'),zod.literal('post'),zod.literal(null)]).nullish(),
+  "captions": zod.array(zod.object({
+  "start": zod.number().min(updateMediaTranscriptResponseCaptionsItemStartMin),
+  "end": zod.number().gt(updateMediaTranscriptResponseCaptionsItemEndExclusiveMin),
+  "text": zod.string().min(1).max(updateMediaTranscriptResponseCaptionsItemTextMax)
+})).optional(),
+  "captionVersion": zod.number().int().optional(),
+  "captionState": zod.enum(['unavailable', 'provided', 'no_speech']).optional(),
+  "playbackVariants": zod.array(zod.enum(['standard', 'low', 'webm', 'thumbnail'])).optional()
+})
+
+
+export const GetMediaStatusParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const getMediaStatusResponseCaptionsItemStartMin = 0;
+
+export const getMediaStatusResponseCaptionsItemEndExclusiveMin = 0;
+
+export const getMediaStatusResponseCaptionsItemTextMax = 500;
+
+
+
+export const GetMediaStatusResponse = zod.object({
+  "id": zod.string(),
+  "kind": zod.enum(['photo', 'audio', 'video']),
+  "contentType": zod.string().nullable(),
+  "byteSize": zod.number().int().nullable(),
+  "width": zod.number().int().nullable(),
+  "height": zod.number().int().nullable(),
+  "durationSeconds": zod.number().int().nullable(),
+  "status": zod.enum(['uploading', 'quarantined', 'held', 'ready', 'rejected', 'cancelled', 'cleanup_pending']),
+  "malwareState": zod.enum(['pending', 'allowed', 'blocked', 'unavailable', 'error']),
+  "abuseState": zod.enum(['pending', 'allowed', 'blocked', 'unavailable', 'error']),
+  "altText": zod.string().nullable(),
+  "transcript": zod.string().nullable(),
+  "limitation": zod.string().nullable(),
+  "videoFormat": zod.union([zod.literal('reel'),zod.literal('post'),zod.literal(null)]).nullish(),
+  "captions": zod.array(zod.object({
+  "start": zod.number().min(getMediaStatusResponseCaptionsItemStartMin),
+  "end": zod.number().gt(getMediaStatusResponseCaptionsItemEndExclusiveMin),
+  "text": zod.string().min(1).max(getMediaStatusResponseCaptionsItemTextMax)
+})).optional(),
+  "captionVersion": zod.number().int().optional(),
+  "captionState": zod.enum(['unavailable', 'provided', 'no_speech']).optional(),
+  "playbackVariants": zod.array(zod.enum(['standard', 'low', 'webm', 'thumbnail'])).optional()
+})
+
+
+export const CorrectVideoCaptionsParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const correctVideoCaptionsBodyCaptionVersionMin = 0;
+
+export const correctVideoCaptionsBodyCuesItemStartMin = 0;
+
+export const correctVideoCaptionsBodyCuesItemEndExclusiveMin = 0;
+
+export const correctVideoCaptionsBodyCuesItemTextMax = 500;
+
+export const correctVideoCaptionsBodyCuesMax = 1000;
+
+
+
+export const CorrectVideoCaptionsBody = zod.object({
+  "captionVersion": zod.number().int().min(correctVideoCaptionsBodyCaptionVersionMin),
+  "captionState": zod.enum(['provided', 'no_speech']),
+  "cues": zod.array(zod.object({
+  "start": zod.number().min(correctVideoCaptionsBodyCuesItemStartMin),
+  "end": zod.number().gt(correctVideoCaptionsBodyCuesItemEndExclusiveMin),
+  "text": zod.string().min(1).max(correctVideoCaptionsBodyCuesItemTextMax)
+})).max(correctVideoCaptionsBodyCuesMax)
+})
+
+export const correctVideoCaptionsResponseCaptionsItemStartMin = 0;
+
+export const correctVideoCaptionsResponseCaptionsItemEndExclusiveMin = 0;
+
+export const correctVideoCaptionsResponseCaptionsItemTextMax = 500;
+
+
+
+export const CorrectVideoCaptionsResponse = zod.object({
+  "id": zod.string(),
+  "kind": zod.enum(['photo', 'audio', 'video']),
+  "contentType": zod.string().nullable(),
+  "byteSize": zod.number().int().nullable(),
+  "width": zod.number().int().nullable(),
+  "height": zod.number().int().nullable(),
+  "durationSeconds": zod.number().int().nullable(),
+  "status": zod.enum(['uploading', 'quarantined', 'held', 'ready', 'rejected', 'cancelled', 'cleanup_pending']),
+  "malwareState": zod.enum(['pending', 'allowed', 'blocked', 'unavailable', 'error']),
+  "abuseState": zod.enum(['pending', 'allowed', 'blocked', 'unavailable', 'error']),
+  "altText": zod.string().nullable(),
+  "transcript": zod.string().nullable(),
+  "limitation": zod.string().nullable(),
+  "videoFormat": zod.union([zod.literal('reel'),zod.literal('post'),zod.literal(null)]).nullish(),
+  "captions": zod.array(zod.object({
+  "start": zod.number().min(correctVideoCaptionsResponseCaptionsItemStartMin),
+  "end": zod.number().gt(correctVideoCaptionsResponseCaptionsItemEndExclusiveMin),
+  "text": zod.string().min(1).max(correctVideoCaptionsResponseCaptionsItemTextMax)
+})).optional(),
+  "captionVersion": zod.number().int().optional(),
+  "captionState": zod.enum(['unavailable', 'provided', 'no_speech']).optional(),
+  "playbackVariants": zod.array(zod.enum(['standard', 'low', 'webm', 'thumbnail'])).optional()
+})
+
+
+export const DeliverVideoAssetParams = zod.object({
+  "id": zod.coerce.string(),
+  "variant": zod.enum(['standard', 'low', 'webm', 'thumbnail', 'captions', 'transcript'])
+})
+
+export const DeliverVideoAssetResponse = zod.unknown()
+
+
+export const ListReelsQueryParams = zod.object({
+  "cursor": zod.coerce.string().optional()
+})
+
+export const listReelsResponseItemsItemMediaAssetsItemCaptionsItemStartMin = 0;
+
+export const listReelsResponseItemsItemMediaAssetsItemCaptionsItemEndExclusiveMin = 0;
+
+export const listReelsResponseItemsItemMediaAssetsItemCaptionsItemTextMax = 500;
+
+
+
+export const ListReelsResponse = zod.object({
+  "items": zod.array(zod.object({
+  "id": zod.string(),
+  "authorMemberId": zod.string(),
+  "body": zod.string().nullable(),
+  "audience": zod.enum(['only_me', 'friends', 'my_circle', 'this_group', 'public']),
+  "circleId": zod.string().nullish(),
+  "groupId": zod.string().nullish(),
+  "isIntroduction": zod.boolean().optional(),
+  "responseLabel": zod.string().nullish(),
+  "status": zod.enum(['draft', 'published', 'deleted']),
+  "commentsOpen": zod.boolean(),
+  "visibleReactionCounts": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date(),
+  "authorId": zod.string().optional(),
+  "authorDisplayName": zod.string().optional(),
+  "myReactions": zod.array(zod.enum(['hear_you', 'thank_you_for_sharing'])).optional(),
+  "saved": zod.boolean().optional(),
+  "reactionCounts": zod.object({
+
+}).passthrough().nullish(),
+  "originalAvailable": zod.boolean().optional(),
+  "mediaAssets": zod.array(zod.object({
+  "id": zod.string(),
+  "kind": zod.enum(['photo', 'audio', 'video']),
+  "contentType": zod.string().nullable(),
+  "byteSize": zod.number().int().nullable(),
+  "width": zod.number().int().nullable(),
+  "height": zod.number().int().nullable(),
+  "durationSeconds": zod.number().int().nullable(),
+  "status": zod.enum(['uploading', 'quarantined', 'held', 'ready', 'rejected', 'cancelled', 'cleanup_pending']),
+  "malwareState": zod.enum(['pending', 'allowed', 'blocked', 'unavailable', 'error']),
+  "abuseState": zod.enum(['pending', 'allowed', 'blocked', 'unavailable', 'error']),
+  "altText": zod.string().nullable(),
+  "transcript": zod.string().nullable(),
+  "limitation": zod.string().nullable(),
+  "videoFormat": zod.union([zod.literal('reel'),zod.literal('post'),zod.literal(null)]).nullish(),
+  "captions": zod.array(zod.object({
+  "start": zod.number().min(listReelsResponseItemsItemMediaAssetsItemCaptionsItemStartMin),
+  "end": zod.number().gt(listReelsResponseItemsItemMediaAssetsItemCaptionsItemEndExclusiveMin),
+  "text": zod.string().min(1).max(listReelsResponseItemsItemMediaAssetsItemCaptionsItemTextMax)
+})).optional(),
+  "captionVersion": zod.number().int().optional(),
+  "captionState": zod.enum(['unavailable', 'provided', 'no_speech']).optional(),
+  "playbackVariants": zod.array(zod.enum(['standard', 'low', 'webm', 'thumbnail'])).optional()
+})).optional()
+})),
+  "nextCursor": zod.string().nullable()
+})
+
+
+export const listVideoReviewResponseItemsItemCaptionsItemStartMin = 0;
+
+export const listVideoReviewResponseItemsItemCaptionsItemEndExclusiveMin = 0;
+
+export const listVideoReviewResponseItemsItemCaptionsItemTextMax = 500;
+
+
+
+export const ListVideoReviewResponse = zod.object({
+  "items": zod.array(zod.object({
+  "id": zod.string(),
+  "kind": zod.enum(['photo', 'audio', 'video']),
+  "contentType": zod.string().nullable(),
+  "byteSize": zod.number().int().nullable(),
+  "width": zod.number().int().nullable(),
+  "height": zod.number().int().nullable(),
+  "durationSeconds": zod.number().int().nullable(),
+  "status": zod.enum(['uploading', 'quarantined', 'held', 'ready', 'rejected', 'cancelled', 'cleanup_pending']),
+  "malwareState": zod.enum(['pending', 'allowed', 'blocked', 'unavailable', 'error']),
+  "abuseState": zod.enum(['pending', 'allowed', 'blocked', 'unavailable', 'error']),
+  "altText": zod.string().nullable(),
+  "transcript": zod.string().nullable(),
+  "limitation": zod.string().nullable(),
+  "videoFormat": zod.union([zod.literal('reel'),zod.literal('post'),zod.literal(null)]).nullish(),
+  "captions": zod.array(zod.object({
+  "start": zod.number().min(listVideoReviewResponseItemsItemCaptionsItemStartMin),
+  "end": zod.number().gt(listVideoReviewResponseItemsItemCaptionsItemEndExclusiveMin),
+  "text": zod.string().min(1).max(listVideoReviewResponseItemsItemCaptionsItemTextMax)
+})).optional(),
+  "captionVersion": zod.number().int().optional(),
+  "captionState": zod.enum(['unavailable', 'provided', 'no_speech']).optional(),
+  "playbackVariants": zod.array(zod.enum(['standard', 'low', 'webm', 'thumbnail'])).optional()
+}))
+})
+
+
+export const ReviewVideoAssetParams = zod.object({
+  "id": zod.coerce.string(),
+  "variant": zod.enum(['standard', 'low', 'webm', 'thumbnail', 'captions', 'transcript', 'frames', 'audio'])
+})
+
+export const reviewVideoAssetQueryReasonMax = 1000;
+
+
+
+export const ReviewVideoAssetQueryParams = zod.object({
+  "reason": zod.coerce.string().min(1).max(reviewVideoAssetQueryReasonMax)
+})
+
+export const ReviewVideoAssetResponse = zod.unknown()
+
+
+export const DecideVideoReviewParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const decideVideoReviewBodyReasonMax = 1000;
+
+
+
+export const DecideVideoReviewBody = zod.object({
+  "decision": zod.enum(['allow', 'hold', 'reject']),
+  "reason": zod.string().min(1).max(decideVideoReviewBodyReasonMax),
+  "captionVersion": zod.number().int(),
+  "watchedEntireVideo": zod.boolean(),
+  "listenedEntireAudio": zod.boolean()
+})
+
+export const decideVideoReviewResponseCaptionsItemStartMin = 0;
+
+export const decideVideoReviewResponseCaptionsItemEndExclusiveMin = 0;
+
+export const decideVideoReviewResponseCaptionsItemTextMax = 500;
+
+
+
+export const DecideVideoReviewResponse = zod.object({
+  "id": zod.string(),
+  "kind": zod.enum(['photo', 'audio', 'video']),
+  "contentType": zod.string().nullable(),
+  "byteSize": zod.number().int().nullable(),
+  "width": zod.number().int().nullable(),
+  "height": zod.number().int().nullable(),
+  "durationSeconds": zod.number().int().nullable(),
+  "status": zod.enum(['uploading', 'quarantined', 'held', 'ready', 'rejected', 'cancelled', 'cleanup_pending']),
+  "malwareState": zod.enum(['pending', 'allowed', 'blocked', 'unavailable', 'error']),
+  "abuseState": zod.enum(['pending', 'allowed', 'blocked', 'unavailable', 'error']),
+  "altText": zod.string().nullable(),
+  "transcript": zod.string().nullable(),
+  "limitation": zod.string().nullable(),
+  "videoFormat": zod.union([zod.literal('reel'),zod.literal('post'),zod.literal(null)]).nullish(),
+  "captions": zod.array(zod.object({
+  "start": zod.number().min(decideVideoReviewResponseCaptionsItemStartMin),
+  "end": zod.number().gt(decideVideoReviewResponseCaptionsItemEndExclusiveMin),
+  "text": zod.string().min(1).max(decideVideoReviewResponseCaptionsItemTextMax)
+})).optional(),
+  "captionVersion": zod.number().int().optional(),
+  "captionState": zod.enum(['unavailable', 'provided', 'no_speech']).optional(),
+  "playbackVariants": zod.array(zod.enum(['standard', 'low', 'webm', 'thumbnail'])).optional()
 })
 
 

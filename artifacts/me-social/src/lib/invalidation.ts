@@ -1,6 +1,7 @@
 import { QueryClient } from "@tanstack/react-query";
 import { 
   getGetFeedQueryKey,
+  getListReelsQueryKey,
   getListOwnPostsQueryKey,
   getListSavedPostsQueryKey,
   getListNotificationsQueryKey,
@@ -11,6 +12,7 @@ import {
 export function invalidatePhase6(queryClient: QueryClient, postId?: string) {
   // Invalidate all feed variants
   queryClient.invalidateQueries({ queryKey: getGetFeedQueryKey() });
+  queryClient.invalidateQueries({ queryKey: getListReelsQueryKey() });
   
   // Invalidate all own-post variants
   queryClient.invalidateQueries({ queryKey: getListOwnPostsQueryKey() });

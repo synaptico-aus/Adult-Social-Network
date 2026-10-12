@@ -5,12 +5,176 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+export type ResourceInputCategory = typeof ResourceInputCategory[keyof typeof ResourceInputCategory];
+
+
+export const ResourceInputCategory = {
+  article: 'article',
+  news: 'news',
+  podcast: 'podcast',
+  music: 'music',
+  video: 'video',
+  event: 'event',
+  helpline: 'helpline',
+  research: 'research',
+  organisation: 'organisation',
+} as const;
+
+export interface ResourceInput {
+  /** @maxLength 2048 */
+  url: string;
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
+  title: string;
+  category: ResourceInputCategory;
+  /**
+     * @minLength 1
+     * @maxLength 100
+     */
+  region: string;
+  /** @nullable */
+  sourceDate?: string | null;
+  /**
+     * Original summary or explicitly permitted short preview only
+     * @maxLength 300
+     */
+  preview: string;
+  /**
+     * Required permission or original-summary provenance when preview is nonempty
+     * @maxLength 500
+     */
+  previewPermission: string;
+  /** Staff confirms provider authorises embedding; only recognised YouTube and Spotify URLs supported */
+  embedAuthorized: boolean;
+}
+
+export type ResourceStatus = typeof ResourceStatus[keyof typeof ResourceStatus];
+
+
+export const ResourceStatus = {
+  draft: 'draft',
+  reviewed: 'reviewed',
+  removed: 'removed',
+} as const;
+
+export type ResourceLinkState = typeof ResourceLinkState[keyof typeof ResourceLinkState];
+
+
+export const ResourceLinkState = {
+  unchecked: 'unchecked',
+  reachable: 'reachable',
+  unavailable: 'unavailable',
+  redirected: 'redirected',
+} as const;
+
+export interface Resource {
+  id: string;
+  url: string;
+  domain: string;
+  title: string;
+  category: string;
+  region: string;
+  /** @nullable */
+  sourceDate: string | null;
+  preview: string;
+  previewPermission: string;
+  embedAuthorized: boolean;
+  /** @nullable */
+  embedUrl: string | null;
+  status: ResourceStatus;
+  /** @nullable */
+  reviewedBy: string | null;
+  /** @nullable */
+  reviewedAt: string | null;
+  /** @nullable */
+  lastCheckedAt: string | null;
+  linkState: ResourceLinkState;
+  stale: boolean;
+  /** @nullable */
+  removalReason: string | null;
+}
+
+export interface ResourceList {
+  items: Resource[];
+}
+
+export interface ResourceUrl {
+  /** @maxLength 2048 */
+  url: string;
+}
+
+export interface ResourcePreview {
+  url: string;
+  domain: string;
+  title: string;
+  /** Plain metadata suggestion; not automatically published or licensed */
+  description: string;
+  /** @nullable */
+  sourceDate: string | null;
+}
+
+export interface ResourceReason {
+  /**
+     * @minLength 1
+     * @maxLength 1000
+     */
+  reason: string;
+}
+
+export interface ResourceReview {
+  /**
+     * Public reviewer attribution; authenticated actor separately recorded
+     * @minLength 1
+     * @maxLength 100
+     */
+  reviewerName: string;
+  /**
+     * @minLength 1
+     * @maxLength 1000
+     */
+  note: string;
+  rightsConfirmed: true;
+}
+
+export type ResourceReportStatus = typeof ResourceReportStatus[keyof typeof ResourceReportStatus];
+
+
+export const ResourceReportStatus = {
+  open: 'open',
+  resolved: 'resolved',
+} as const;
+
+export interface ResourceReport {
+  id: string;
+  resourceId: string;
+  reason: string;
+  status: ResourceReportStatus;
+  /** @nullable */
+  resolution: string | null;
+  createdAt: string;
+}
+
+export interface ResourceReportList {
+  items: ResourceReport[];
+}
+
 export type MediaUploadInputKind = typeof MediaUploadInputKind[keyof typeof MediaUploadInputKind];
 
 
 export const MediaUploadInputKind = {
   photo: 'photo',
   audio: 'audio',
+  video: 'video',
+} as const;
+
+export type MediaUploadInputVideoFormat = typeof MediaUploadInputVideoFormat[keyof typeof MediaUploadInputVideoFormat];
+
+
+export const MediaUploadInputVideoFormat = {
+  reel: 'reel',
+  post: 'post',
 } as const;
 
 export interface MediaUploadInput {
@@ -28,6 +192,7 @@ export interface MediaUploadInput {
      * @maxLength 1000
      */
   altText?: string;
+  videoFormat?: MediaUploadInputVideoFormat;
 }
 
 export type MediaAttachmentKind = typeof MediaAttachmentKind[keyof typeof MediaAttachmentKind];
@@ -36,6 +201,7 @@ export type MediaAttachmentKind = typeof MediaAttachmentKind[keyof typeof MediaA
 export const MediaAttachmentKind = {
   photo: 'photo',
   audio: 'audio',
+  video: 'video',
 } as const;
 
 export type MediaAttachmentStatus = typeof MediaAttachmentStatus[keyof typeof MediaAttachmentStatus];
@@ -73,6 +239,48 @@ export const MediaAttachmentAbuseState = {
   error: 'error',
 } as const;
 
+/**
+ * @nullable
+ */
+export type MediaAttachmentVideoFormat = typeof MediaAttachmentVideoFormat[keyof typeof MediaAttachmentVideoFormat] | null;
+
+
+export const MediaAttachmentVideoFormat = {
+  reel: 'reel',
+  post: 'post',
+} as const;
+
+export interface VideoCaptionCue {
+  /** @minimum 0 */
+  start: number;
+  /** @exclusiveMinimum 0 */
+  end: number;
+  /**
+     * @minLength 1
+     * @maxLength 500
+     */
+  text: string;
+}
+
+export type MediaAttachmentCaptionState = typeof MediaAttachmentCaptionState[keyof typeof MediaAttachmentCaptionState];
+
+
+export const MediaAttachmentCaptionState = {
+  unavailable: 'unavailable',
+  provided: 'provided',
+  no_speech: 'no_speech',
+} as const;
+
+export type MediaAttachmentPlaybackVariantsItem = typeof MediaAttachmentPlaybackVariantsItem[keyof typeof MediaAttachmentPlaybackVariantsItem];
+
+
+export const MediaAttachmentPlaybackVariantsItem = {
+  standard: 'standard',
+  low: 'low',
+  webm: 'webm',
+  thumbnail: 'thumbnail',
+} as const;
+
 export interface MediaAttachment {
   id: string;
   kind: MediaAttachmentKind;
@@ -95,6 +303,12 @@ export interface MediaAttachment {
   transcript: string | null;
   /** @nullable */
   limitation: string | null;
+  /** @nullable */
+  videoFormat?: MediaAttachmentVideoFormat;
+  captions?: VideoCaptionCue[];
+  captionVersion?: number;
+  captionState?: MediaAttachmentCaptionState;
+  playbackVariants?: MediaAttachmentPlaybackVariantsItem[];
 }
 
 export interface MediaUploadSession {
@@ -743,6 +957,43 @@ export interface Post {
   reactionCounts?: PostReactionCounts;
   originalAvailable?: boolean;
   mediaAssets?: MediaAttachment[];
+}
+
+export type VideoCaptionInputCaptionState = typeof VideoCaptionInputCaptionState[keyof typeof VideoCaptionInputCaptionState];
+
+
+export const VideoCaptionInputCaptionState = {
+  provided: 'provided',
+  no_speech: 'no_speech',
+} as const;
+
+export interface VideoCaptionInput {
+  /** @minimum 0 */
+  captionVersion: number;
+  captionState: VideoCaptionInputCaptionState;
+  /** @maxItems 1000 */
+  cues: VideoCaptionCue[];
+}
+
+export type VideoReviewDecisionDecision = typeof VideoReviewDecisionDecision[keyof typeof VideoReviewDecisionDecision];
+
+
+export const VideoReviewDecisionDecision = {
+  allow: 'allow',
+  hold: 'hold',
+  reject: 'reject',
+} as const;
+
+export interface VideoReviewDecision {
+  decision: VideoReviewDecisionDecision;
+  /**
+     * @minLength 1
+     * @maxLength 1000
+     */
+  reason: string;
+  captionVersion: number;
+  watchedEntireVideo: boolean;
+  listenedEntireAudio: boolean;
 }
 
 export interface PaginatedPosts {
@@ -2270,6 +2521,15 @@ export interface EducationVisibleCompletionList {
   completionDisclaimer: 'Educational activity only; not a clinical qualification.';
 }
 
+export type ListResourcesParams = {
+/**
+ * @maxLength 200
+ */
+q?: string;
+category?: string;
+region?: string;
+};
+
 export type ListFriendRequestsParams = {
 /**
  * @minimum 1
@@ -2362,6 +2622,22 @@ cursor?: string;
 
 export type ListGroupsParams = {
 q?: string;
+};
+
+export type ListReelsParams = {
+cursor?: string;
+};
+
+export type ListVideoReview200 = {
+  items: MediaAttachment[];
+};
+
+export type ReviewVideoAssetParams = {
+/**
+ * @minLength 1
+ * @maxLength 1000
+ */
+reason: string;
 };
 
 export type ListNotificationsParams = {

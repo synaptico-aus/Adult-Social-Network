@@ -929,6 +929,9 @@ export default function StaffEducationPage() {
           </div>
         </div>
 
+        <Link href="/staff/resources" data-testid="link-staff-resources">
+          <Button variant="outline" className="rounded-xl gap-2 hidden sm:flex bg-card">Resource sources</Button>
+        </Link>
         {caps.capabilities.includes("moderation.queue") && (
           <Link href="/staff/moderation">
             <Button variant="outline" className="rounded-xl gap-2 hidden sm:flex bg-card">

@@ -50,7 +50,7 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
-/* LIGHT MODE */
+/* Light lavender surfaces with readable golden-yellow writing. */
 :root {
   --button-outline: rgba(32, 33, 36, 0.1);
   --badge-outline: rgba(32, 33, 36, 0.05);
@@ -60,52 +60,28 @@
   --elevate-1: rgba(32, 33, 36, 0.03);
   --elevate-2: rgba(32, 33, 36, 0.08);
 
-  /* Brand Colors */
-  /* Warm White */
-  --background: 15 100% 98%;
-  /* Charcoal */
-  --foreground: 225 6% 13%;
-  
-  /* Pale Crimson */
-  --border: 349 73% 90%;
-  
-  /* Warm White */
-  --card: 15 100% 98%;
-  --card-foreground: 225 6% 13%;
-  --card-border: 349 73% 90%;
-
-  --popover: 15 100% 98%;
-  --popover-foreground: 225 6% 13%;
-  --popover-border: 349 73% 90%;
-
-  /* Primary Crimson */
-  --primary: 352 82% 38%;
-  /* Warm White */
-  --primary-foreground: 15 100% 98%;
-
-  /* Pale Crimson */
-  --secondary: 349 73% 96%;
-  /* Dark Crimson */
-  --secondary-foreground: 352 82% 26%;
-
-  /* Pale Crimson */
-  --muted: 349 73% 96%;
-  /* Muted Charcoal */
-  --muted-foreground: 225 6% 40%;
-
-  /* Pale Crimson */
-  --accent: 349 73% 96%;
-  /* Dark Crimson */
-  --accent-foreground: 352 82% 26%;
-
-  /* Destructive - Adjusted for contrast but keeping tone */
-  --destructive: 352 82% 38%;
-  --destructive-foreground: 15 100% 98%;
-
-  /* Pale Crimson */
-  --input: 349 73% 90%;
-  /* Primary Crimson */
-  --ring: 352 82% 38%;
+  --background: 270 60% 94%;
+  --foreground: 46 100% 20%;
+  --border: 270 30% 65%;
+  --card: 270 60% 90%;
+  --card-foreground: 46 100% 20%;
+  --card-border: 270 30% 65%;
+  --popover: 270 60% 94%;
+  --popover-foreground: 46 100% 20%;
+  --popover-border: 270 30% 65%;
+  --primary: 270 60% 35%;
+  --primary-foreground: 50 100% 68%;
+  --secondary: 270 55% 87%;
+  --secondary-foreground: 46 100% 20%;
+  --muted: 270 45% 91%;
+  --muted-foreground: 46 80% 23%;
+  --accent: 270 55% 85%;
+  --accent-foreground: 46 100% 20%;
+  /* Warning text remains yellow; alerts retain their labels and icons. */
+  --destructive: 285 65% 30%;
+  --destructive-foreground: 50 100% 68%;
+  --input: 270 30% 65%;
+  --ring: 270 60% 35%;
 
   --app-font-sans: 'DM Sans', sans-serif;
   --app-font-display: 'Outfit', sans-serif;
@@ -127,28 +103,9 @@
 }
 
 .dark {
-  /* Minimal dark mode support - falls back gracefully */
-  --background: 225 6% 13%;
-  --foreground: 15 100% 98%;
-  --border: 225 6% 25%;
-  --card: 225 6% 15%;
-  --card-foreground: 15 100% 98%;
-  --card-border: 225 6% 25%;
-  --popover: 225 6% 15%;
-  --popover-foreground: 15 100% 98%;
-  --popover-border: 225 6% 25%;
-  --primary: 352 82% 45%;
-  --primary-foreground: 15 100% 98%;
-  --secondary: 225 6% 20%;
-  --secondary-foreground: 349 73% 96%;
-  --muted: 225 6% 20%;
-  --muted-foreground: 225 6% 70%;
-  --accent: 225 6% 20%;
-  --accent-foreground: 349 73% 96%;
-  --destructive: 352 82% 45%;
-  --destructive-foreground: 15 100% 98%;
-  --input: 225 6% 25%;
-  --ring: 352 82% 45%;
+  --background: 270 60% 94%;
+  --card: 270 60% 90%;
+  --popover: 270 60% 94%;
 }
 
 @layer base {
@@ -165,6 +122,29 @@
 }
 
 @layer utilities {
+  /* Golden-yellow text remains readable on light purple surfaces. */
+  .text-primary,
+  .text-destructive,
+  .hover\:text-primary:hover,
+  .group:hover .group-hover\:text-primary {
+    color: hsl(var(--foreground));
+  }
+  .text-primary\/60,
+  .text-primary\/80,
+  .hover\:text-primary\/80:hover {
+    color: hsl(var(--muted-foreground));
+  }
+  .prose {
+    --tw-prose-body: hsl(var(--foreground));
+    --tw-prose-headings: hsl(var(--foreground));
+    --tw-prose-links: hsl(var(--foreground));
+    --tw-prose-bold: hsl(var(--foreground));
+    --tw-prose-quotes: hsl(var(--foreground));
+  }
+  .prose a,
+  .prose a:hover {
+    color: hsl(var(--foreground));
+  }
   .font-display {
     font-family: var(--app-font-display);
   }

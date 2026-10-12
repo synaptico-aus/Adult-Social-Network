@@ -43,11 +43,16 @@ import UnderstandingDementia from '@/pages/understanding-dementia';
 import EducationDetail from '@/pages/education-detail';
 import MyLearning from '@/pages/my-learning';
 import StaffEducationPage from '@/pages/staff/education';
+import ResourcesPage from '@/pages/resources';
+import ResourceDetail from '@/pages/resource-detail';
+import StaffResourcesPage from '@/pages/staff/resources';
 import About from '@/pages/about';
 import AccountSecurity from '@/pages/account-security';
 import Onboarding from '@/pages/onboarding';
 import SafetyPage from '@/pages/safety';
 import StaffModerationPage from '@/pages/staff/moderation';
+import ReelsPage from '@/pages/reels';
+import StaffVideoReviewPage from '@/pages/staff/video-review';
 import MyCircle from '@/pages/my-circle';
 import {
   getGetAccountSummaryQueryKey,
@@ -145,6 +150,8 @@ function Router() {
                   <Route path="/" component={HomeRoute} />
                   <Route path="/explore"><RequireMember><Explore /></RequireMember></Route>
                    <Route path="/circle"><RequireMember><MyCircle /></RequireMember></Route>
+                  <Route path="/reels"><RequireMember><ReelsPage /></RequireMember></Route>
+                  <Route path="/staff/video-review"><RequireMember><StaffVideoReviewPage /></RequireMember></Route>
                   <Route path="/groups"><RequireMember><Groups /></RequireMember></Route>
                   <Route path="/groups/new"><RequireMember><GroupCreate /></RequireMember></Route>
                   <Route path="/groups/:id"><RequireMember><GroupDetail /></RequireMember></Route>
@@ -168,6 +175,9 @@ function Router() {
                   <Route path="/safety"><RequireMember><SafetyPage /></RequireMember></Route>
                   <Route path="/staff/moderation"><RequireMember><StaffModerationPage /></RequireMember></Route>
                   <Route path="/staff/education"><RequireMember><StaffEducationPage /></RequireMember></Route>
+                  <Route path="/staff/resources"><RequireMember><StaffResourcesPage /></RequireMember></Route>
+                  <Route path="/resources" component={ResourcesPage} />
+                  <Route path="/resources/:id" component={ResourceDetail} />
                   <Route path="/components-preview" component={ComponentsPreview} />
                   <Route path="/understanding-dementia" component={UnderstandingDementia} />
                   <Route path="/understanding-dementia/:slug" component={EducationDetail} />
@@ -202,20 +212,20 @@ function ClerkProviderWithRoutes() {
           socialButtonsPlacement: "bottom",
         },
         variables: {
-          colorPrimary: '#ad1029',
-          colorForeground: '#252023',
-          colorMutedForeground: '#625a5e',
-          colorBackground: '#fffaf8',
-          colorInput: '#ffffff',
-          colorInputForeground: '#252023',
-          colorDanger: '#b42318',
-          colorNeutral: '#776d72',
+          colorPrimary: '#59248f',
+          colorForeground: '#664e00',
+          colorMutedForeground: '#6a5412',
+          colorBackground: '#f0e7f9',
+          colorInput: '#e6d6f5',
+          colorInputForeground: '#664e00',
+          colorDanger: '#664e00',
+          colorNeutral: '#6a5412',
           fontFamily: 'DM Sans, sans-serif',
           borderRadius: '0.75rem',
         },
         elements: {
           formButtonPrimary: {
-            color: "#ffffff",
+            color: "#ffe45c",
             fontWeight: "700",
           },
         },

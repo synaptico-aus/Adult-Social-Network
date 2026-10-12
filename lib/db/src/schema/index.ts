@@ -31,3 +31,4 @@ export * from "./media";
 export * from "./messaging";
 export * from "./notifications";
 export * from "./education";
+export * from "./resources";

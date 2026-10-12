@@ -37,6 +37,11 @@ export default function UnderstandingDementiaPage() {
         description="Clear, vetted, and dignified information to help you and your family navigate the realities of dementia. These materials are for educational purposes and are not medical advice."
       />
 
+      <Link href="/resources" data-testid="link-resources" className="rounded-2xl border border-border bg-card p-5 flex items-center justify-between hover:border-primary/30">
+        <span><span className="block font-display text-xl font-semibold">External resource library</span><span className="block text-muted-foreground">Articles, helplines, podcasts and more from other organisations, each with its review status shown.</span></span>
+        <ChevronRight className="w-5 h-5 text-primary" aria-hidden="true" />
+      </Link>
+
       <div className="flex flex-col md:flex-row gap-4">
         <div className="relative flex-1">
           <label htmlFor="search-education" className="sr-only">Search lessons</label>

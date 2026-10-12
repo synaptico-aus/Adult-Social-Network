@@ -8,9 +8,18 @@ import { requireAuth, memberRateLimit } from "../middlewares/account-auth";
 import { intakeForModeration } from "../lib/moderation-intake";
 import "../lib/posts-deletion-hook";
 import { activeGroupMembership as liveActiveGroupMembership, canUseGroup as liveCanUseGroup, canViewGroupPost as liveCanViewGroupPost } from "../lib/group-access";
+import { videoPublicFields } from "../lib/media-response";
+import { cleanupDetachedVideoAssets } from "../lib/media-deletion-hook";
 
 const router = Router();
-router.use(["/posts", "/feed"], requireAuth);
+router.use(["/posts", "/feed", "/reels"], requireAuth);
+// External sharing is a normal authenticated deep link, never a bearer grant.
+// Keep private bodies/media out of cacheable crawler/link-preview responses.
+router.use("/posts/:id", (_req, res, next) => {
+  res.set("Cache-Control", "private, no-store");
+  res.set("X-Robots-Tag", "noindex, noarchive");
+  next();
+});
 const postInput = z.object({ body: z.string().max(20000), audience: z.enum(["only_me", "friends", "my_circle", "this_group", "public"]).optional(), circleId: z.string().min(1).max(200).nullable().optional(), groupId: z.string().min(1).max(200).nullable().optional(), isIntroduction: z.boolean().optional(), responseLabel: z.enum(["someone_to_listen", "shared_experiences", "practical_ideas", "something_uplifting"]).nullable().optional(), commentsOpen: z.boolean().optional(), visibleReactionCounts: z.boolean().optional(), originalPostId: z.string().optional(), commentary: z.string().max(10000).optional(), mediaAssetIds: z.array(z.string()).max(10).optional() }).strict();
 async function ownedReadyMedia(memberId: string, ids: string[] | undefined, source: QuerySource = db) {
   if (!ids?.length) return true;
@@ -107,6 +116,7 @@ async function mediaAttachments(post: typeof postsTable.$inferSelect, viewer: st
     id: asset.id, kind: asset.kind, contentType: asset.contentType, byteSize: asset.byteSize, width: asset.width,
     height: asset.height, durationSeconds: asset.durationSeconds, status: asset.status, altText: asset.altText,
     malwareState: asset.malwareState, abuseState: asset.abuseState, transcript: asset.transcript,
+    ...videoPublicFields(asset),
     limitation: asset.status === "held" || asset.status === "rejected" ? (asset.rejectionReason ?? "Media checks are pending") : null,
   }));
 }
@@ -211,6 +221,31 @@ router.get("/feed", async (req, res): Promise<void> => {
   const items = filtered.slice(0, q.data.limit); const last = items.at(-1);
   res.json({ items, nextCursor: filtered.length > q.data.limit && last ? encodeCursor(last) : null });
 });
+router.get("/reels", async (req, res): Promise<void> => {
+  const m = await member(req);
+  if (!m) { res.status(401).end(); return; }
+  const c = req.query.cursor ? cursor(req.query.cursor) : undefined;
+  if (req.query.cursor && (!c || !Number.isFinite(c.at.getTime()))) { res.status(400).json({ error: "Invalid reel cursor" }); return; }
+  const items: NonNullable<Awaited<ReturnType<typeof response>>>[] = [];
+  let scan = c, exhausted = false;
+  for (let batches = 0; batches < 5 && items.length < 11 && !exhausted; batches++) {
+    const rows = await db.select().from(postsTable).where(and(eq(postsTable.status, "published"),
+      sql`exists (select 1 from media_assets ma where ma.id in (select jsonb_array_elements_text(${postsTable.mediaAssetIds})) and ma.kind = 'video' and ma.video_format = 'reel' and ma.status = 'ready')`,
+      scan ? or(lt(postsTable.createdAt, scan.at), and(eq(postsTable.createdAt, scan.at), lt(postsTable.id, scan.id))) : undefined))
+      .orderBy(desc(postsTable.createdAt), desc(postsTable.id)).limit(100);
+    if (!rows.length) { exhausted = true; break; }
+    for (const row of rows) {
+      scan = { at: row.createdAt, id: row.id };
+      const item = await response(row, m.id);
+      if (item) items.push(item);
+      if (items.length >= 11) break;
+    }
+    exhausted = rows.length < 100 && items.length < 11;
+  }
+  const shown = items.slice(0, 10), last = shown.at(-1);
+  res.set("Cache-Control", "private, no-store").json({ items: shown,
+    nextCursor: items.length > 10 && last ? encodeCursor(last) : !exhausted && scan ? encodeCursor({ createdAt: scan.at, id: scan.id }) : null });
+});
 router.get("/saved", async (req, res): Promise<void> => {
   const m = await member(req); if (!m) { res.status(401).end(); return; }
   const q = z.object({ limit: z.coerce.number().int().min(1).max(50).default(20), cursor: z.string().optional() }).safeParse(req.query);
@@ -275,7 +310,9 @@ router.delete("/posts/:id", async (req, res): Promise<void> => {
     if (!old || old.status === "deleted") return [];
     return tx.update(postsTable).set({ status: "deleted", deletedAt: new Date(), body: "" }).where(eq(postsTable.id, old.id)).returning();
   });
-  if (!row) { res.status(404).json({ error: "Post not found" }); return; } res.sendStatus(204);
+  if (!row) { res.status(404).json({ error: "Post not found" }); return; }
+  await cleanupDetachedVideoAssets(row.mediaAssetIds);
+  res.sendStatus(204);
 });
 router.post("/posts/:id/reactions", async (req, res): Promise<void> => {
   const m = await member(req); const p = z.object({ kind: z.enum(["hear_you", "thank_you_for_sharing"]) }).strict().safeParse(req.body); const id = String(req.params.id);

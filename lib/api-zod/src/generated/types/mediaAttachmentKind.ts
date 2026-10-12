@@ -12,4 +12,5 @@ export type MediaAttachmentKind = typeof MediaAttachmentKind[keyof typeof MediaA
 export const MediaAttachmentKind = {
   photo: 'photo',
   audio: 'audio',
+  video: 'video',
 } as const;

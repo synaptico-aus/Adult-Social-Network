@@ -70,7 +70,7 @@ export function PostComposer({ post, onSuccess, isStandalone = false, circleId, 
 
   const isPublished = post?.status === "published";
 
-  const { items: mediaItems, setItems: setMediaItems, addPhoto, addAudio, updateItem, startUpload, cancel, remove, saveTranscript } = useMediaUploads();
+  const { items: mediaItems, setItems: setMediaItems, addPhoto, addAudio, addVideo, recoverable, dismissRecovered, updateItem, startUpload, cancel, remove, saveTranscript } = useMediaUploads({ recover: !post });
 
   useEffect(() => {
     if (post?.mediaAssets && post.mediaAssets.length > 0) {
@@ -78,6 +78,8 @@ export function PostComposer({ post, onSuccess, isStandalone = false, circleId, 
         clientId: uuidv4(),
         file: new Blob(), // Dummy blob for existing asset
         kind: asset.kind,
+        fromExistingPost: true,
+        videoFormat: asset.videoFormat ?? undefined,
         altText: asset.altText || asset.transcript || '',
         status: asset.status as any,
         progress: 100,
@@ -208,6 +210,9 @@ export function PostComposer({ post, onSuccess, isStandalone = false, circleId, 
             setItems={setMediaItems}
             addPhoto={addPhoto}
             addAudio={addAudio}
+            addVideo={addVideo}
+            recoverable={recoverable}
+            dismissRecovered={dismissRecovered}
             updateItem={updateItem}
             startUpload={startUpload}
             cancel={cancel}

@@ -368,3 +368,34 @@ Security, accessibility, privacy, moderation, performance, operational, legal, a
   scenarios including repeated and linked-group races, 93 passing API tests,
   diff checks, and a final architecture review with no blocker, high, or medium
   findings.
+
+### Phase 12 external resource implementation record
+
+- Implemented the external resource library and staff source lifecycle, member
+  reporting, attributed independent review, removal, manual link checks and
+  bounded periodic stale checks.
+- Added staff-only HTTPS metadata fetching with DNS/IP validation, pinned
+  connections, redirect revalidation, bounded size/time and inert sanitised text.
+- Kept external articles/music/videos link-only unless the provider authorises
+  a fixed-template player. Short previews require original-summary or rights
+  provenance. No source content is downloaded for persistent storage/rehosting.
+- Added viewer-controlled embed consent/unload and always-visible plain links.
+  Consent cannot transfer to a different source, review or account.
+- Added protected-link copying for Me posts without snapshots or bearer grants;
+  existing authentication and original live permissions remain authoritative.
+- Full suite passed 109 tests and workspace typechecking passed. Public browser
+  consent/mobile checks passed with a temporary fixture and intercepted provider
+  responses. Signed-in staff browser verification remains limited by the test
+  helper's inability to establish fresh MFA, not by a bypass of that requirement.
+
+### Phase 13 video implementation record
+
+- Implemented explicit reel/post limits, recoverable whole-file upload, durable
+  bounded FFmpeg jobs, private thumbnail/audio/frame evidence and playback variants.
+- Added captions/corrections/transcripts, pause/mute, account-scoped autoplay and
+  low-data preferences, discrete Previous/Next/swipe/Load More reel navigation.
+- Added independent reason-audited full-video/audio review, revision-bound
+  decisions and fail-closed screening. Registered cleanup/deletion hooks.
+- API regression suite passes (114 tests). Real native devices, maintained
+  malware screening and operational worker checks remain release gates; see
+  `docs/phase13-video.md`. No production-ready claim.

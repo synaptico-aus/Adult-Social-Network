@@ -1,5 +1,8 @@
 import app from "./app";
 import { logger } from "./lib/logger";
+import { startResourceStaleChecks } from "./lib/resource-stale-checks";
+import { startVideoProcessing } from "./lib/video-processing";
+import { startMediaCleanup } from "./lib/media-deletion-hook";
 
 const rawPort = process.env["PORT"];
 
@@ -22,4 +25,7 @@ app.listen(port, (err) => {
   }
 
   logger.info({ port }, "Server listening");
+  startResourceStaleChecks();
+  startVideoProcessing();
+  startMediaCleanup();
 });

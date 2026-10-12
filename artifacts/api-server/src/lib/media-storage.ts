@@ -17,7 +17,7 @@ const privateDir = () => {
   const [bucket, ...prefix] = value.replace(/^\/|\/$/g, "").split("/");
   return { bucket, prefix: prefix.join("/") };
 };
-export function mediaObjectPath(owner: string, id = randomUUID()) { return `/objects/media/${owner}/${id}`; }
+export function mediaObjectPath(owner: string, id: string = randomUUID()) { return `/objects/media/${owner}/${id}`; }
 function resolve(path: string) {
   const { bucket, prefix } = privateDir();
   return { bucket, object: `${prefix}/${path.replace(/^\/objects\//, "")}` };
@@ -33,7 +33,7 @@ export async function mediaFile(path: string) {
   if (testStorage) {
     const entry = testStorage.get(path);
     if (!entry || entry.deleted) return null;
-    return { getMetadata: async () => [{ contentType: entry.contentType, size: entry.bytes.length }], download: async () => [entry.bytes], createReadStream: () => Readable.from(entry.bytes), delete: async () => entry.delete ? entry.delete() : (entry.deleted = true) } as any;
+    return { getMetadata: async () => [{ contentType: entry.contentType, size: entry.bytes.length, generation: "1" }], download: async () => [entry.bytes], createReadStream: (options?: { start?: number; end?: number }) => Readable.from(entry.bytes.subarray(options?.start ?? 0, options?.end === undefined ? undefined : options.end + 1)), delete: async () => entry.delete ? entry.delete() : (entry.deleted = true) } as any;
   }
   if (!/^\/objects\/media\/[a-zA-Z0-9_-]+\/[a-zA-Z0-9_-]+$/.test(path)) throw new Error("Invalid media path");
   const { bucket, object } = resolve(path);
@@ -59,5 +59,35 @@ export async function replaceMediaObject(path: string, bytes: Buffer, contentTyp
     contentType,
     resumable: false,
     metadata: { cacheControl: "private, no-store, max-age=0" },
+  });
+}
+
+/** Immutable server-owned copy: an outstanding PUT URL cannot replace playback. */
+export async function freezeMediaObject(path: string, destination: string) {
+  if (testStorage) {
+    const entry = testStorage.get(path);
+    if (!entry || entry.deleted) throw new Error("Upload missing");
+    testStorage.set(destination, { bytes: Buffer.from(entry.bytes), contentType: entry.contentType });
+    return;
+  }
+  const from = resolve(path);
+  const to = resolve(destination);
+  const file = storage.bucket(from.bucket).file(from.object);
+  const [metadata] = await file.getMetadata();
+  await storage.bucket(from.bucket).file(from.object, { generation: metadata.generation })
+    .copy(storage.bucket(to.bucket).file(to.object), { preconditionOpts: { ifGenerationMatch: 0 } });
+}
+
+/** Only worker-generated files may use this; no client-controlled object paths. */
+export async function storeProcessedFile(path: string, localFile: string, contentType: string) {
+  if (testStorage) {
+    const { readFile } = await import("node:fs/promises");
+    testStorage.set(path, { bytes: await readFile(localFile), contentType });
+    return;
+  }
+  const { bucket, object } = resolve(path);
+  await storage.bucket(bucket).upload(localFile, {
+    destination: object, resumable: true, timeout: 60000,
+    metadata: { contentType, cacheControl: "private, no-store, max-age=0" },
   });
 }

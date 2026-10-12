@@ -5,3 +5,7 @@
 - [Group block and host boundaries](group-block-host-boundaries.md) — group entry checks blocks against every member; welcome access needs independent training and exact assignment.
 - [Messaging authority locks](messaging-authority-locks.md) — lock pair before group before conversation; notification creation shares the same live-authority boundary.
 - [Education publication evidence](education-publication-evidence.md) — publish immutable revisions only after separate review, fresh evidence checks, rights confirmation, and a lesson lock.
+- [Clerk browser MFA verification](clerk-browser-mfa-verification.md) — a sign-in URL does not prove unsupported claims overrides worked; verify fresh MFA without weakening the gate.
+- [Dementia brand colours](dementia-brand-colours.md) — Me uses purple social surfaces and yellow writing, as requested by the user.
+- [Video screening boundary](video-screening-boundary.md) — approval binds to frozen source bytes, complete playback and exact captions, never upload URLs or thumbnails.
+- [Browser codec verification](browser-codec-verification.md) — the test browser can support MP4 containers but lack H.264/AAC; distinguish decoding from private-access failures.

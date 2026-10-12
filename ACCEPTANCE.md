@@ -360,3 +360,76 @@ Phase 3 is verified in development. Production release still depends on Phase 2 
 - [x] The full 99-test API run passed 98 tests; its sole failure was the
   previously documented Phase 6 pagination-ordering flake, which passed 12/12
   immediately in isolation.
+
+## Phase 12 external resources and protected sharing
+
+- [x] Articles, news, podcasts, music, videos, events, helplines, research and
+  organisations have domain, title, bounded permitted preview, date (or an
+  explicit unknown date), category and region.
+- [x] Public library/detail and capability/MFA-protected staff authoring,
+  independent source review, link checks, removal and report decisions persist.
+  Editing clears review; labels include reviewer/date and explicitly do not
+  verify every claim or provide clinical endorsement.
+- [x] Metadata fetching is staff-only, rate/concurrency limited and HTTPS-only.
+  Literal/internal hosts and nonpublic DNS answers are rejected; validated
+  addresses are pinned, including each redirect. Limits: 3 redirects, 8 seconds,
+  1.5-second DNS lookup, 256 KiB body and 16 KiB response headers. Compressed and
+  non-HTML preview responses are rejected. Fetched markup is never executed.
+- [x] No downloaded music, articles, images or videos are stored/rehosted.
+  Metadata descriptions are suggestions only, never automatically published.
+  Preview provenance and reviewer rights confirmation are required.
+- [x] Only authorised, fixed-template YouTube and Spotify players are offered.
+  Each page requires viewer consent before provider requests, always offers a
+  plain link, supports unloading, and does not retain consent across reload,
+  resource/review change or account change.
+- [x] Reachability ages out after 30 days. Manual checks and bounded hourly
+  maintenance of up to 10 due reviewed links update warning states. Stale,
+  unavailable or redirected sources cannot load an embedded player.
+- [x] External private-post sharing copies only an authenticated Me route.
+  Authentication, blocks, live audience and original-share permissions still
+  apply; no bearer grant or public content snapshot is created.
+- [x] Resource reports are member-authenticated, staff-only to review and included
+  in the reporter's export. Account deletion detaches the reporting identity.
+
+| Verification | Result |
+| --- | --- |
+| Schema push, generated API contracts, workspace typecheck, diff check | Passed |
+| Focused Phase 12 safety/lifecycle/deep-link regressions | Passed: 10 tests |
+| Full API and policy suite | Passed: 109 tests |
+| Public browser consent and 390px layout | Passed with temporary DB fixture and stubbed provider responses |
+| Signed-in staff/report browser journey | Not verified: test sign-in could not establish fresh MFA |
+
+There are no seeded recommended sources. An authorised editor and a different
+reviewer must supply and approve actual links. This phase does not change the
+project's existing production-readiness limits.
+
+## Phase 13 — video/reels acceptance
+
+Implementation and coverage details: `docs/phase13-video.md`.
+
+| Check | Result |
+| --- | --- |
+| Development schema, generated contract, shared/API/frontend types | Passed |
+| Full API regression suite | 114 passed; final video-only reruns passed 5/5 after codec/cleanup fixes |
+| Real background processing | MP4 and VP9/Opus inputs tested with FFmpeg; private standard/low/WebM/thumbnail/frame/audio outputs |
+| Immutable upload completion and limits | Passed; overwritten staging PUT cannot replace frozen source; size/duration/container checks enforced |
+| Screening uncertainty, MFA, independent review and caption conflicts | Passed in DB-backed API tests; unknown malware stays held and cannot be waived |
+| Every playback variant, byte ranges, friendship and block changes | Passed; anonymous/outside viewers denied; live permission changes deny subsequent requests |
+| Actual browser upload and private owner preview | Passed with a standard Clerk session and generated noncopyrighted two-second fixture; held, not published |
+| Browser codec support | Valid H.264/AAC MP4 could not decode in the test browser; private VP9/Opus fallback was added and played successfully with 206 requests |
+| Caption correction/transcript and reload recovery | Passed; one-second cue saved, version incremented, held status preserved, caption displayed; file reselection unnecessary |
+| Low-data and emulated 3G playback | Passed; no media requests before Play; streamed WebM decoded without a persistent stall |
+| Background/foreground behaviour | Browser-event simulation passed: hidden/pagehide paused; visible/pageshow did not resume |
+| Pause/mute | Active Pause control observed and mute verified; isolated mid-clip manual pause timing not separately verified with the short fixture |
+| 390px mobile viewport | Passed bounds check without horizontal overflow; this is not native-device validation |
+| Finite Next/Previous navigation | Passed with only the `/reels` feed response temporarily intercepted; actual authenticated media endpoints were not mocked |
+| Browser removal/cleanup | Owner cancel and Remove returned 204; both fixture assets became cancelled; no test posts remained |
+| Staff review in a real fresh-MFA browser session | Not verified; API capability/MFA gates remain enforced |
+| Real native iOS/Android devices and OS lifecycle | Not verified; no native artifact/device is available |
+
+New videos remain held in this workspace: maintained malware scanning/signatures
+are not configured. Automated frame/audio provider coverage is explicitly
+unavailable; full independent human video/audio review is required and cannot
+waive malware checks. Thumbnail/contact-sheet sampling is not full-video screening.
+Operational scanner/worker/storage-lifecycle checks and real-device acceptance
+are release gates. This phase makes no production-ready claim.

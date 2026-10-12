@@ -12,4 +12,5 @@ export type MediaUploadInputKind = typeof MediaUploadInputKind[keyof typeof Medi
 export const MediaUploadInputKind = {
   photo: 'photo',
   audio: 'audio',
+  video: 'video',
 } as const;

@@ -99,6 +99,18 @@ export function ShareDialog({ isOpen, onOpenChange, originalPost }: ShareDialogP
     }
   };
 
+  const copyPrivateLink = async () => {
+    try {
+      const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+      const url = new URL(`${base}/posts/${encodeURIComponent(originalPost.id)}`, window.location.origin);
+      // Share only an authenticated route, never a body, media URL or bearer token.
+      await navigator.clipboard.writeText(url.href);
+      toast({ title: "Link copied", description: "Recipients must sign in and already have permission to see the original post." });
+    } catch {
+      toast({ title: "Could not copy link", variant: "destructive" });
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px] rounded-[2rem] p-6 sm:p-8 border border-border shadow-lg">
@@ -111,6 +123,12 @@ export function ShareDialog({ isOpen, onOpenChange, originalPost }: ShareDialogP
             Share this post with your own connections. The original content won't be copied, only referenced.
           </DialogDescription>
         </DialogHeader>
+
+        <section className="rounded-xl border border-border p-4 mb-4 space-y-2">
+          <h2 className="font-semibold">Share a link outside Me</h2>
+          <p className="text-sm text-muted-foreground">This does not make a private post public. Recipients must sign in and have the original permissions. Access can end if membership, friendship or sharing settings change.</p>
+          <Button type="button" variant="outline" onClick={copyPrivateLink} data-testid="button-copy-private-link">Copy protected link</Button>
+        </section>
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">

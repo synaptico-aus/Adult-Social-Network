@@ -3,13 +3,23 @@ import sharp from "sharp";
 
 export const PHOTO_LIMIT = 10 * 1024 * 1024;
 export const AUDIO_LIMIT = 50 * 1024 * 1024;
+export const REEL_LIMIT = 64 * 1024 * 1024;
+export const VIDEO_LIMIT = 200 * 1024 * 1024;
+export const REEL_DURATION = 120;
+export const VIDEO_DURATION = 600;
+const videoTypes = new Set(["video/mp4", "video/webm", "video/quicktime"]);
 const photoTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
 const audioTypes = new Set(["audio/mpeg", "audio/wav", "audio/mp4", "audio/ogg", "audio/webm"]);
 function normalizedType(type: string) {
   const bare = type.toLowerCase().split(";")[0].trim();
   return ({ "audio/mp3": "audio/mpeg", "audio/x-wav": "audio/wav", "audio/m4a": "audio/mp4", "audio/vorbis": "audio/ogg" } as Record<string, string>)[bare] ?? bare;
 }
-export function validateDeclared(kind: "photo" | "audio", type: string, size: number) {
+export function validateDeclared(kind: "photo" | "audio" | "video", type: string, size: number, videoFormat: "reel" | "post" = "post") {
+  if (kind === "video") {
+    const limit = videoFormat === "reel" ? REEL_LIMIT : VIDEO_LIMIT;
+    if (!videoTypes.has(normalizedType(type)) || !Number.isInteger(size) || size < 1 || size > limit) throw new Error(`Video must be MP4, WebM or QuickTime and no larger than ${limit / 1024 / 1024} MiB`);
+    return;
+  }
   const allowed = kind === "photo" ? photoTypes : audioTypes;
   if (!allowed.has(normalizedType(type)) || !Number.isInteger(size) || size < 1 || size > (kind === "photo" ? PHOTO_LIMIT : AUDIO_LIMIT)) throw new Error(kind === "photo" ? "Photo must be JPEG, PNG, or WebP and no larger than 10 MiB" : "Audio must be MP3, WAV, M4A, OGG, or WebM and no larger than 50 MiB");
 }

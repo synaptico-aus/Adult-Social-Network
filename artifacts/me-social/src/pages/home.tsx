@@ -51,7 +51,7 @@ export default function Home() {
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-secondary/50 via-background to-background -z-10" />
 
           <div className="container max-w-4xl mx-auto flex flex-col items-center gap-8">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#7A0C1A] text-[#FFF9F7] text-sm font-medium shadow-sm">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary text-primary-foreground text-sm font-medium shadow-sm">
               <Info className="w-4 h-4" />
               <span>Development Preview Phase</span>
             </div>
@@ -68,7 +68,7 @@ export default function Home() {
             <div className="mt-8 flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
               <a
                 href="#purpose"
-                className="inline-flex items-center justify-center gap-2 h-14 px-8 rounded-full bg-primary text-primary-foreground font-medium text-lg hover:bg-[#7A0C1A] transition-colors shadow-sm min-w-[200px]"
+                className="inline-flex items-center justify-center gap-2 h-14 px-8 rounded-full bg-primary text-primary-foreground font-medium text-lg hover:bg-accent transition-colors shadow-sm min-w-[200px]"
               >
                 Understand our approach
                 <ArrowDown className="w-5 h-5" />
@@ -167,10 +167,10 @@ export default function Home() {
           <div className="container max-w-6xl mx-auto">
             <div className="flex flex-col lg:flex-row gap-16 items-start">
               <div className="lg:w-1/3 flex flex-col gap-6">
-                <h2 className="font-display text-3xl md:text-5xl font-bold text-[#7A0C1A]">
+                <h2 className="font-display text-3xl md:text-5xl font-bold text-foreground">
                   Your privacy is our baseline.
                 </h2>
-                <p className="text-lg text-[#7A0C1A]/80 leading-relaxed">
+                <p className="text-lg text-muted-foreground leading-relaxed">
                   Health journeys are deeply sensitive. We are architecting this platform with data protection as the foundational requirement, not an afterthought.
                 </p>
               </div>
@@ -263,17 +263,17 @@ export default function Home() {
       </main>
 
       {/* Footer */}
-      <footer className="w-full bg-[#202124] text-[#FFF9F7] py-12 md:py-16">
+      <footer className="w-full bg-background text-foreground py-12 md:py-16">
         <div className="container mx-auto px-4 md:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12 border-b border-white/10 pb-12">
             <div className="flex flex-col gap-4 lg:col-span-2">
               <div className="flex items-center gap-2">
-                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-[#B11226] text-white font-display font-bold leading-none">
+                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground font-display font-bold leading-none">
                   M
                 </div>
                 <span className="font-display font-semibold text-xl tracking-tight">Me</span>
               </div>
-              <p className="text-white/60 max-w-sm mt-2 leading-relaxed">
+              <p className="text-muted-foreground max-w-sm mt-2 leading-relaxed">
                 A social connection space respectfully designed for people affected by dementia globally. Currently in phased development.
               </p>
             </div>
@@ -281,25 +281,25 @@ export default function Home() {
             <div className="flex flex-col gap-4">
               <h4 className="font-display font-semibold text-lg">Product</h4>
               <nav className="flex flex-col gap-3">
-                <a href="#purpose" className="text-white/60 hover:text-white transition-colors min-h-[44px] flex items-center">Purpose</a>
-                <a href="#audiences" className="text-white/60 hover:text-white transition-colors min-h-[44px] flex items-center">Who it's for</a>
-                <a href="#privacy" className="text-white/60 hover:text-white transition-colors min-h-[44px] flex items-center">Privacy</a>
+                <a href="#purpose" className="text-muted-foreground hover:text-foreground transition-colors min-h-[44px] flex items-center">Purpose</a>
+                <a href="#audiences" className="text-muted-foreground hover:text-foreground transition-colors min-h-[44px] flex items-center">Who it's for</a>
+                <a href="#privacy" className="text-muted-foreground hover:text-foreground transition-colors min-h-[44px] flex items-center">Privacy</a>
               </nav>
             </div>
 
             <div className="flex flex-col gap-4">
               <h4 className="font-display font-semibold text-lg">Legal</h4>
               <nav className="flex flex-col gap-3">
-                <span className="text-white/40 cursor-not-allowed min-h-[44px] flex items-center" aria-label="Privacy Policy - Coming soon">Privacy Policy (Soon)</span>
-                <span className="text-white/40 cursor-not-allowed min-h-[44px] flex items-center" aria-label="Terms of Service - Coming soon">Terms of Service (Soon)</span>
+                <span className="text-muted-foreground cursor-not-allowed min-h-[44px] flex items-center" aria-label="Privacy Policy - Coming soon">Privacy Policy (Soon)</span>
+                <span className="text-muted-foreground cursor-not-allowed min-h-[44px] flex items-center" aria-label="Terms of Service - Coming soon">Terms of Service (Soon)</span>
               </nav>
             </div>
           </div>
 
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-white/40">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
             <p>&copy; {new Date().getFullYear()} Me Social Space. All rights reserved.</p>
             <p className="flex items-center gap-1">
-              Designed with <Heart className="w-4 h-4 text-[#B11226]" aria-label="care" /> for the community.
+              Designed with <Heart className="w-4 h-4 text-foreground" aria-label="care" /> for the community.
             </p>
           </div>
         </div>

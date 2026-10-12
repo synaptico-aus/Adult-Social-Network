@@ -386,7 +386,10 @@ export default function StaffModerationPage() {
           </div>
         </div>
 
-        {caps.capabilities.includes("education.write") && (
+        <Link href="/staff/video-review">
+          <Button variant="outline" className="rounded-xl gap-2 hidden sm:flex bg-card">Video review</Button>
+        </Link>
+        {caps.capabilities.some(c => c.startsWith("education.")) && (
           <Link href="/staff/education">
             <Button variant="outline" className="rounded-xl gap-2 hidden sm:flex bg-card">
               <BookOpen className="w-4 h-4" /> Curriculum

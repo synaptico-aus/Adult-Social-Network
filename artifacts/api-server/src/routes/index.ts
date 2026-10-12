@@ -12,6 +12,8 @@ import groupsRouter from "./groups";
 import messagesRouter from "./messages";
 import notificationsRouter from "./notifications";
 import educationRouter from "./education";
+import resourcesRouter from "./resources";
+import videoRouter from "./video";
 
 const router: IRouter = Router();
 
@@ -28,5 +30,7 @@ router.use(groupsRouter);
 router.use(notificationsRouter);
 router.use(messagesRouter);
 router.use(educationRouter);
+router.use(resourcesRouter);
+router.use(videoRouter);
 
 export default router;

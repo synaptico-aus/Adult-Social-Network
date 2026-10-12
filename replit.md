@@ -134,3 +134,22 @@ The education PDF `PDF PD MOOC - Norton paper summary.pdf` is missing. Only
 taxonomy categories are seeded: zero lessons and zero paper-derived claims
 are published. Education completion is not a clinical qualification, and this
 implementation makes no production-ready claim.
+
+### Phase 12 external content boundary
+External resources are reviewed links, not a rehosting service. Articles, music,
+images and videos must not be downloaded/rehosted without rights. Source review
+does not verify every claim. Metadata fetching stays staff-only and SSRF-safe,
+and never executes fetched markup. Embeds require both authorised provider use
+and separate viewer consent before third-party requests; plain links remain
+available. No recommended sources are seeded without independent review.
+Private Me external shares remain authenticated deep links, with live original
+permissions rather than public snapshots or bearer-token access.
+
+### Phase 13 video boundary
+See `docs/phase13-video.md` for limits, recoverable uploads, processing, coverage,
+private playback and deletion. Reels and video posts use the existing audiences
+and interaction permissions; playback is never a public object URL.
+All newly processed videos are held until independent full-video/audio review
+and an allowed malware result. Missing scanners/signatures cannot be waived.
+Captions are revision-bound, not automatically generated. Real native-device
+testing and operational scanner/worker validation remain release gates.

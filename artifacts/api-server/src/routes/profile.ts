@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { and, asc, desc, eq, gt, inArray, isNull, or } from "drizzle-orm";
 import { getAuth } from "@clerk/express";
 import { z } from "zod";
+import { resourceReportsTable } from "@workspace/db";
 import { circleHistoryGrantsTable, circleInvitationsTable, circleMembersTable, circlesTable, db, membersTable, mediaAssetsTable, profilesTable, thisIsMeCardsTable, verificationRequestsTable, consentHistoryTable, friendRequestsTable, friendshipsTable, followsTable, discoverySettingsTable, postsTable, commentsTable, postReactionsTable, postSavesTable, postHidesTable, groupMembersTable, groupsTable, groupMembershipRequestsTable, groupHostAssignmentsTable, groupWelcomeRequestsTable, reportsTable, communityHostTrainingTable, conversationsTable, conversationMembersTable, messagesTable, messageMemberRemovalsTable, messageRequestsTable, messageContactSettingsTable, notificationPreferencesTable, deviceRegistrationsTable, messageReportsTable, educationSavesTable, educationProgressTable } from "@workspace/db";
 import { requireAuth } from "../middlewares/account-auth";
 import { liveConversationMember } from "../lib/conversation-access";
@@ -231,6 +232,7 @@ router.get("/profile/export", async (req, res): Promise<void> => {
   const messageReports = await db.select().from(messageReportsTable).where(eq(messageReportsTable.reporterMemberId, member.id));
   const educationSaves = await db.select().from(educationSavesTable).where(eq(educationSavesTable.memberId, member.id));
   const educationProgress = await db.select().from(educationProgressTable).where(eq(educationProgressTable.memberId, member.id));
-  res.json({ memberId: member.id, profile, cards, consents, verification, friendRequests, friendships, follows, settings, posts, comments, reactions, saves, hides, circleMemberships, circles, circleInvitations, historyAccess, groupMemberships, groups, groupRequests, groupHosts, hostTraining, welcomeRequests, reports, conversations, conversationMemberships, messages, messageRequests, messageContactSettings, notificationPreferences, deviceRegistrations, messageReports, educationSaves, educationProgress, exportedAt: new Date().toISOString() });
+  const resourceReports = await db.select().from(resourceReportsTable).where(eq(resourceReportsTable.memberId, member.id));
+  res.json({ memberId: member.id, profile, cards, consents, verification, friendRequests, friendships, follows, settings, posts, comments, reactions, saves, hides, circleMemberships, circles, circleInvitations, historyAccess, groupMemberships, groups, groupRequests, groupHosts, hostTraining, welcomeRequests, reports, conversations, conversationMemberships, messages, messageRequests, messageContactSettings, notificationPreferences, deviceRegistrations, messageReports, educationSaves, educationProgress, resourceReports, exportedAt: new Date().toISOString() });
 });
 export default router;

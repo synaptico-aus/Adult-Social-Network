@@ -6,9 +6,13 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { MediaAttachmentAbuseState } from './mediaAttachmentAbuseState';
+import type { MediaAttachmentCaptionState } from './mediaAttachmentCaptionState';
 import type { MediaAttachmentKind } from './mediaAttachmentKind';
 import type { MediaAttachmentMalwareState } from './mediaAttachmentMalwareState';
+import type { MediaAttachmentPlaybackVariantsItem } from './mediaAttachmentPlaybackVariantsItem';
 import type { MediaAttachmentStatus } from './mediaAttachmentStatus';
+import type { MediaAttachmentVideoFormat } from './mediaAttachmentVideoFormat';
+import type { VideoCaptionCue } from './videoCaptionCue';
 
 export interface MediaAttachment {
   id: string;
@@ -32,4 +36,10 @@ export interface MediaAttachment {
   transcript: string | null;
   /** @nullable */
   limitation: string | null;
+  /** @nullable */
+  videoFormat?: MediaAttachmentVideoFormat;
+  captions?: VideoCaptionCue[];
+  captionVersion?: number;
+  captionState?: MediaAttachmentCaptionState;
+  playbackVariants?: MediaAttachmentPlaybackVariantsItem[];
 }

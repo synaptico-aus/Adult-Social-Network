@@ -1,5 +1,6 @@
 import React from 'react';
 import { MediaAttachment } from '@workspace/api-client-react';
+import { VideoPlayer } from './video-player';
 import { AlertCircle, Headphones } from 'lucide-react';
 
 export function MediaAttachmentRenderer({ asset, isDetail }: { asset: MediaAttachment, isDetail?: boolean }) {
@@ -31,6 +32,10 @@ export function MediaAttachmentRenderer({ asset, isDetail }: { asset: MediaAttac
         )}
       </div>
     );
+  }
+
+  if (asset.kind === 'video') {
+    return <div className="mt-3 mb-4"><VideoPlayer asset={asset} /></div>;
   }
 
   if (asset.kind === 'audio') {

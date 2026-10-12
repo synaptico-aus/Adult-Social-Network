@@ -25,6 +25,163 @@ tags:
   - name: education-staff
     description: Capability-scoped education authoring and review
 paths:
+  /resources:
+    get:
+      operationId: listResources
+      parameters:
+        - { name: q, in: query, schema: { type: string, maxLength: 200 } }
+        - { name: category, in: query, schema: { type: string } }
+        - { name: region, in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: Reviewed external links, not claim verification
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ResourceList" }
+  /resources/{id}:
+    get:
+      operationId: getResource
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses:
+        "200":
+          description: Reviewed external link
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Resource" }
+        "404": { description: Unavailable }
+  /resources/{id}/reports:
+    post:
+      operationId: reportResource
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ResourceReason" }
+      responses:
+        "201":
+          description: Report received from authenticated member
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ResourceReport" }
+        "401": { description: Sign in required }
+  /staff/resources:
+    get:
+      operationId: listStaffResources
+      responses:
+        "200":
+          description: Education staff source queue; fresh MFA required
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ResourceList" }
+    post:
+      operationId: createResource
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ResourceInput" }
+      responses:
+        "201":
+          description: Draft external resource
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Resource" }
+  /staff/resources/preview:
+    post:
+      operationId: previewResource
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ResourceUrl" }
+      responses:
+        "200":
+          description: Bounded plain metadata, not permission to reproduce
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ResourcePreview" }
+        "400": { description: Unsafe or unreachable destination }
+        "429": { description: Preview rate or concurrency limit }
+  /staff/resources/{id}:
+    patch:
+      operationId: updateResource
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ResourceInput" }
+      responses:
+        "200":
+          description: Changes require fresh separate review
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Resource" }
+  /staff/resources/{id}/review:
+    post:
+      operationId: reviewResource
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ResourceReview" }
+      responses:
+        "200":
+          description: Separately reviewed source and rights, not every claim
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Resource" }
+  /staff/resources/{id}/remove:
+    post:
+      operationId: removeResource
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ResourceReason" }
+      responses:
+        "200":
+          description: Removed from public views and embeds
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Resource" }
+  /staff/resources/{id}/check:
+    post:
+      operationId: checkResource
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses:
+        "200":
+          description: Safe link check; redirects require review
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Resource" }
+  /staff/resource-reports:
+    get:
+      operationId: listResourceReports
+      responses:
+        "200":
+          description: Source report queue
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ResourceReportList" }
+  /staff/resource-reports/{id}/resolve:
+    post:
+      operationId: resolveResourceReport
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ResourceReason" }
+      responses:
+        "200":
+          description: Report decision retained
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ResourceReport" }
   /healthz:
     get:
       operationId: healthCheck
@@ -896,6 +1053,55 @@ paths:
         required: true
         content: { application/json: { schema: { $ref: "#/components/schemas/MediaTranscriptInput" } } }
       responses: { "200": { description: Updated transcript, content: { application/json: { schema: { $ref: "#/components/schemas/MediaAttachment" } } } } }
+  /media/{id}/status:
+    get:
+      operationId: getMediaStatus
+      tags: [media]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { "200": { description: Owner upload/processing status, content: { application/json: { schema: { $ref: "#/components/schemas/MediaAttachment" } } } } }
+  /media/{id}/captions:
+    patch:
+      operationId: correctVideoCaptions
+      tags: [media]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/VideoCaptionInput" } } } }
+      responses: { "200": { description: Captions corrected and screening invalidated, content: { application/json: { schema: { $ref: "#/components/schemas/MediaAttachment" } } } } }
+  /media/{id}/assets/{variant}:
+    get:
+      operationId: deliverVideoAsset
+      tags: [media]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+        - { name: variant, in: path, required: true, schema: { type: string, enum: [standard, low, webm, thumbnail, captions, transcript] } }
+      responses: { "200": { description: Reauthorised private playback asset }, "206": { description: Private byte range } }
+  /reels:
+    get:
+      operationId: listReels
+      tags: [posts]
+      parameters:
+        - { name: cursor, in: query, schema: { type: string } }
+      responses: { "200": { description: Finite chronological authorised reel page, content: { application/json: { schema: { $ref: "#/components/schemas/PaginatedPosts" } } } } }
+  /staff/video-review:
+    get:
+      operationId: listVideoReview
+      tags: [media]
+      responses: { "200": { description: Held video review queue, content: { application/json: { schema: { type: object, required: [items], properties: { items: { type: array, items: { $ref: "#/components/schemas/MediaAttachment" } } } } } } } }
+  /staff/video-review/{id}/assets/{variant}:
+    get:
+      operationId: reviewVideoAsset
+      tags: [media]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+        - { name: variant, in: path, required: true, schema: { type: string, enum: [standard, low, webm, thumbnail, captions, transcript, frames, audio] } }
+        - { name: reason, in: query, required: true, schema: { type: string, minLength: 1, maxLength: 1000 } }
+      responses: { "200": { description: Reason-scoped audited staff media stream }, "206": { description: Private byte range } }
+  /staff/video-review/{id}/decision:
+    post:
+      operationId: decideVideoReview
+      tags: [media]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/VideoReviewDecision" } } } }
+      responses: { "200": { description: Recorded decision; malware uncertainty stays held, content: { application/json: { schema: { $ref: "#/components/schemas/MediaAttachment" } } } } }
   /message-contact-settings:
     get:
       operationId: getMessageContactSettings
@@ -1282,15 +1488,102 @@ components:
       type: http
       scheme: bearer
   schemas:
+    ResourceInput:
+      type: object
+      additionalProperties: false
+      required: [url, title, category, region, preview, previewPermission, embedAuthorized]
+      properties:
+        url: { type: string, maxLength: 2048 }
+        title: { type: string, minLength: 1, maxLength: 200 }
+        category:
+          type: string
+          enum: [article, news, podcast, music, video, event, helpline, research, organisation]
+        region: { type: string, minLength: 1, maxLength: 100 }
+        sourceDate: { type: [string, "null"], format: date-time }
+        preview: { type: string, maxLength: 300, description: Original summary or explicitly permitted short preview only }
+        previewPermission: { type: string, maxLength: 500, description: Required permission or original-summary provenance when preview is nonempty }
+        embedAuthorized: { type: boolean, description: Staff confirms provider authorises embedding; only recognised YouTube and Spotify URLs supported }
+    Resource:
+      type: object
+      required: [id, url, domain, title, category, region, sourceDate, preview, previewPermission, embedAuthorized, embedUrl, status, reviewedBy, reviewedAt, lastCheckedAt, linkState, stale, removalReason]
+      properties:
+        id: { type: string }
+        url: { type: string }
+        domain: { type: string }
+        title: { type: string }
+        category: { type: string }
+        region: { type: string }
+        sourceDate: { type: [string, "null"], format: date-time }
+        preview: { type: string }
+        previewPermission: { type: string }
+        embedAuthorized: { type: boolean }
+        embedUrl: { type: [string, "null"] }
+        status: { type: string, enum: [draft, reviewed, removed] }
+        reviewedBy: { type: [string, "null"] }
+        reviewedAt: { type: [string, "null"], format: date-time }
+        lastCheckedAt: { type: [string, "null"], format: date-time }
+        linkState: { type: string, enum: [unchecked, reachable, unavailable, redirected] }
+        stale: { type: boolean }
+        removalReason: { type: [string, "null"] }
+    ResourceList:
+      type: object
+      required: [items]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/Resource" } }
+    ResourceUrl:
+      type: object
+      additionalProperties: false
+      required: [url]
+      properties:
+        url: { type: string, maxLength: 2048 }
+    ResourcePreview:
+      type: object
+      required: [url, domain, title, description, sourceDate]
+      properties:
+        url: { type: string }
+        domain: { type: string }
+        title: { type: string }
+        description: { type: string, description: Plain metadata suggestion; not automatically published or licensed }
+        sourceDate: { type: [string, "null"], format: date-time }
+    ResourceReason:
+      type: object
+      additionalProperties: false
+      required: [reason]
+      properties:
+        reason: { type: string, minLength: 1, maxLength: 1000 }
+    ResourceReview:
+      type: object
+      additionalProperties: false
+      required: [reviewerName, note, rightsConfirmed]
+      properties:
+        reviewerName: { type: string, minLength: 1, maxLength: 100, description: Public reviewer attribution; authenticated actor separately recorded }
+        note: { type: string, minLength: 1, maxLength: 1000 }
+        rightsConfirmed: { type: boolean, const: true }
+    ResourceReport:
+      type: object
+      required: [id, resourceId, reason, status, resolution, createdAt]
+      properties:
+        id: { type: string }
+        resourceId: { type: string }
+        reason: { type: string }
+        status: { type: string, enum: [open, resolved] }
+        resolution: { type: [string, "null"] }
+        createdAt: { type: string, format: date-time }
+    ResourceReportList:
+      type: object
+      required: [items]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/ResourceReport" } }
     MediaUploadInput:
       type: object
       required: [kind, contentType, size, clientIdempotencyKey]
       properties:
-        kind: { type: string, enum: [photo, audio] }
+        kind: { type: string, enum: [photo, audio, video] }
         contentType: { type: string }
         size: { type: integer, minimum: 1 }
         clientIdempotencyKey: { type: string, minLength: 1, maxLength: 200 }
         altText: { type: string, minLength: 1, maxLength: 1000 }
+        videoFormat: { type: string, enum: [reel, post] }
     MediaUploadSession:
       type: object
       required: [asset, uploadURL]
@@ -1601,7 +1894,7 @@ components:
       required: [id, kind, contentType, byteSize, width, height, durationSeconds, status, malwareState, abuseState, altText, transcript, limitation]
       properties:
         id: { type: string }
-        kind: { type: string, enum: [photo, audio] }
+        kind: { type: string, enum: [photo, audio, video] }
         contentType: { type: ["string", "null"] }
         byteSize: { type: ["integer", "null"] }
         width: { type: ["integer", "null"] }
@@ -1613,6 +1906,34 @@ components:
         altText: { type: ["string", "null"] }
         transcript: { type: ["string", "null"] }
         limitation: { type: ["string", "null"] }
+        videoFormat: { type: ["string", "null"], enum: [reel, post, null] }
+        captions: { type: array, items: { $ref: "#/components/schemas/VideoCaptionCue" } }
+        captionVersion: { type: integer }
+        captionState: { type: string, enum: [unavailable, provided, no_speech] }
+        playbackVariants: { type: array, items: { type: string, enum: [standard, low, webm, thumbnail] } }
+    VideoCaptionCue:
+      type: object
+      required: [start, end, text]
+      properties:
+        start: { type: number, minimum: 0 }
+        end: { type: number, exclusiveMinimum: 0 }
+        text: { type: string, minLength: 1, maxLength: 500 }
+    VideoCaptionInput:
+      type: object
+      required: [captionVersion, captionState, cues]
+      properties:
+        captionVersion: { type: integer, minimum: 0 }
+        captionState: { type: string, enum: [provided, no_speech] }
+        cues: { type: array, maxItems: 1000, items: { $ref: "#/components/schemas/VideoCaptionCue" } }
+    VideoReviewDecision:
+      type: object
+      required: [decision, reason, captionVersion, watchedEntireVideo, listenedEntireAudio]
+      properties:
+        decision: { type: string, enum: [allow, hold, reject] }
+        reason: { type: string, minLength: 1, maxLength: 1000 }
+        captionVersion: { type: integer }
+        watchedEntireVideo: { type: boolean }
+        listenedEntireAudio: { type: boolean }
     PaginatedPosts:
       type: object
       required: [items, nextCursor]

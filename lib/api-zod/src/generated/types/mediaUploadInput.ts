@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { MediaUploadInputKind } from './mediaUploadInputKind';
+import type { MediaUploadInputVideoFormat } from './mediaUploadInputVideoFormat';
 
 export interface MediaUploadInput {
   kind: MediaUploadInputKind;
@@ -22,4 +23,5 @@ export interface MediaUploadInput {
      * @maxLength 1000
      */
   altText?: string;
+  videoFormat?: MediaUploadInputVideoFormat;
 }

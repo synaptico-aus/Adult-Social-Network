@@ -33,6 +33,8 @@ export interface PostCardProps {
   onDeleted?: (postId: string) => void;
   onHidden?: (postId: string) => void;
   onReport?: (postId: string) => void;
+  /** Hide attached media (e.g. a reel already shows its player). */
+  suppressMedia?: boolean;
 }
 
 const AudienceIcon = ({ audience }: { audience: string }) => {
@@ -54,7 +56,7 @@ const formatGuidanceLabel = (label?: string | null) => {
   return labels[label] || label.replace(/_/g, ' ');
 };
 
-export function PostCard({ post, isDetail = false, onEdit, onDeleted, onHidden, onReport }: PostCardProps) {
+export function PostCard({ post, isDetail = false, onEdit, onDeleted, onHidden, onReport, suppressMedia = false }: PostCardProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { data: accountSummary } = useGetAccountSummary({
@@ -226,7 +228,7 @@ export function PostCard({ post, isDetail = false, onEdit, onDeleted, onHidden, 
         {post.body}
       </div>
 
-      {post.mediaAssets && post.mediaAssets.length > 0 && (
+      {!suppressMedia && post.mediaAssets && post.mediaAssets.length > 0 && (
         <div className="space-y-4 mb-6">
           {post.mediaAssets.map(asset => (
             <MediaAttachmentRenderer key={asset.id} asset={asset} isDetail={isDetail} />

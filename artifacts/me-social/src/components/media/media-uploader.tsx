@@ -2,15 +2,19 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import { Camera, Image as ImageIcon, Mic, FileAudio, X, Square, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Video, Clapperboard, Camera, Image as ImageIcon, Mic, FileAudio, X, Square, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useMediaUploads, UploadItem } from '@/hooks/use-media-upload';
-import { cn } from '@/lib/utils';
+import { VideoUploadPanel } from './video-upload-panel';
+import type { ManifestEntry, VideoFormat } from '@/hooks/use-media-upload';
 
 interface MediaUploaderProps {
   items: UploadItem[];
   setItems: React.Dispatch<React.SetStateAction<UploadItem[]>>;
   addPhoto: (file: File) => string;
   addAudio: (blob: Blob) => string;
+  addVideo?: (file: File, format: VideoFormat) => Promise<{ clientId?: string; error?: string }>;
+  recoverable?: ManifestEntry[];
+  dismissRecovered?: (key: string) => void;
   updateItem: (id: string, updates: Partial<UploadItem>) => void;
   startUpload: (id: string) => void;
   cancel: (id: string) => void;
@@ -22,6 +26,9 @@ export function MediaUploader({
   items,
   addPhoto,
   addAudio,
+  addVideo,
+  recoverable = [],
+  dismissRecovered,
   updateItem,
   startUpload,
   cancel,
@@ -31,6 +38,9 @@ export function MediaUploader({
   const photoInputRef = useRef<HTMLInputElement>(null);
   const takePhotoInputRef = useRef<HTMLInputElement>(null);
   const audioInputRef = useRef<HTMLInputElement>(null);
+  const reelInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
+  const [videoError, setVideoError] = useState('');
   
   const [isRecording, setIsRecording] = useState(false);
   const [recordingDuration, setRecordingDuration] = useState(0);
@@ -57,6 +67,15 @@ export function MediaUploader({
       }
       e.target.value = '';
     }
+  };
+
+  const handleVideo = (format: VideoFormat) => async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    if (!addVideo) return;
+    const r = await addVideo(file, format);
+    setVideoError(r.error ?? '');
   };
 
   const getSupportedMimeType = () => {
@@ -145,6 +164,13 @@ export function MediaUploader({
           <FileAudio className="w-4 h-4 mr-2" /> Choose Audio
         </Button>
         
+        <Button type="button" variant="outline" onClick={() => reelInputRef.current?.click()} className="rounded-xl border-dashed border-2 hover:bg-secondary" aria-label="Add reel" hidden={!addVideo} data-testid="button-add-reel">
+          <Clapperboard className="w-4 h-4 mr-2" /> Add Reel
+        </Button>
+        <Button type="button" variant="outline" onClick={() => videoInputRef.current?.click()} className="rounded-xl border-dashed border-2 hover:bg-secondary" aria-label="Add video" hidden={!addVideo} data-testid="button-add-video">
+          <Video className="w-4 h-4 mr-2" /> Add Video
+        </Button>
+
         {!isRecording ? (
           <Button 
             type="button" 
@@ -169,8 +195,19 @@ export function MediaUploader({
 
         <input type="file" ref={photoInputRef} className="hidden" accept="image/*" onChange={handleFileChange('photo')} />
         <input type="file" ref={takePhotoInputRef} className="hidden" accept="image/*" capture="environment" onChange={handleFileChange('photo')} />
+        <input type="file" ref={reelInputRef} className="hidden" accept="video/mp4,video/webm,video/quicktime" onChange={handleVideo('reel')} />
+        <input type="file" ref={videoInputRef} className="hidden" accept="video/mp4,video/webm,video/quicktime" onChange={handleVideo('post')} />
         <input type="file" ref={audioInputRef} className="hidden" accept="audio/*" onChange={handleFileChange('audio')} />
       </div>
+
+      <p className="text-xs text-muted-foreground">Reels: portrait, up to 64 MiB and 2 minutes. Videos: up to 200 MiB and 10 minutes. MP4, WebM or QuickTime. Final limits are checked by the server.</p>
+      {videoError && <div role="alert" className="p-3 text-sm rounded-xl border border-destructive/20 bg-destructive/10 flex items-center"><AlertCircle className="w-4 h-4 mr-2 shrink-0" />{videoError}</div>}
+      {recoverable.filter(r => (!r.status || r.status === 'uploading') && !items.some(i => i.clientIdempotencyKey === r.key)).map(r => (
+        <div key={r.key} className="p-3 text-sm rounded-xl border border-border bg-secondary/30 flex items-center justify-between gap-2" data-testid={`recover-${r.key}`}>
+          <span>Interrupted {r.format === 'reel' ? 'reel' : 'video'} upload: {r.name}. Choose the same file again to restart; the whole file is sent again, not resumed.</span>
+          {dismissRecovered && <Button type="button" size="sm" variant="ghost" onClick={() => dismissRecovered(r.key)}>Dismiss</Button>}
+        </div>
+      ))}
 
       {micError && (
         <div className="p-3 bg-destructive/10 text-destructive text-sm rounded-xl flex items-center border border-destructive/20">
@@ -199,6 +236,8 @@ export function MediaUploader({
                 <div className="shrink-0 w-24 h-24 bg-secondary rounded-xl overflow-hidden flex items-center justify-center">
                   {item.kind === 'photo' ? (
                     <img src={item.previewUrl} alt={item.altText || "Preview"} className="w-full h-full object-cover" />
+                  ) : item.kind === 'video' ? (item.file.size > 0 ? (
+                    <video src={item.previewUrl} muted playsInline preload="metadata" className="w-full h-full object-cover" aria-label="Video preview" />) : <Video className="w-8 h-8 text-primary opacity-50" />
                   ) : (
                     <Mic className="w-8 h-8 text-primary opacity-50" />
                   )}
@@ -206,6 +245,7 @@ export function MediaUploader({
 
                 <div className="flex-1 min-w-0 w-full pr-8">
                   {/* Audio Controls */}
+                  {item.kind === 'video' && <VideoUploadPanel item={item} updateItem={updateItem} startUpload={startUpload} />}
                   {item.kind === 'audio' && item.status !== 'uploading' && item.status !== 'requesting' && (
                     <div className="mb-2">
                       <audio controls src={item.previewUrl} className="h-10 w-full" />
@@ -213,7 +253,7 @@ export function MediaUploader({
                   )}
 
                   {/* Input form: description for photo, transcript for audio (Editable at all times except uploading) */}
-                  {(item.status === 'idle' || item.status === 'held' || item.status === 'ready' || item.status === 'error') && (
+                  {item.kind !== 'video' && (item.status === 'idle' || item.status === 'held' || item.status === 'ready' || item.status === 'error') && (
                     <div className="space-y-2 mt-2">
                       <label className="text-sm font-medium text-foreground">
                         {item.kind === 'photo' ? 'Add image description (required)' : 'Add audio transcript (required)'}
@@ -265,7 +305,7 @@ export function MediaUploader({
                   )}
 
                   {/* Held State Details (Malware/Abuse independent UI) */}
-                  {item.status === 'held' && item.asset && (
+                  {item.kind !== 'video' && item.status === 'held' && item.asset && (
                     <div className="mt-3 space-y-2 p-3 bg-secondary/30 border border-border rounded-xl">
                       <div className="text-sm font-semibold text-foreground flex items-center gap-1.5">
                         <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
@@ -291,14 +331,14 @@ export function MediaUploader({
                   )}
 
                   {/* Ready State Details */}
-                  {item.status === 'ready' && (
+                  {item.kind !== 'video' && item.status === 'ready' && (
                     <div className="mt-2 text-sm font-medium text-green-700 flex items-center">
                       <CheckCircle2 className="w-4 h-4 mr-1.5" /> Ready to attach
                     </div>
                   )}
 
                   {/* Error State */}
-                  {item.error && (
+                  {item.kind !== 'video' && item.error && (
                     <div className="text-sm text-destructive mt-2 flex items-center justify-between">
                       <div className="flex items-center">
                         <AlertCircle className="w-3 h-3 mr-1 shrink-0" /> {item.error}
