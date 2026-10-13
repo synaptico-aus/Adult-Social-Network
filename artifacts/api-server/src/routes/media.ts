@@ -4,11 +4,12 @@ import { randomUUID } from "node:crypto";
 import { Readable } from "node:stream";
 import { getAuth } from "@clerk/express";
 import { z } from "zod";
-import { db, membersTable, mediaAssetsTable, mediaScreeningResultsTable, postsTable, thisIsMeCardsTable, messagesTable, conversationsTable, conversationMembersTable, messageMemberRemovalsTable, safetyRelationshipsTable, videoJobsTable } from "@workspace/db";
+import { db, membersTable, mediaAssetsTable, postsTable, thisIsMeCardsTable, messagesTable, conversationsTable, conversationMembersTable, messageMemberRemovalsTable, safetyRelationshipsTable, videoJobsTable } from "@workspace/db";
 import { requireAuth, memberRateLimit } from "../middlewares/account-auth";
 import { liveConversationMember } from "../lib/conversation-access";
-import { deleteMediaObject, mediaFile, mediaObjectPath, replaceMediaObject, requestMediaUpload, freezeMediaObject } from "../lib/media-storage";
-import { inspectBytes, validateDeclared } from "../lib/media-validation";
+import { deleteMediaObject, mediaFile, mediaObjectPath, requestMediaUpload, freezeMediaObject } from "../lib/media-storage";
+import { validateDeclared } from "../lib/media-validation";
+import { completeNonVideo } from "../lib/non-video-screening";
 import "../lib/media-deletion-hook";
 import { visiblePost } from "./posts";
 import { mediaResponse } from "../lib/media-response";
@@ -19,10 +20,6 @@ const router = Router();
 router.use("/media", requireAuth);
 const requestBody = z.object({ kind: z.enum(["photo", "audio", "video"]), videoFormat: z.enum(["reel", "post"]).optional(), contentType: z.string(), size: z.number().int().positive(), clientIdempotencyKey: z.string().min(1).max(200), altText: z.string().trim().min(1).max(1000).optional() }).strict();
 async function member(req: Request) { const user = getAuth(req).userId; return user ? (await db.select().from(membersTable).where(eq(membersTable.clerkUserId, user)).limit(1))[0] : undefined; }
-function testScan(kind: string) {
-  if (process.env.NODE_ENV !== "test" || process.env.MEDIA_TEST_PROVIDER !== "allow") return { state: "unavailable" as const, provider: "unconfigured", details: { reason: "provider_missing" } };
-  return { state: "allowed" as const, provider: "test-only", details: { kind } };
-}
 
 router.post("/media/uploads/request", memberRateLimit(20, 60000, "media-request"), async (req, res): Promise<void> => {
   const m = await member(req); const parsed = requestBody.safeParse(req.body);
@@ -72,29 +69,14 @@ router.post("/media/uploads/:id/complete", async (req, res): Promise<void> => {
     if (!result) { res.status(409).json({ error: "Video upload incomplete, invalid, expired or cancelled" }); return; }
     res.json(mediaResponse(result)); return;
   }
-  if (asset.status !== "uploading") { res.status(409).json({ error: "Upload cannot be completed" }); return; }
-  const file = await mediaFile(asset.objectPath);
-  if (!file) { res.status(409).json({ error: "Upload has not completed" }); return; }
-  const [metadata] = await file.getMetadata(); const [bytes] = await file.download(); const actualSize = bytes.length;
   try {
-    validateDeclared(asset.kind, asset.requestedContentType, actualSize);
-    const inspected = await inspectBytes(asset.kind, asset.requestedContentType, bytes);
-    if (inspected.sanitizedBytes) await replaceMediaObject(asset.objectPath, inspected.sanitizedBytes, inspected.contentType);
-    const malware = testScan("malware"); const abuse = testScan("abuse");
-    const durationReady = asset.kind === "photo" || inspected.durationSeconds !== undefined;
-    const status = malware.state === "allowed" && abuse.state === "allowed" && durationReady && (asset.kind === "photo" || !!asset.transcript) ? "ready" : "held";
-    const limitation = !durationReady ? "Audio duration could not be parsed; a trusted duration provider is required" : malware.state !== "allowed" || abuse.state !== "allowed" ? "Required malware and abuse checks are unavailable" : asset.kind === "audio" && !asset.transcript ? "Transcript is required" : null;
-    const [updated] = await db.transaction(async (tx) => {
-      await tx.insert(mediaScreeningResultsTable).values([
-        { id: randomUUID(), assetId: asset.id, kind: "malware", state: malware.state, provider: malware.provider, details: malware.details },
-        { id: randomUUID(), assetId: asset.id, kind: "abuse", state: abuse.state, provider: abuse.provider, details: abuse.details },
-      ]);
-      return tx.update(mediaAssetsTable).set({ status, byteSize: actualSize, contentType: inspected.contentType, width: inspected.width, height: inspected.height, durationSeconds: inspected.durationSeconds, malwareState: malware.state, abuseState: abuse.state, rejectionReason: limitation, metadata: { storageContentType: metadata.contentType, quarantine: true }, updatedAt: new Date() }).where(eq(mediaAssetsTable.id, asset.id)).returning();
-    });
+    const updated = await completeNonVideo(asset.id);
+    if (!updated) { res.status(409).json({ error: "Upload cancelled or removed" }); return; }
     res.json(mediaResponse(updated));
   } catch (e) {
-    const [rejected] = await db.update(mediaAssetsTable).set({ status: "rejected", rejectionReason: e instanceof Error ? e.message : "Media validation failed", updatedAt: new Date() }).where(eq(mediaAssetsTable.id, asset.id)).returning();
-    res.status(422).json(mediaResponse(rejected));
+    const [live] = await db.select().from(mediaAssetsTable).where(eq(mediaAssetsTable.id, asset.id));
+    if (live && ["held", "rejected"].includes(live.status)) res.status(422).json(mediaResponse(live));
+    else res.status(409).json({ error: "Upload incomplete, invalid or no longer eligible" });
   }
 });
 
@@ -106,6 +88,19 @@ router.post("/media/uploads/:id/retry", async (req, res): Promise<void> => {
     res.json({ asset: mediaResponse(asset), uploadURL: await requestMediaUpload(asset.objectPath) }); return;
   }
   if (asset.status === "ready") { res.json({ asset: mediaResponse(asset), uploadURL: null }); return; }
+  if (["held", "quarantined"].includes(asset.status)) {
+    // Completed sources are immutable; a retry can recheck them, never issue a new PUT.
+    try {
+      const updated = asset.status === "held" && asset.malwareState !== "allowed" ? await completeNonVideo(asset.id) : asset;
+      if (!updated) { res.status(409).json({ error: "Upload removed" }); return; }
+      res.json({ asset: mediaResponse(updated), uploadURL: null }); return;
+    } catch {
+      const [live] = await db.select().from(mediaAssetsTable).where(eq(mediaAssetsTable.id, asset.id));
+      if (live) res.status(422).json(mediaResponse(live)); else res.status(409).json({ error: "Upload removed" });
+      return;
+    }
+  }
+  if (asset.status !== "uploading" || asset.expiresAt < new Date()) { res.status(409).json({ error: "Upload no longer accepts replacement bytes" }); return; }
   await db.update(mediaAssetsTable).set({ status: "uploading", malwareState: "pending", abuseState: "pending", rejectionReason: null, updatedAt: new Date() }).where(eq(mediaAssetsTable.id, asset.id));
   const updated = (await db.select().from(mediaAssetsTable).where(eq(mediaAssetsTable.id, asset.id)))[0];
   res.json({ asset: mediaResponse(updated), uploadURL: await requestMediaUpload(asset.objectPath) });

@@ -2,7 +2,7 @@ import { after, before, beforeEach, test } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { and, eq, inArray } from "drizzle-orm";
-import { db, pool, membersTable, mediaAssetsTable, mediaScreeningResultsTable, postsTable, friendshipsTable, safetyRelationshipsTable } from "@workspace/db";
+import { db, pool, membersTable, mediaAssetsTable, mediaCleanupTasksTable, mediaScreeningResultsTable, postsTable, friendshipsTable, safetyRelationshipsTable } from "@workspace/db";
 import { createApp } from "../app.ts";
 import { configureTestMediaStorage } from "../lib/media-storage";
 import { cleanupExpiredMedia } from "../lib/media-deletion-hook";
@@ -14,6 +14,7 @@ wav.write("RIFF", 0); wav.writeUInt32LE(38, 4); wav.write("WAVEfmt ", 8); wav.wr
 wav.writeUInt16LE(1, 20); wav.writeUInt16LE(1, 22); wav.writeUInt32LE(8000, 24); wav.writeUInt32LE(16000, 28);
 wav.writeUInt16LE(2, 32); wav.writeUInt16LE(16, 34); wav.write("data", 36); wav.writeUInt32LE(2, 40);
 const objects = new Map<string, { bytes: Buffer; contentType?: string; deleted?: boolean; delete?: () => Promise<void> }>();
+const createdAssets = new Set<string>();
 let server: ReturnType<typeof app.listen>;
 let base = "";
 
@@ -32,6 +33,7 @@ async function upload(user: string, key = randomUUID(), provider = false) {
   process.env.MEDIA_TEST_PROVIDER = provider ? "allow" : "";
   const requested = await call("/api/media/uploads/request", user, { method: "POST", body: { kind: "photo", contentType: "image/png", size: png.length, clientIdempotencyKey: key, altText: "a photo" } });
   assert.equal(requested.status, 201);
+  createdAssets.add(requested.body.asset.id);
   const path = (await db.select().from(mediaAssetsTable).where(eq(mediaAssetsTable.id, requested.body.asset.id)))[0].objectPath;
   objects.set(path, { bytes: png, contentType: "image/png" });
   return { requested, path, id: requested.body.asset.id, complete: () => call(`/api/media/uploads/${requested.body.asset.id}/complete`, user, { method: "POST" }) };
@@ -51,6 +53,7 @@ beforeEach(async () => {
   await db.delete(safetyRelationshipsTable).where(inArray(safetyRelationshipsTable.actorMemberId, Object.values(ids)));
 });
 after(async () => {
+  if (createdAssets.size) await db.delete(mediaCleanupTasksTable).where(inArray(mediaCleanupTasksTable.assetId, [...createdAssets]));
   await db.delete(postsTable).where(inArray(postsTable.authorMemberId, Object.values(ids)));
   await db.delete(mediaAssetsTable).where(inArray(mediaAssetsTable.ownerMemberId, Object.values(ids)));
   await db.delete(friendshipsTable).where(and(eq(friendshipsTable.memberAId, ids.alice), eq(friendshipsTable.memberBId, ids.bob)));
@@ -94,7 +97,31 @@ test("audio transcript correction persists without bypassing missing scans", asy
   const corrected = await call(`/api/media/${id}/transcript`, ids.alice, { method: "PATCH", body: { transcript: "corrected words" } });
   assert.equal(corrected.body.transcript, "corrected words"); assert.equal(corrected.body.status, "held");
   process.env.MEDIA_TEST_PROVIDER = "allow"; const retried = await call(`/api/media/uploads/${id}/retry`, ids.alice, { method: "POST" }); assert.equal(retried.status, 200);
-  const ready = await call(`/api/media/uploads/${id}/complete`, ids.alice, { method: "POST" }); assert.equal(ready.body.status, "ready");
+  assert.equal(retried.body.uploadURL, null); assert.equal(retried.body.asset.status, "ready");
+});
+
+test("completed photos freeze bytes and unavailable scanners do not decode them", async () => {
+  const asset = await upload(ids.alice);
+  const malformed = Buffer.concat([png.subarray(0, 8), Buffer.from("invalid image body")]);
+  objects.set(asset.path, { bytes: malformed, contentType: "image/png" });
+  const held = await asset.complete();
+  assert.equal(held.body.status, "held"); assert.equal(held.body.width, null);
+  const [stored] = await db.select().from(mediaAssetsTable).where(eq(mediaAssetsTable.id, asset.id));
+  assert.notEqual(stored.objectPath, asset.path);
+  objects.set(asset.path, { bytes: png, contentType: "image/png" });
+  assert.deepEqual(objects.get(stored.objectPath)?.bytes, malformed);
+  process.env.MEDIA_TEST_PROVIDER = "allow";
+  const checked = await call(`/api/media/uploads/${asset.id}/retry`, ids.alice, { method: "POST" });
+  assert.equal(checked.status, 422); // Frozen malformed bytes cannot be replaced with a clean PUT.
+});
+
+test("infected photos are rejected before decoding and cannot be replaced using retry", async () => {
+  const asset = await upload(ids.alice);
+  process.env.MEDIA_TEST_PROVIDER = "blocked";
+  const result = await asset.complete();
+  assert.equal(result.body.status, "rejected"); assert.equal(result.body.malwareState, "blocked"); assert.equal(result.body.width, null);
+  assert.equal((await call(`/api/media/uploads/${asset.id}/retry`, ids.alice, { method: "POST" })).status, 409);
+  assert.equal((await call(`/api/media/${asset.id}`, ids.alice)).status, 404);
 });
 
 test("media GET follows only_me, friends, public and live block/audience revocation", async () => {
@@ -113,7 +140,7 @@ test("media GET follows only_me, friends, public and live block/audience revocat
 test("cancel and retry are idempotent, and orphan cleanup removes expired uploads", async () => {
   const asset = await upload(ids.alice); assert.equal((await call(`/api/media/uploads/${asset.id}/cancel`, ids.alice, { method: "POST" })).status, 204);
   assert.equal((await call(`/api/media/uploads/${asset.id}/cancel`, ids.alice, { method: "POST" })).status, 204);
-  assert.equal((await call(`/api/media/uploads/${asset.id}/retry`, ids.alice, { method: "POST" })).status, 200);
+  assert.equal((await call(`/api/media/uploads/${asset.id}/retry`, ids.alice, { method: "POST" })).status, 409);
   await db.update(mediaAssetsTable).set({ expiresAt: new Date(0) }).where(eq(mediaAssetsTable.id, asset.id));
   assert.equal(await cleanupExpiredMedia(new Date()), 1);
   assert.equal((await db.select().from(mediaAssetsTable).where(eq(mediaAssetsTable.id, asset.id))).length, 0);

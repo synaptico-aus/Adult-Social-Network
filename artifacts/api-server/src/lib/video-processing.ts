@@ -6,11 +6,12 @@ import { Transform } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import { createWriteStream } from "node:fs";
 import { randomUUID } from "node:crypto";
-import { and, asc, eq, lt, or, sql } from "drizzle-orm";
+import { and, asc, eq, isNull, lt, or, sql } from "drizzle-orm";
 import { db, mediaAssetsTable, mediaVariantsTable, videoJobsTable, mediaScreeningResultsTable } from "@workspace/db";
 import { mediaFile, mediaObjectPath, storeProcessedFile, deleteMediaObject } from "./media-storage";
 import { REEL_DURATION, VIDEO_DURATION, validateDeclared, VIDEO_LIMIT } from "./media-validation";
 import { logger } from "./logger";
+import { getScannerHealth, scanLocalFile } from "./malware-scanner";
 
 export function runMediaTool(binary: string, args: string[], timeout = 90000, maxOutput = 1024 * 1024): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -89,16 +90,13 @@ export async function buildVideoFiles(input: string, directory: string, format: 
   return { info, outputs };
 }
 export async function scanVideoMalware(path: string) {
-  if (process.env.NODE_ENV === "test" && process.env.MEDIA_TEST_PROVIDER === "allow") return { state: "allowed" as const, provider: "test-only" };
-  try { await runMediaTool("clamscan", ["--no-summary", path], 90000); return { state: "allowed" as const, provider: "clamav" }; }
-  catch (error) {
-    return { state: error instanceof Error && error.message === "Media processor failed (1)" ? "blocked" as const : "unavailable" as const, provider: "clamav" };
-  }
+  return scanLocalFile(path);
 }
 export async function runVideoJobOnce() {
+  if (process.env.NODE_ENV !== "test" && !(await getScannerHealth()).ready) return false;
   const job = await db.transaction(async (tx) => {
     const [row] = await tx.select().from(videoJobsTable).where(and(
-      or(eq(videoJobsTable.state, "pending"), and(eq(videoJobsTable.state, "processing"), lt(videoJobsTable.leaseUntil, new Date()))),
+      or(and(eq(videoJobsTable.state, "pending"), or(isNull(videoJobsTable.leaseUntil), lt(videoJobsTable.leaseUntil, new Date()))), and(eq(videoJobsTable.state, "processing"), lt(videoJobsTable.leaseUntil, new Date()))),
       lt(videoJobsTable.attempts, 3))).orderBy(asc(videoJobsTable.createdAt)).limit(1).for("update", { skipLocked: true });
     if (!row) return null;
     return (await tx.update(videoJobsTable).set({ state: "processing", attempts: row.attempts + 1, leaseUntil: new Date(Date.now() + 30 * 60000), error: null }).where(eq(videoJobsTable.id, row.id)).returning())[0];
@@ -128,7 +126,23 @@ export async function runVideoJobOnce() {
     const isWebm = magic.subarray(0, 4).equals(Buffer.from([0x1a, 0x45, 0xdf, 0xa3]));
     if (asset.requestedContentType === "video/webm" ? !isWebm : !isMp4) throw new Error("Video bytes must be the declared container type");
     const malware = await scanVideoMalware(local);
-    if (malware.state === "blocked") throw new Error("Video malware scan blocked the upload");
+    if (malware.state === "blocked") {
+      await db.transaction(async (tx) => {
+        const [live] = await tx.select().from(mediaAssetsTable).where(eq(mediaAssetsTable.id, asset.id)).for("update");
+        if (live?.status === "quarantined") await tx.insert(mediaScreeningResultsTable).values({ id: randomUUID(), assetId: asset.id, kind: "malware", provider: malware.provider, state: malware.state, details: malware.details });
+      });
+      throw new Error("Video malware scan blocked the upload");
+    }
+    if (malware.state !== "allowed") {
+      await db.transaction(async (tx) => {
+        const [live] = await tx.select().from(mediaAssetsTable).where(eq(mediaAssetsTable.id, asset.id)).for("update");
+        if (!live || live.status !== "quarantined") return;
+        await tx.insert(mediaScreeningResultsTable).values({ id: randomUUID(), assetId: asset.id, kind: "malware", provider: malware.provider, state: malware.state, details: malware.details });
+        await tx.update(mediaAssetsTable).set({ malwareState: "unavailable", rejectionReason: "Waiting for a complete malware scan; video has not been decoded" }).where(eq(mediaAssetsTable.id, asset.id));
+        await tx.update(videoJobsTable).set({ state: "pending", attempts: Math.max(job.attempts - 1, 0), leaseUntil: new Date(Date.now() + 60000), error: "Malware screening unavailable" }).where(eq(videoJobsTable.id, job.id));
+      });
+      return true;
+    }
     const built = await buildVideoFiles(local, directory, asset.videoFormat ?? "post");
     const variants: typeof mediaVariantsTable.$inferInsert[] = [];
     for (const output of built.outputs) {
@@ -159,7 +173,7 @@ export async function runVideoJobOnce() {
         durationSeconds: built.info.durationSeconds, hasAudio: built.info.hasAudio, captionVersion: live.captionVersion,
         limitation: "Frame sampling and thumbnail scanning do not cover every frame or audio segment; full independent human review required" };
       await tx.insert(mediaScreeningResultsTable).values([
-        { id: randomUUID(), assetId: asset.id, kind: "malware", provider: malware.provider, state: malware.state, details: coverage },
+        { id: randomUUID(), assetId: asset.id, kind: "malware", provider: malware.provider, state: malware.state, details: { ...coverage, ...malware.details } },
         { id: randomUUID(), assetId: asset.id, kind: "video_frames", provider: "unconfigured", state: "unavailable", details: coverage },
         { id: randomUUID(), assetId: asset.id, kind: "video_audio", provider: "unconfigured", state: "unavailable", details: coverage },
       ]);
@@ -182,7 +196,7 @@ export async function runVideoJobOnce() {
       const terminal = job.attempts >= 3 || (error instanceof Error && /must be|dimensions|frame rate|Only one|malware scan blocked/.test(error.message));
       const reason = error instanceof Error && terminal ? error.message.slice(0, 200) : "Video processing interrupted; bounded retry scheduled";
       await tx.update(videoJobsTable).set({ state: terminal ? "failed" : "pending", leaseUntil: null, error: reason }).where(eq(videoJobsTable.id, job.id));
-      await tx.update(mediaAssetsTable).set({ status: terminal ? "held" : "quarantined", rejectionReason: reason,
+      await tx.update(mediaAssetsTable).set({ status: terminal ? reason.includes("malware scan blocked") ? "rejected" : "held" : "quarantined", rejectionReason: reason,
         malwareState: reason.includes("malware scan blocked") ? "blocked" : asset.malwareState }).where(eq(mediaAssetsTable.id, asset.id));
     });
   } finally { await rm(directory, { recursive: true, force: true }); }

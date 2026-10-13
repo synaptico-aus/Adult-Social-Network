@@ -26,4 +26,4 @@ SUPPORT_CONTACT_EMAIL = "support@megram.com.au"
 
 [nix]
 channel = "stable-25_05"
-packages = ["ffmpeg"]
+packages = ["ffmpeg", "clamav"]

@@ -23,7 +23,7 @@ export function validateDeclared(kind: "photo" | "audio" | "video", type: string
   const allowed = kind === "photo" ? photoTypes : audioTypes;
   if (!allowed.has(normalizedType(type)) || !Number.isInteger(size) || size < 1 || size > (kind === "photo" ? PHOTO_LIMIT : AUDIO_LIMIT)) throw new Error(kind === "photo" ? "Photo must be JPEG, PNG, or WebP and no larger than 10 MiB" : "Audio must be MP3, WAV, M4A, OGG, or WebM and no larger than 50 MiB");
 }
-export async function inspectBytes(kind: "photo" | "audio", type: string, bytes: Buffer) {
+export function assertMediaMagic(kind: "photo" | "audio", type: string, bytes: Buffer) {
   let actual: string | undefined;
   if (bytes.subarray(0, 8).equals(Buffer.from([137,80,78,71,13,10,26,10]))) actual = "image/png";
   else if (bytes.subarray(0, 3).equals(Buffer.from("ID3")) || (bytes[0] === 0xff && (bytes[1] & 0xe0) === 0xe0)) actual = "audio/mpeg";
@@ -35,6 +35,10 @@ export async function inspectBytes(kind: "photo" | "audio", type: string, bytes:
   else if (bytes.subarray(0, 4).toString() === "RIFF" && bytes.subarray(8, 12).toString() === "WEBP") actual = "image/webp";
   if (!actual || (kind === "photo" ? !photoTypes.has(actual) : !audioTypes.has(actual))) throw new Error("Unsupported or unrecognized media bytes");
   if (normalizedType(type) !== actual) throw new Error("Declared content type does not match media bytes");
+  return actual;
+}
+export async function inspectBytes(kind: "photo" | "audio", type: string, bytes: Buffer) {
+  const actual = assertMediaMagic(kind, type, bytes);
   if (kind === "photo") {
     const pipeline = sharp(bytes, { failOn: "warning" }).rotate();
     const sanitized = actual === "image/jpeg"

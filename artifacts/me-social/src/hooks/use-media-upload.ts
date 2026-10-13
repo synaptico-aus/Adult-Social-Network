@@ -295,7 +295,12 @@ export function useMediaUploads(opts: { recover?: boolean } = {}) {
       try {
         const res = await retryUpload.mutateAsync({ id: item.asset.id }) as unknown as { uploadURL: string; asset: ExtendedMediaAttachment };
         const { uploadURL, asset } = res;
-        if (!uploadURL || !asset) throw new Error('Invalid response from retry request');
+        if (!asset) throw new Error('Invalid response from retry request');
+        if (asset.status !== 'uploading') {
+          updateItem(clientId, { status: asset.status as UploadItemStatus, asset, error: undefined });
+          return;
+        }
+        if (!uploadURL) throw new Error('Invalid response from retry request');
         updateItem(clientId, { status: 'uploading', asset, uploadURL });
         const contentType = item.file.type || (item.kind === 'audio' ? 'audio/mp4' : 'application/octet-stream');
         performXhrUpload(clientId, uploadURL, contentType, item.file, asset.id);

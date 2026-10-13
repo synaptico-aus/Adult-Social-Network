@@ -63,10 +63,13 @@ Reactions, comments, saves and reports reuse existing post permissions.
 
 ## Moderation coverage: deliberately fail closed
 
-1. Malware: invoke **ClamAV `clamscan`** against the full immutable source.
+1. Malware: stream the **full immutable source to a private ClamAV daemon**.
    An absent executable, missing/unusable signatures, timeout or scanner error
    is unavailable, **not clean**. A virus finding is blocked.
-   ClamAV with maintained signatures is **not configured in this workspace**.
+   Development scanning and official signature updates are configured; see
+   `malware-screening.md` for limits, health checks, tests and remaining release gates.
+   No decoding, thumbnails or playback variants are produced before malware
+   screening allows the exact frozen source. Unavailable scans retry later.
 2. Temporal frames: at most 120 frames, sampled every
    `max(1, ceil(duration / 120))` seconds, form staff review evidence.
    There is no configured automated frame-abuse provider; this result is recorded
@@ -127,6 +130,7 @@ retention process, not a video cancel/delete button.
   validation. Before a native release, test real-device recording/MOV rotation,
   large-file recovery, codec playback/captions, slow/offline networks,
   background/foreground, memory use and deletion.
-- **Not production-approved:** maintained malware signatures/provider operation,
-  moderation staffing/SLA, native-device checks and production worker behaviour
-  remain release gates.
+- **Not production-approved:** development malware scanning has passed real-engine
+  verification, but production scanner/worker operation, moderation staffing/SLA
+  and native-device checks remain release gates. The scanner setup did not change
+  production hosting or publish the app.

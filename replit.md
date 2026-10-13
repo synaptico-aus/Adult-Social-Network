@@ -152,4 +152,12 @@ and interaction permissions; playback is never a public object URL.
 All newly processed videos are held until independent full-video/audio review
 and an allowed malware result. Missing scanners/signatures cannot be waived.
 Captions are revision-bound, not automatically generated. Real native-device
-testing and operational scanner/worker validation remain release gates.
+testing and production scanner/worker validation remain release gates.
+
+### Development malware scanning
+See `docs/malware-screening.md`. The API supervises a private ClamAV daemon and
+official signature updates, shared by photo, audio and video completion.
+Unavailable/stale/incomplete scans never allow decoding or publication.
+Development real-engine verification passed; production operation and real-device
+testing have not been approved. Do not change deployment hosting or waive those gates
+as part of development scanner maintenance.

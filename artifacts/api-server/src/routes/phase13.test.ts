@@ -47,8 +47,8 @@ async function processVideo(allowMalware = true) {
   assert.equal(complete.status, 200); assert.equal(complete.body.status, "quarantined");
   assert.equal(await runVideoJobOnce(), true);
   const status = await call(`/api/media/${video.id}/status`, ids.alice);
-  assert.equal(status.body.status, "held", status.body.limitation);
-  assert.equal(status.body.playbackVariants.includes("standard"), true, status.body.limitation);
+  assert.equal(status.body.status, allowMalware ? "held" : "quarantined", status.body.limitation);
+  assert.equal(status.body.playbackVariants.includes("standard"), allowMalware, status.body.limitation);
   return video;
 }
 const captions = { captionVersion: 0, captionState: "provided", cues: [{ start: 0, end: 1, text: "A friendly test video." }] };
@@ -123,11 +123,19 @@ test("completion snapshots source, worker creates private variants and sampled c
 });
 test("full independent audited review is revision-bound and cannot waive malware", async () => {
   const video = await processVideo(false);
-  assert.equal((await call(`/api/media/${video.id}/captions`, ids.alice, { method: "PATCH", body: captions })).status, 200);
+  assert.equal((await call(`/api/media/${video.id}/captions`, ids.alice, { method: "PATCH", body: captions })).status, 409);
   assert.equal((await call("/api/staff/video-review", ids.bob, { headers: { "x-stale": "1" } })).status, 403);
+  const reviewed = await call(`/api/staff/video-review/${video.id}/decision`, ids.bob, { method: "POST", body: {
+    decision: "allow", reason: "Cannot waive incomplete malware scanning", captionVersion: 0, watchedEntireVideo: true, listenedEntireAudio: true } });
+  assert.equal(reviewed.status, 409);
+  assert.equal((await db.select().from(mediaVariantsTable).where(eq(mediaVariantsTable.assetId, video.id))).length, 0);
+  assert.equal((await call(`/api/media/${video.id}/assets/standard`, ids.alice)).status, 404);
+  process.env.MEDIA_TEST_PROVIDER = "allow";
+  await db.update(videoJobsTable).set({ leaseUntil: null }).where(eq(videoJobsTable.assetId, video.id));
+  assert.equal(await runVideoJobOnce(), true);
+  assert.equal((await call(`/api/media/${video.id}/captions`, ids.alice, { method: "PATCH", body: captions })).status, 200);
   assert.equal((await approve(video.id, ids.alice)).status, 403);
-  const reviewed = await approve(video.id);
-  assert.equal(reviewed.status, 200); assert.equal(reviewed.body.status, "held"); assert.notEqual(reviewed.body.malwareState, "allowed");
+  assert.equal((await approve(video.id)).body.status, "ready");
   assert.equal((await call(`/api/media/${video.id}/captions`, ids.alice, { method: "PATCH", body: captions })).status, 409);
 });
 test("every playback variant retains audience and live block authority; captions invalidate approval; delete cleans all objects", async () => {

@@ -3,6 +3,8 @@ import { logger } from "./lib/logger";
 import { startResourceStaleChecks } from "./lib/resource-stale-checks";
 import { startVideoProcessing } from "./lib/video-processing";
 import { startMediaCleanup } from "./lib/media-deletion-hook";
+import { startMalwareScanner } from "./lib/scanner-runtime";
+import { startNonVideoScreeningRetries } from "./lib/non-video-screening";
 
 const rawPort = process.env["PORT"];
 
@@ -25,6 +27,8 @@ app.listen(port, (err) => {
   }
 
   logger.info({ port }, "Server listening");
+  startMalwareScanner();
+  startNonVideoScreeningRetries();
   startResourceStaleChecks();
   startVideoProcessing();
   startMediaCleanup();

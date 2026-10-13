@@ -15,9 +15,9 @@ export async function deleteMediaWithVariants(asset: MediaAsset) {
   if (await mediaHasRetainedEvidence(asset)) throw new Error("Media retained for reported evidence; ordinary cleanup cannot remove it");
   const variants = await db.select().from(mediaVariantsTable).where(eq(mediaVariantsTable.assetId, asset.id));
   const staging = (asset.metadata as { stagingPath?: string } | null)?.stagingPath;
-  const frozenFallback = asset.kind === "video" ? `/objects/media/${asset.ownerMemberId}/${asset.id}_source` : null;
+  const frozenFallback = `/objects/media/${asset.ownerMemberId}/${asset.id}_source`;
   const paths = [...new Set([asset.objectPath, ...variants.map((v) => v.objectPath), ...(staging ? [staging] : []), ...(frozenFallback ? [frozenFallback] : [])])];
-  if (asset.kind === "video") await db.insert(mediaCleanupTasksTable).values({
+  await db.insert(mediaCleanupTasksTable).values({
     assetId: asset.id, paths, nextAttemptAt: new Date(Date.now() + 6 * 60000), expiresAt: new Date(Date.now() + 24 * 60 * 60000),
   }).onConflictDoNothing();
   for (const path of paths) await deleteMediaObject(path);
