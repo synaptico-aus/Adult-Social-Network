@@ -161,3 +161,7 @@ Unavailable/stale/incomplete scans never allow decoding or publication.
 Development real-engine verification passed; production operation and real-device
 testing have not been approved. Do not change deployment hosting or waive those gates
 as part of development scanner maintenance.
+
+### Memory Collections
+See `docs/phase14-memory-collections.md` for source authority, deliberate sharing,
+in-page reminder consent, rights-aware exports and reference-only deletion.

@@ -25,6 +25,162 @@ tags:
   - name: education-staff
     description: Capability-scoped education authoring and review
 paths:
+  /memory-collections:
+    get:
+      operationId: listMemoryCollections
+      responses:
+        "200":
+          description: Live-authorized owned and shared collections
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/MemoryCollection" } }
+    post:
+      operationId: createMemoryCollection
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MemoryCollectionInput" }
+      responses:
+        "201":
+          description: Created, private unless deliberately shared
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MemoryCollection" }
+  /memory-collections/{id}:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    get:
+      operationId: getMemoryCollection
+      responses:
+        "200":
+          description: Each source permission is checked again, including curator access
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MemoryCollectionDetail" }
+        "404": { description: Unavailable }
+    patch:
+      operationId: updateMemoryCollection
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MemoryCollectionInput" }
+      responses:
+        "200":
+          description: Updated by owner
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MemoryCollection" }
+    delete:
+      operationId: deleteMemoryCollection
+      responses:
+        "204": { description: "Collection and references deleted, not original sources" }
+  /memory-collections/{id}/items:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    post:
+      operationId: addMemoryItem
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MemoryItemInput" }
+      responses:
+        "201":
+          description: Permitted source reference added
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MemoryItem" }
+  /memory-collections/{id}/items/{itemId}:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }, { name: itemId, in: path, required: true, schema: { type: string } }]
+    patch:
+      operationId: updateMemoryItem
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MemoryCaptionInput" }
+      responses:
+        "200":
+          description: Caption updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MemoryItem" }
+    delete:
+      operationId: removeMemoryItem
+      responses:
+        "204": { description: Reference removed without deleting its source }
+  /memory-collections/{id}/order:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    put:
+      operationId: reorderMemoryItems
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MemoryOrderInput" }
+      responses:
+        "204": { description: Exact permutation saved atomically }
+  /memory-collections/{id}/items/{itemId}/hide:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }, { name: itemId, in: path, required: true, schema: { type: string } }]
+    post:
+      operationId: hideMemoryItem
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MemoryHideInput" }
+      responses:
+        "204": { description: "Hidden or restored only for the authenticated viewer, across collections and reminders" }
+  /memory-collections/{id}/export:
+    parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+    get:
+      operationId: exportMemoryCollection
+      responses:
+        "200":
+          description: Owner export; other authors and music are references only, never copied media
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MemoryCollectionDetail" }
+  /memory-sources:
+    get:
+      operationId: listMemorySources
+      responses:
+        "200":
+          description: Permitted published stories, photos, audio and reviewed music links
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/MemoryItem" } }
+  /memory-reminder-preferences:
+    get:
+      operationId: getMemoryReminderPreferences
+      responses:
+        "200":
+          description: Disabled by default
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MemoryReminderPreferences" }
+    patch:
+      operationId: setMemoryReminderPreferences
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MemoryReminderInput" }
+      responses:
+        "200":
+          description: Enabling requires explicit consent; disabling takes effect on every read
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MemoryReminderPreferences" }
+  /memory-reminders:
+    get:
+      operationId: getMemoryReminders
+      responses:
+        "200":
+          description: Optional in-page reminders, never push or clinical prompts
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/MemoryReminder" } }
   /resources:
     get:
       operationId: listResources
@@ -1488,6 +1644,97 @@ components:
       type: http
       scheme: bearer
   schemas:
+    MemoryCollectionInput:
+      type: object
+      properties:
+        name: { type: string, minLength: 1, maxLength: 120 }
+        audience: { type: string, enum: [only_me, friends, my_circle, this_group, public] }
+        circleId: { type: [string, "null"] }
+        groupId: { type: [string, "null"] }
+        shareConsent: { type: boolean }
+    MemoryCollection:
+      type: object
+      required: [id, ownerMemberId, name, audience, circleId, groupId, createdAt, updatedAt, isOwner, sharingHeld]
+      properties:
+        id: { type: string }
+        ownerMemberId: { type: string }
+        name: { type: string }
+        audience: { type: string, enum: [only_me, friends, my_circle, this_group, public] }
+        circleId: { type: [string, "null"] }
+        groupId: { type: [string, "null"] }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+        isOwner: { type: boolean }
+        sharingHeld: { type: boolean }
+    MemoryCollectionDetail:
+      type: object
+      required: [collection, items]
+      properties:
+        collection: { $ref: "#/components/schemas/MemoryCollection" }
+        items: { type: array, items: { $ref: "#/components/schemas/MemoryItem" } }
+    MemoryItemInput:
+      type: object
+      required: [kind, sourceId]
+      properties:
+        kind: { type: string, enum: [post, photo, audio, music] }
+        sourceId: { type: string, minLength: 1, maxLength: 200 }
+        sourcePostId: { type: [string, "null"], maxLength: 200 }
+        caption: { type: string, maxLength: 500 }
+    MemoryCaptionInput:
+      type: object
+      required: [caption]
+      properties:
+        caption: { type: string, maxLength: 500 }
+    MemoryOrderInput:
+      type: object
+      required: [itemIds]
+      properties:
+        itemIds: { type: array, maxItems: 200, items: { type: string } }
+    MemoryHideInput:
+      type: object
+      required: [hidden]
+      properties:
+        hidden: { type: boolean }
+    MemoryItem:
+      type: object
+      required: [id, position, unavailable, hidden, kind, sourceId, sourcePostId, caption, body, authorName, authorMemberId, mediaUrl, transcript, altText, url, title, sourceDate]
+      properties:
+        id: { type: string }
+        position: { type: integer }
+        unavailable: { type: boolean }
+        hidden: { type: boolean }
+        kind: { type: [string, "null"], enum: [post, photo, audio, music, null] }
+        sourceId: { type: [string, "null"] }
+        sourcePostId: { type: [string, "null"] }
+        caption: { type: [string, "null"] }
+        body: { type: [string, "null"] }
+        authorName: { type: [string, "null"] }
+        authorMemberId: { type: [string, "null"] }
+        mediaUrl: { type: [string, "null"] }
+        transcript: { type: [string, "null"] }
+        altText: { type: [string, "null"] }
+        url: { type: [string, "null"] }
+        title: { type: [string, "null"] }
+        sourceDate: { type: [string, "null"] }
+    MemoryReminderInput:
+      type: object
+      required: [enabled]
+      properties:
+        enabled: { type: boolean }
+        consent: { type: boolean }
+    MemoryReminderPreferences:
+      type: object
+      required: [enabled, consentedAt]
+      properties:
+        enabled: { type: boolean }
+        consentedAt: { type: [string, "null"] }
+    MemoryReminder:
+      type: object
+      required: [collectionId, collectionName, item]
+      properties:
+        collectionId: { type: string }
+        collectionName: { type: string }
+        item: { $ref: "#/components/schemas/MemoryItem" }
     ResourceInput:
       type: object
       additionalProperties: false

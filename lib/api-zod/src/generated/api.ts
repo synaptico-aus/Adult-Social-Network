@@ -8,6 +8,336 @@
 import * as zod from 'zod';
 
 
+export const ListMemoryCollectionsResponseItem = zod.object({
+  "id": zod.string(),
+  "ownerMemberId": zod.string(),
+  "name": zod.string(),
+  "audience": zod.enum(['only_me', 'friends', 'my_circle', 'this_group', 'public']),
+  "circleId": zod.string().nullable(),
+  "groupId": zod.string().nullable(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string(),
+  "isOwner": zod.boolean(),
+  "sharingHeld": zod.boolean()
+})
+export const ListMemoryCollectionsResponse = zod.array(ListMemoryCollectionsResponseItem)
+
+
+export const createMemoryCollectionBodyNameMax = 120;
+
+
+
+export const CreateMemoryCollectionBody = zod.object({
+  "name": zod.string().min(1).max(createMemoryCollectionBodyNameMax).optional(),
+  "audience": zod.enum(['only_me', 'friends', 'my_circle', 'this_group', 'public']).optional(),
+  "circleId": zod.string().nullish(),
+  "groupId": zod.string().nullish(),
+  "shareConsent": zod.boolean().optional()
+})
+
+export const CreateMemoryCollectionResponse = zod.object({
+  "id": zod.string(),
+  "ownerMemberId": zod.string(),
+  "name": zod.string(),
+  "audience": zod.enum(['only_me', 'friends', 'my_circle', 'this_group', 'public']),
+  "circleId": zod.string().nullable(),
+  "groupId": zod.string().nullable(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string(),
+  "isOwner": zod.boolean(),
+  "sharingHeld": zod.boolean()
+})
+
+
+export const GetMemoryCollectionParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const GetMemoryCollectionResponse = zod.object({
+  "collection": zod.object({
+  "id": zod.string(),
+  "ownerMemberId": zod.string(),
+  "name": zod.string(),
+  "audience": zod.enum(['only_me', 'friends', 'my_circle', 'this_group', 'public']),
+  "circleId": zod.string().nullable(),
+  "groupId": zod.string().nullable(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string(),
+  "isOwner": zod.boolean(),
+  "sharingHeld": zod.boolean()
+}),
+  "items": zod.array(zod.object({
+  "id": zod.string(),
+  "position": zod.number().int(),
+  "unavailable": zod.boolean(),
+  "hidden": zod.boolean(),
+  "kind": zod.union([zod.literal('post'),zod.literal('photo'),zod.literal('audio'),zod.literal('music'),zod.literal(null)]).nullable(),
+  "sourceId": zod.string().nullable(),
+  "sourcePostId": zod.string().nullable(),
+  "caption": zod.string().nullable(),
+  "body": zod.string().nullable(),
+  "authorName": zod.string().nullable(),
+  "authorMemberId": zod.string().nullable(),
+  "mediaUrl": zod.string().nullable(),
+  "transcript": zod.string().nullable(),
+  "altText": zod.string().nullable(),
+  "url": zod.string().nullable(),
+  "title": zod.string().nullable(),
+  "sourceDate": zod.string().nullable()
+}))
+})
+
+
+export const UpdateMemoryCollectionParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const updateMemoryCollectionBodyNameMax = 120;
+
+
+
+export const UpdateMemoryCollectionBody = zod.object({
+  "name": zod.string().min(1).max(updateMemoryCollectionBodyNameMax).optional(),
+  "audience": zod.enum(['only_me', 'friends', 'my_circle', 'this_group', 'public']).optional(),
+  "circleId": zod.string().nullish(),
+  "groupId": zod.string().nullish(),
+  "shareConsent": zod.boolean().optional()
+})
+
+export const UpdateMemoryCollectionResponse = zod.object({
+  "id": zod.string(),
+  "ownerMemberId": zod.string(),
+  "name": zod.string(),
+  "audience": zod.enum(['only_me', 'friends', 'my_circle', 'this_group', 'public']),
+  "circleId": zod.string().nullable(),
+  "groupId": zod.string().nullable(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string(),
+  "isOwner": zod.boolean(),
+  "sharingHeld": zod.boolean()
+})
+
+
+export const DeleteMemoryCollectionParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const DeleteMemoryCollectionResponse = zod.void()
+
+
+export const AddMemoryItemParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const addMemoryItemBodySourceIdMax = 200;
+
+export const addMemoryItemBodySourcePostIdMax = 200;
+
+export const addMemoryItemBodyCaptionMax = 500;
+
+
+
+export const AddMemoryItemBody = zod.object({
+  "kind": zod.enum(['post', 'photo', 'audio', 'music']),
+  "sourceId": zod.string().min(1).max(addMemoryItemBodySourceIdMax),
+  "sourcePostId": zod.string().max(addMemoryItemBodySourcePostIdMax).nullish(),
+  "caption": zod.string().max(addMemoryItemBodyCaptionMax).optional()
+})
+
+export const AddMemoryItemResponse = zod.object({
+  "id": zod.string(),
+  "position": zod.number().int(),
+  "unavailable": zod.boolean(),
+  "hidden": zod.boolean(),
+  "kind": zod.union([zod.literal('post'),zod.literal('photo'),zod.literal('audio'),zod.literal('music'),zod.literal(null)]).nullable(),
+  "sourceId": zod.string().nullable(),
+  "sourcePostId": zod.string().nullable(),
+  "caption": zod.string().nullable(),
+  "body": zod.string().nullable(),
+  "authorName": zod.string().nullable(),
+  "authorMemberId": zod.string().nullable(),
+  "mediaUrl": zod.string().nullable(),
+  "transcript": zod.string().nullable(),
+  "altText": zod.string().nullable(),
+  "url": zod.string().nullable(),
+  "title": zod.string().nullable(),
+  "sourceDate": zod.string().nullable()
+})
+
+
+export const UpdateMemoryItemParams = zod.object({
+  "id": zod.coerce.string(),
+  "itemId": zod.coerce.string()
+})
+
+export const updateMemoryItemBodyCaptionMax = 500;
+
+
+
+export const UpdateMemoryItemBody = zod.object({
+  "caption": zod.string().max(updateMemoryItemBodyCaptionMax)
+})
+
+export const UpdateMemoryItemResponse = zod.object({
+  "id": zod.string(),
+  "position": zod.number().int(),
+  "unavailable": zod.boolean(),
+  "hidden": zod.boolean(),
+  "kind": zod.union([zod.literal('post'),zod.literal('photo'),zod.literal('audio'),zod.literal('music'),zod.literal(null)]).nullable(),
+  "sourceId": zod.string().nullable(),
+  "sourcePostId": zod.string().nullable(),
+  "caption": zod.string().nullable(),
+  "body": zod.string().nullable(),
+  "authorName": zod.string().nullable(),
+  "authorMemberId": zod.string().nullable(),
+  "mediaUrl": zod.string().nullable(),
+  "transcript": zod.string().nullable(),
+  "altText": zod.string().nullable(),
+  "url": zod.string().nullable(),
+  "title": zod.string().nullable(),
+  "sourceDate": zod.string().nullable()
+})
+
+
+export const RemoveMemoryItemParams = zod.object({
+  "id": zod.coerce.string(),
+  "itemId": zod.coerce.string()
+})
+
+export const RemoveMemoryItemResponse = zod.void()
+
+
+export const ReorderMemoryItemsParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const reorderMemoryItemsBodyItemIdsMax = 200;
+
+
+
+export const ReorderMemoryItemsBody = zod.object({
+  "itemIds": zod.array(zod.string()).max(reorderMemoryItemsBodyItemIdsMax)
+})
+
+export const ReorderMemoryItemsResponse = zod.void()
+
+
+export const HideMemoryItemParams = zod.object({
+  "id": zod.coerce.string(),
+  "itemId": zod.coerce.string()
+})
+
+export const HideMemoryItemBody = zod.object({
+  "hidden": zod.boolean()
+})
+
+export const HideMemoryItemResponse = zod.void()
+
+
+export const ExportMemoryCollectionParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const ExportMemoryCollectionResponse = zod.object({
+  "collection": zod.object({
+  "id": zod.string(),
+  "ownerMemberId": zod.string(),
+  "name": zod.string(),
+  "audience": zod.enum(['only_me', 'friends', 'my_circle', 'this_group', 'public']),
+  "circleId": zod.string().nullable(),
+  "groupId": zod.string().nullable(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string(),
+  "isOwner": zod.boolean(),
+  "sharingHeld": zod.boolean()
+}),
+  "items": zod.array(zod.object({
+  "id": zod.string(),
+  "position": zod.number().int(),
+  "unavailable": zod.boolean(),
+  "hidden": zod.boolean(),
+  "kind": zod.union([zod.literal('post'),zod.literal('photo'),zod.literal('audio'),zod.literal('music'),zod.literal(null)]).nullable(),
+  "sourceId": zod.string().nullable(),
+  "sourcePostId": zod.string().nullable(),
+  "caption": zod.string().nullable(),
+  "body": zod.string().nullable(),
+  "authorName": zod.string().nullable(),
+  "authorMemberId": zod.string().nullable(),
+  "mediaUrl": zod.string().nullable(),
+  "transcript": zod.string().nullable(),
+  "altText": zod.string().nullable(),
+  "url": zod.string().nullable(),
+  "title": zod.string().nullable(),
+  "sourceDate": zod.string().nullable()
+}))
+})
+
+
+export const ListMemorySourcesResponseItem = zod.object({
+  "id": zod.string(),
+  "position": zod.number().int(),
+  "unavailable": zod.boolean(),
+  "hidden": zod.boolean(),
+  "kind": zod.union([zod.literal('post'),zod.literal('photo'),zod.literal('audio'),zod.literal('music'),zod.literal(null)]).nullable(),
+  "sourceId": zod.string().nullable(),
+  "sourcePostId": zod.string().nullable(),
+  "caption": zod.string().nullable(),
+  "body": zod.string().nullable(),
+  "authorName": zod.string().nullable(),
+  "authorMemberId": zod.string().nullable(),
+  "mediaUrl": zod.string().nullable(),
+  "transcript": zod.string().nullable(),
+  "altText": zod.string().nullable(),
+  "url": zod.string().nullable(),
+  "title": zod.string().nullable(),
+  "sourceDate": zod.string().nullable()
+})
+export const ListMemorySourcesResponse = zod.array(ListMemorySourcesResponseItem)
+
+
+export const GetMemoryReminderPreferencesResponse = zod.object({
+  "enabled": zod.boolean(),
+  "consentedAt": zod.string().nullable()
+})
+
+
+export const SetMemoryReminderPreferencesBody = zod.object({
+  "enabled": zod.boolean(),
+  "consent": zod.boolean().optional()
+})
+
+export const SetMemoryReminderPreferencesResponse = zod.object({
+  "enabled": zod.boolean(),
+  "consentedAt": zod.string().nullable()
+})
+
+
+export const GetMemoryRemindersResponseItem = zod.object({
+  "collectionId": zod.string(),
+  "collectionName": zod.string(),
+  "item": zod.object({
+  "id": zod.string(),
+  "position": zod.number().int(),
+  "unavailable": zod.boolean(),
+  "hidden": zod.boolean(),
+  "kind": zod.union([zod.literal('post'),zod.literal('photo'),zod.literal('audio'),zod.literal('music'),zod.literal(null)]).nullable(),
+  "sourceId": zod.string().nullable(),
+  "sourcePostId": zod.string().nullable(),
+  "caption": zod.string().nullable(),
+  "body": zod.string().nullable(),
+  "authorName": zod.string().nullable(),
+  "authorMemberId": zod.string().nullable(),
+  "mediaUrl": zod.string().nullable(),
+  "transcript": zod.string().nullable(),
+  "altText": zod.string().nullable(),
+  "url": zod.string().nullable(),
+  "title": zod.string().nullable(),
+  "sourceDate": zod.string().nullable()
+})
+})
+export const GetMemoryRemindersResponse = zod.array(GetMemoryRemindersResponseItem)
+
+
 export const listResourcesQueryQMax = 200;
 
 

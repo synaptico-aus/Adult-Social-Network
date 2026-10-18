@@ -12,6 +12,7 @@ import { profilePhotoFile, requestProfilePhotoUpload } from "../lib/profile-phot
 import { Readable } from "node:stream";
 import "../lib/profile-deletion-hook";
 import { visiblePost } from "./posts";
+import { exportMemberMemories } from "../lib/memory-access";
 
 const router: IRouter = Router();
 router.use("/profile", requireAuth);
@@ -233,6 +234,7 @@ router.get("/profile/export", async (req, res): Promise<void> => {
   const educationSaves = await db.select().from(educationSavesTable).where(eq(educationSavesTable.memberId, member.id));
   const educationProgress = await db.select().from(educationProgressTable).where(eq(educationProgressTable.memberId, member.id));
   const resourceReports = await db.select().from(resourceReportsTable).where(eq(resourceReportsTable.memberId, member.id));
-  res.json({ memberId: member.id, profile, cards, consents, verification, friendRequests, friendships, follows, settings, posts, comments, reactions, saves, hides, circleMemberships, circles, circleInvitations, historyAccess, groupMemberships, groups, groupRequests, groupHosts, hostTraining, welcomeRequests, reports, conversations, conversationMemberships, messages, messageRequests, messageContactSettings, notificationPreferences, deviceRegistrations, messageReports, educationSaves, educationProgress, resourceReports, exportedAt: new Date().toISOString() });
+  const memoryData = await exportMemberMemories(member.id);
+  res.json({ memberId: member.id, profile, cards, consents, verification, friendRequests, friendships, follows, settings, posts, comments, reactions, saves, hides, circleMemberships, circles, circleInvitations, historyAccess, groupMemberships, groups, groupRequests, groupHosts, hostTraining, welcomeRequests, reports, conversations, conversationMemberships, messages, messageRequests, messageContactSettings, notificationPreferences, deviceRegistrations, messageReports, educationSaves, educationProgress, resourceReports, memoryData, exportedAt: new Date().toISOString() });
 });
 export default router;

@@ -113,6 +113,17 @@ import type {
   MediaUploadInput,
   MediaUploadSession,
   MemberTargetInput,
+  MemoryCaptionInput,
+  MemoryCollection,
+  MemoryCollectionDetail,
+  MemoryCollectionInput,
+  MemoryHideInput,
+  MemoryItem,
+  MemoryItemInput,
+  MemoryOrderInput,
+  MemoryReminder,
+  MemoryReminderInput,
+  MemoryReminderPreferences,
   Message,
   MessageContactSettings,
   MessageContactSettingsInput,
@@ -205,6 +216,1028 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   }
   return result;
 };
+
+export const getListMemoryCollectionsUrl = () => {
+
+
+
+
+  return `/api/memory-collections`
+}
+
+export const listMemoryCollections = async ( options?: Parameters<typeof customFetch>[1]): Promise<MemoryCollection[]> => {
+
+  return customFetch<MemoryCollection[]>(getListMemoryCollectionsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListMemoryCollectionsQueryKey = () => {
+    return [
+    `/api/memory-collections`
+    ] as const;
+    }
+
+
+export const getListMemoryCollectionsQueryOptions = <TData = Awaited<ReturnType<typeof listMemoryCollections>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listMemoryCollections>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListMemoryCollectionsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listMemoryCollections>>> = ({ signal }) => listMemoryCollections({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listMemoryCollections>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListMemoryCollectionsQueryResult = NonNullable<Awaited<ReturnType<typeof listMemoryCollections>>>
+export type ListMemoryCollectionsQueryError = ErrorType<unknown>
+
+
+
+export function useListMemoryCollections<TData = Awaited<ReturnType<typeof listMemoryCollections>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listMemoryCollections>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListMemoryCollectionsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateMemoryCollectionUrl = () => {
+
+
+
+
+  return `/api/memory-collections`
+}
+
+export const createMemoryCollection = async (memoryCollectionInput: MemoryCollectionInput, options?: Parameters<typeof customFetch>[1]): Promise<MemoryCollection> => {
+
+  return customFetch<MemoryCollection>(getCreateMemoryCollectionUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(memoryCollectionInput)
+  }
+);}
+
+
+
+
+
+export const getCreateMemoryCollectionMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createMemoryCollection>>, TError,{data: BodyType<MemoryCollectionInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createMemoryCollection>>, TError,{data: BodyType<MemoryCollectionInput>}, TContext> => {
+
+const mutationKey = ['createMemoryCollection'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createMemoryCollection>>, {data: BodyType<MemoryCollectionInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createMemoryCollection(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateMemoryCollectionMutationResult = NonNullable<Awaited<ReturnType<typeof createMemoryCollection>>>
+    export type CreateMemoryCollectionMutationBody = BodyType<MemoryCollectionInput>
+    export type CreateMemoryCollectionMutationError = ErrorType<unknown>
+
+    export const useCreateMemoryCollection = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createMemoryCollection>>, TError,{data: BodyType<MemoryCollectionInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createMemoryCollection>>,
+        TError,
+        {data: BodyType<MemoryCollectionInput>},
+        TContext
+      > => {
+      return useMutation(getCreateMemoryCollectionMutationOptions(options));
+    }
+
+export const getGetMemoryCollectionUrl = (id: string,) => {
+
+
+
+
+  return `/api/memory-collections/${id}`
+}
+
+export const getMemoryCollection = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<MemoryCollectionDetail> => {
+
+  return customFetch<MemoryCollectionDetail>(getGetMemoryCollectionUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetMemoryCollectionQueryKey = (id: string,) => {
+    return [
+    `/api/memory-collections/${id}`
+    ] as const;
+    }
+
+
+export const getGetMemoryCollectionQueryOptions = <TData = Awaited<ReturnType<typeof getMemoryCollection>>, TError = ErrorType<void>>(id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMemoryCollection>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMemoryCollectionQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMemoryCollection>>> = ({ signal }) => getMemoryCollection(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMemoryCollection>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetMemoryCollectionQueryResult = NonNullable<Awaited<ReturnType<typeof getMemoryCollection>>>
+export type GetMemoryCollectionQueryError = ErrorType<void>
+
+
+
+export function useGetMemoryCollection<TData = Awaited<ReturnType<typeof getMemoryCollection>>, TError = ErrorType<void>>(
+ id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMemoryCollection>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetMemoryCollectionQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUpdateMemoryCollectionUrl = (id: string,) => {
+
+
+
+
+  return `/api/memory-collections/${id}`
+}
+
+export const updateMemoryCollection = async (id: string,
+    memoryCollectionInput: MemoryCollectionInput, options?: Parameters<typeof customFetch>[1]): Promise<MemoryCollection> => {
+
+  return customFetch<MemoryCollection>(getUpdateMemoryCollectionUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(memoryCollectionInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateMemoryCollectionMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateMemoryCollection>>, TError,{id: string;data: BodyType<MemoryCollectionInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateMemoryCollection>>, TError,{id: string;data: BodyType<MemoryCollectionInput>}, TContext> => {
+
+const mutationKey = ['updateMemoryCollection'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateMemoryCollection>>, {id: string;data: BodyType<MemoryCollectionInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateMemoryCollection(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateMemoryCollectionMutationResult = NonNullable<Awaited<ReturnType<typeof updateMemoryCollection>>>
+    export type UpdateMemoryCollectionMutationBody = BodyType<MemoryCollectionInput>
+    export type UpdateMemoryCollectionMutationError = ErrorType<unknown>
+
+    export const useUpdateMemoryCollection = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateMemoryCollection>>, TError,{id: string;data: BodyType<MemoryCollectionInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateMemoryCollection>>,
+        TError,
+        {id: string;data: BodyType<MemoryCollectionInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateMemoryCollectionMutationOptions(options));
+    }
+
+export const getDeleteMemoryCollectionUrl = (id: string,) => {
+
+
+
+
+  return `/api/memory-collections/${id}`
+}
+
+export const deleteMemoryCollection = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+
+  return customFetch<void>(getDeleteMemoryCollectionUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteMemoryCollectionMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteMemoryCollection>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteMemoryCollection>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['deleteMemoryCollection'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteMemoryCollection>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteMemoryCollection(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteMemoryCollectionMutationResult = NonNullable<Awaited<ReturnType<typeof deleteMemoryCollection>>>
+
+    export type DeleteMemoryCollectionMutationError = ErrorType<unknown>
+
+    export const useDeleteMemoryCollection = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteMemoryCollection>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteMemoryCollection>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getDeleteMemoryCollectionMutationOptions(options));
+    }
+
+export const getAddMemoryItemUrl = (id: string,) => {
+
+
+
+
+  return `/api/memory-collections/${id}/items`
+}
+
+export const addMemoryItem = async (id: string,
+    memoryItemInput: MemoryItemInput, options?: Parameters<typeof customFetch>[1]): Promise<MemoryItem> => {
+
+  return customFetch<MemoryItem>(getAddMemoryItemUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(memoryItemInput)
+  }
+);}
+
+
+
+
+
+export const getAddMemoryItemMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addMemoryItem>>, TError,{id: string;data: BodyType<MemoryItemInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof addMemoryItem>>, TError,{id: string;data: BodyType<MemoryItemInput>}, TContext> => {
+
+const mutationKey = ['addMemoryItem'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof addMemoryItem>>, {id: string;data: BodyType<MemoryItemInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  addMemoryItem(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AddMemoryItemMutationResult = NonNullable<Awaited<ReturnType<typeof addMemoryItem>>>
+    export type AddMemoryItemMutationBody = BodyType<MemoryItemInput>
+    export type AddMemoryItemMutationError = ErrorType<unknown>
+
+    export const useAddMemoryItem = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addMemoryItem>>, TError,{id: string;data: BodyType<MemoryItemInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof addMemoryItem>>,
+        TError,
+        {id: string;data: BodyType<MemoryItemInput>},
+        TContext
+      > => {
+      return useMutation(getAddMemoryItemMutationOptions(options));
+    }
+
+export const getUpdateMemoryItemUrl = (id: string,
+    itemId: string,) => {
+
+
+
+
+  return `/api/memory-collections/${id}/items/${itemId}`
+}
+
+export const updateMemoryItem = async (id: string,
+    itemId: string,
+    memoryCaptionInput: MemoryCaptionInput, options?: Parameters<typeof customFetch>[1]): Promise<MemoryItem> => {
+
+  return customFetch<MemoryItem>(getUpdateMemoryItemUrl(id,itemId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(memoryCaptionInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateMemoryItemMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateMemoryItem>>, TError,{id: string;itemId: string;data: BodyType<MemoryCaptionInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateMemoryItem>>, TError,{id: string;itemId: string;data: BodyType<MemoryCaptionInput>}, TContext> => {
+
+const mutationKey = ['updateMemoryItem'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateMemoryItem>>, {id: string;itemId: string;data: BodyType<MemoryCaptionInput>}> = (props) => {
+          const {id,itemId,data} = props ?? {};
+
+          return  updateMemoryItem(id,itemId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateMemoryItemMutationResult = NonNullable<Awaited<ReturnType<typeof updateMemoryItem>>>
+    export type UpdateMemoryItemMutationBody = BodyType<MemoryCaptionInput>
+    export type UpdateMemoryItemMutationError = ErrorType<unknown>
+
+    export const useUpdateMemoryItem = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateMemoryItem>>, TError,{id: string;itemId: string;data: BodyType<MemoryCaptionInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateMemoryItem>>,
+        TError,
+        {id: string;itemId: string;data: BodyType<MemoryCaptionInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateMemoryItemMutationOptions(options));
+    }
+
+export const getRemoveMemoryItemUrl = (id: string,
+    itemId: string,) => {
+
+
+
+
+  return `/api/memory-collections/${id}/items/${itemId}`
+}
+
+export const removeMemoryItem = async (id: string,
+    itemId: string, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+
+  return customFetch<void>(getRemoveMemoryItemUrl(id,itemId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getRemoveMemoryItemMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeMemoryItem>>, TError,{id: string;itemId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof removeMemoryItem>>, TError,{id: string;itemId: string}, TContext> => {
+
+const mutationKey = ['removeMemoryItem'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof removeMemoryItem>>, {id: string;itemId: string}> = (props) => {
+          const {id,itemId} = props ?? {};
+
+          return  removeMemoryItem(id,itemId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RemoveMemoryItemMutationResult = NonNullable<Awaited<ReturnType<typeof removeMemoryItem>>>
+
+    export type RemoveMemoryItemMutationError = ErrorType<unknown>
+
+    export const useRemoveMemoryItem = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeMemoryItem>>, TError,{id: string;itemId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof removeMemoryItem>>,
+        TError,
+        {id: string;itemId: string},
+        TContext
+      > => {
+      return useMutation(getRemoveMemoryItemMutationOptions(options));
+    }
+
+export const getReorderMemoryItemsUrl = (id: string,) => {
+
+
+
+
+  return `/api/memory-collections/${id}/order`
+}
+
+export const reorderMemoryItems = async (id: string,
+    memoryOrderInput: MemoryOrderInput, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+
+  return customFetch<void>(getReorderMemoryItemsUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(memoryOrderInput)
+  }
+);}
+
+
+
+
+
+export const getReorderMemoryItemsMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reorderMemoryItems>>, TError,{id: string;data: BodyType<MemoryOrderInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof reorderMemoryItems>>, TError,{id: string;data: BodyType<MemoryOrderInput>}, TContext> => {
+
+const mutationKey = ['reorderMemoryItems'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reorderMemoryItems>>, {id: string;data: BodyType<MemoryOrderInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  reorderMemoryItems(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReorderMemoryItemsMutationResult = NonNullable<Awaited<ReturnType<typeof reorderMemoryItems>>>
+    export type ReorderMemoryItemsMutationBody = BodyType<MemoryOrderInput>
+    export type ReorderMemoryItemsMutationError = ErrorType<unknown>
+
+    export const useReorderMemoryItems = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reorderMemoryItems>>, TError,{id: string;data: BodyType<MemoryOrderInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof reorderMemoryItems>>,
+        TError,
+        {id: string;data: BodyType<MemoryOrderInput>},
+        TContext
+      > => {
+      return useMutation(getReorderMemoryItemsMutationOptions(options));
+    }
+
+export const getHideMemoryItemUrl = (id: string,
+    itemId: string,) => {
+
+
+
+
+  return `/api/memory-collections/${id}/items/${itemId}/hide`
+}
+
+export const hideMemoryItem = async (id: string,
+    itemId: string,
+    memoryHideInput: MemoryHideInput, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+
+  return customFetch<void>(getHideMemoryItemUrl(id,itemId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(memoryHideInput)
+  }
+);}
+
+
+
+
+
+export const getHideMemoryItemMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof hideMemoryItem>>, TError,{id: string;itemId: string;data: BodyType<MemoryHideInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof hideMemoryItem>>, TError,{id: string;itemId: string;data: BodyType<MemoryHideInput>}, TContext> => {
+
+const mutationKey = ['hideMemoryItem'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof hideMemoryItem>>, {id: string;itemId: string;data: BodyType<MemoryHideInput>}> = (props) => {
+          const {id,itemId,data} = props ?? {};
+
+          return  hideMemoryItem(id,itemId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type HideMemoryItemMutationResult = NonNullable<Awaited<ReturnType<typeof hideMemoryItem>>>
+    export type HideMemoryItemMutationBody = BodyType<MemoryHideInput>
+    export type HideMemoryItemMutationError = ErrorType<unknown>
+
+    export const useHideMemoryItem = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof hideMemoryItem>>, TError,{id: string;itemId: string;data: BodyType<MemoryHideInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof hideMemoryItem>>,
+        TError,
+        {id: string;itemId: string;data: BodyType<MemoryHideInput>},
+        TContext
+      > => {
+      return useMutation(getHideMemoryItemMutationOptions(options));
+    }
+
+export const getExportMemoryCollectionUrl = (id: string,) => {
+
+
+
+
+  return `/api/memory-collections/${id}/export`
+}
+
+export const exportMemoryCollection = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<MemoryCollectionDetail> => {
+
+  return customFetch<MemoryCollectionDetail>(getExportMemoryCollectionUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getExportMemoryCollectionQueryKey = (id: string,) => {
+    return [
+    `/api/memory-collections/${id}/export`
+    ] as const;
+    }
+
+
+export const getExportMemoryCollectionQueryOptions = <TData = Awaited<ReturnType<typeof exportMemoryCollection>>, TError = ErrorType<unknown>>(id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof exportMemoryCollection>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getExportMemoryCollectionQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof exportMemoryCollection>>> = ({ signal }) => exportMemoryCollection(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof exportMemoryCollection>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ExportMemoryCollectionQueryResult = NonNullable<Awaited<ReturnType<typeof exportMemoryCollection>>>
+export type ExportMemoryCollectionQueryError = ErrorType<unknown>
+
+
+
+export function useExportMemoryCollection<TData = Awaited<ReturnType<typeof exportMemoryCollection>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof exportMemoryCollection>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getExportMemoryCollectionQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListMemorySourcesUrl = () => {
+
+
+
+
+  return `/api/memory-sources`
+}
+
+export const listMemorySources = async ( options?: Parameters<typeof customFetch>[1]): Promise<MemoryItem[]> => {
+
+  return customFetch<MemoryItem[]>(getListMemorySourcesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListMemorySourcesQueryKey = () => {
+    return [
+    `/api/memory-sources`
+    ] as const;
+    }
+
+
+export const getListMemorySourcesQueryOptions = <TData = Awaited<ReturnType<typeof listMemorySources>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listMemorySources>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListMemorySourcesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listMemorySources>>> = ({ signal }) => listMemorySources({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listMemorySources>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListMemorySourcesQueryResult = NonNullable<Awaited<ReturnType<typeof listMemorySources>>>
+export type ListMemorySourcesQueryError = ErrorType<unknown>
+
+
+
+export function useListMemorySources<TData = Awaited<ReturnType<typeof listMemorySources>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listMemorySources>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListMemorySourcesQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetMemoryReminderPreferencesUrl = () => {
+
+
+
+
+  return `/api/memory-reminder-preferences`
+}
+
+export const getMemoryReminderPreferences = async ( options?: Parameters<typeof customFetch>[1]): Promise<MemoryReminderPreferences> => {
+
+  return customFetch<MemoryReminderPreferences>(getGetMemoryReminderPreferencesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetMemoryReminderPreferencesQueryKey = () => {
+    return [
+    `/api/memory-reminder-preferences`
+    ] as const;
+    }
+
+
+export const getGetMemoryReminderPreferencesQueryOptions = <TData = Awaited<ReturnType<typeof getMemoryReminderPreferences>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMemoryReminderPreferences>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMemoryReminderPreferencesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMemoryReminderPreferences>>> = ({ signal }) => getMemoryReminderPreferences({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMemoryReminderPreferences>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetMemoryReminderPreferencesQueryResult = NonNullable<Awaited<ReturnType<typeof getMemoryReminderPreferences>>>
+export type GetMemoryReminderPreferencesQueryError = ErrorType<unknown>
+
+
+
+export function useGetMemoryReminderPreferences<TData = Awaited<ReturnType<typeof getMemoryReminderPreferences>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMemoryReminderPreferences>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetMemoryReminderPreferencesQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getSetMemoryReminderPreferencesUrl = () => {
+
+
+
+
+  return `/api/memory-reminder-preferences`
+}
+
+export const setMemoryReminderPreferences = async (memoryReminderInput: MemoryReminderInput, options?: Parameters<typeof customFetch>[1]): Promise<MemoryReminderPreferences> => {
+
+  return customFetch<MemoryReminderPreferences>(getSetMemoryReminderPreferencesUrl(),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(memoryReminderInput)
+  }
+);}
+
+
+
+
+
+export const getSetMemoryReminderPreferencesMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setMemoryReminderPreferences>>, TError,{data: BodyType<MemoryReminderInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof setMemoryReminderPreferences>>, TError,{data: BodyType<MemoryReminderInput>}, TContext> => {
+
+const mutationKey = ['setMemoryReminderPreferences'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof setMemoryReminderPreferences>>, {data: BodyType<MemoryReminderInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  setMemoryReminderPreferences(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SetMemoryReminderPreferencesMutationResult = NonNullable<Awaited<ReturnType<typeof setMemoryReminderPreferences>>>
+    export type SetMemoryReminderPreferencesMutationBody = BodyType<MemoryReminderInput>
+    export type SetMemoryReminderPreferencesMutationError = ErrorType<unknown>
+
+    export const useSetMemoryReminderPreferences = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setMemoryReminderPreferences>>, TError,{data: BodyType<MemoryReminderInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof setMemoryReminderPreferences>>,
+        TError,
+        {data: BodyType<MemoryReminderInput>},
+        TContext
+      > => {
+      return useMutation(getSetMemoryReminderPreferencesMutationOptions(options));
+    }
+
+export const getGetMemoryRemindersUrl = () => {
+
+
+
+
+  return `/api/memory-reminders`
+}
+
+export const getMemoryReminders = async ( options?: Parameters<typeof customFetch>[1]): Promise<MemoryReminder[]> => {
+
+  return customFetch<MemoryReminder[]>(getGetMemoryRemindersUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetMemoryRemindersQueryKey = () => {
+    return [
+    `/api/memory-reminders`
+    ] as const;
+    }
+
+
+export const getGetMemoryRemindersQueryOptions = <TData = Awaited<ReturnType<typeof getMemoryReminders>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMemoryReminders>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMemoryRemindersQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMemoryReminders>>> = ({ signal }) => getMemoryReminders({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMemoryReminders>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetMemoryRemindersQueryResult = NonNullable<Awaited<ReturnType<typeof getMemoryReminders>>>
+export type GetMemoryRemindersQueryError = ErrorType<unknown>
+
+
+
+export function useGetMemoryReminders<TData = Awaited<ReturnType<typeof getMemoryReminders>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMemoryReminders>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetMemoryRemindersQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getListResourcesUrl = (params?: ListResourcesParams,) => {
   const normalizedParams = new URLSearchParams();

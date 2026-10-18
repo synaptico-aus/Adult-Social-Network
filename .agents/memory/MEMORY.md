@@ -10,3 +10,4 @@
 - [Video screening boundary](video-screening-boundary.md) — approval binds to frozen source bytes, complete playback and exact captions, never upload URLs or thumbnails.
 - [Browser codec verification](browser-codec-verification.md) — the test browser can support MP4 containers but lack H.264/AAC; distinguish decoding from private-access failures.
 - [Malware scan completion](malware-scan-completion.md) — ClamAV can assume skipped over-limit files are clean; verify complete coverage and signature freshness.
+- [Memory Collection authority](memory-collection-authority.md) — curator and viewer source access both matter; collections are not new grants or clinical treatment.

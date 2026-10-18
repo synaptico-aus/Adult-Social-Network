@@ -1,6 +1,6 @@
 import { ReactNode } from "react"
 import { Link, useLocation } from "wouter"
-import { Home, Compass, Users, MessageSquare, UserCircle, Heart, ChevronLeft, Info, Bell, Film } from "lucide-react"
+import { Home, Compass, Users, MessageSquare, UserCircle, Heart, ChevronLeft, Info, Bell, Film, Album } from "lucide-react"
 import { useSimpleView } from "@/lib/simple-view"
 import { Button } from "@/components/ui/button"
 import { useGetNotificationUnreadCount, getGetNotificationUnreadCountQueryKey } from "@workspace/api-client-react"
@@ -10,6 +10,7 @@ const navItems = [
   { href: "/", label: "Home", icon: Home },
   { href: "/explore", label: "Explore", icon: Compass, advanced: true },
   { href: "/reels", label: "Reels", icon: Film },
+  { href: "/memories", label: "Memories", icon: Album },
   { href: "/circle", label: "My Circle", icon: Users },
   { href: "/groups", label: "Groups", icon: Users },
   { href: "/messages", label: "Messages", icon: MessageSquare },

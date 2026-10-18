@@ -5,6 +5,165 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+export type MemoryCollectionInputAudience = typeof MemoryCollectionInputAudience[keyof typeof MemoryCollectionInputAudience];
+
+
+export const MemoryCollectionInputAudience = {
+  only_me: 'only_me',
+  friends: 'friends',
+  my_circle: 'my_circle',
+  this_group: 'this_group',
+  public: 'public',
+} as const;
+
+export interface MemoryCollectionInput {
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  name?: string;
+  audience?: MemoryCollectionInputAudience;
+  /** @nullable */
+  circleId?: string | null;
+  /** @nullable */
+  groupId?: string | null;
+  shareConsent?: boolean;
+}
+
+export type MemoryCollectionAudience = typeof MemoryCollectionAudience[keyof typeof MemoryCollectionAudience];
+
+
+export const MemoryCollectionAudience = {
+  only_me: 'only_me',
+  friends: 'friends',
+  my_circle: 'my_circle',
+  this_group: 'this_group',
+  public: 'public',
+} as const;
+
+export interface MemoryCollection {
+  id: string;
+  ownerMemberId: string;
+  name: string;
+  audience: MemoryCollectionAudience;
+  /** @nullable */
+  circleId: string | null;
+  /** @nullable */
+  groupId: string | null;
+  createdAt: string;
+  updatedAt: string;
+  isOwner: boolean;
+  sharingHeld: boolean;
+}
+
+/**
+ * @nullable
+ */
+export type MemoryItemKind = typeof MemoryItemKind[keyof typeof MemoryItemKind] | null;
+
+
+export const MemoryItemKind = {
+  post: 'post',
+  photo: 'photo',
+  audio: 'audio',
+  music: 'music',
+} as const;
+
+export interface MemoryItem {
+  id: string;
+  position: number;
+  unavailable: boolean;
+  hidden: boolean;
+  /** @nullable */
+  kind: MemoryItemKind;
+  /** @nullable */
+  sourceId: string | null;
+  /** @nullable */
+  sourcePostId: string | null;
+  /** @nullable */
+  caption: string | null;
+  /** @nullable */
+  body: string | null;
+  /** @nullable */
+  authorName: string | null;
+  /** @nullable */
+  authorMemberId: string | null;
+  /** @nullable */
+  mediaUrl: string | null;
+  /** @nullable */
+  transcript: string | null;
+  /** @nullable */
+  altText: string | null;
+  /** @nullable */
+  url: string | null;
+  /** @nullable */
+  title: string | null;
+  /** @nullable */
+  sourceDate: string | null;
+}
+
+export interface MemoryCollectionDetail {
+  collection: MemoryCollection;
+  items: MemoryItem[];
+}
+
+export type MemoryItemInputKind = typeof MemoryItemInputKind[keyof typeof MemoryItemInputKind];
+
+
+export const MemoryItemInputKind = {
+  post: 'post',
+  photo: 'photo',
+  audio: 'audio',
+  music: 'music',
+} as const;
+
+export interface MemoryItemInput {
+  kind: MemoryItemInputKind;
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
+  sourceId: string;
+  /**
+     * @maxLength 200
+     * @nullable
+     */
+  sourcePostId?: string | null;
+  /** @maxLength 500 */
+  caption?: string;
+}
+
+export interface MemoryCaptionInput {
+  /** @maxLength 500 */
+  caption: string;
+}
+
+export interface MemoryOrderInput {
+  /** @maxItems 200 */
+  itemIds: string[];
+}
+
+export interface MemoryHideInput {
+  hidden: boolean;
+}
+
+export interface MemoryReminderInput {
+  enabled: boolean;
+  consent?: boolean;
+}
+
+export interface MemoryReminderPreferences {
+  enabled: boolean;
+  /** @nullable */
+  consentedAt: string | null;
+}
+
+export interface MemoryReminder {
+  collectionId: string;
+  collectionName: string;
+  item: MemoryItem;
+}
+
 export type ResourceInputCategory = typeof ResourceInputCategory[keyof typeof ResourceInputCategory];
 
 

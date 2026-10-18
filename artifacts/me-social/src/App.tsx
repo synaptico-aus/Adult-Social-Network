@@ -53,6 +53,8 @@ import SafetyPage from '@/pages/safety';
 import StaffModerationPage from '@/pages/staff/moderation';
 import ReelsPage from '@/pages/reels';
 import StaffVideoReviewPage from '@/pages/staff/video-review';
+import Memories from '@/pages/memories';
+import MemoryDetail from '@/pages/memory-detail';
 import MyCircle from '@/pages/my-circle';
 import {
   getGetAccountSummaryQueryKey,
@@ -150,6 +152,8 @@ function Router() {
                   <Route path="/" component={HomeRoute} />
                   <Route path="/explore"><RequireMember><Explore /></RequireMember></Route>
                    <Route path="/circle"><RequireMember><MyCircle /></RequireMember></Route>
+                  <Route path="/memories"><RequireMember><Memories /></RequireMember></Route>
+                  <Route path="/memories/:id"><RequireMember><MemoryDetail /></RequireMember></Route>
                   <Route path="/reels"><RequireMember><ReelsPage /></RequireMember></Route>
                   <Route path="/staff/video-review"><RequireMember><StaffVideoReviewPage /></RequireMember></Route>
                   <Route path="/groups"><RequireMember><Groups /></RequireMember></Route>

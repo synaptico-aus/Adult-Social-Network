@@ -14,6 +14,7 @@ import notificationsRouter from "./notifications";
 import educationRouter from "./education";
 import resourcesRouter from "./resources";
 import videoRouter from "./video";
+import memoriesRouter from "./memories";
 
 const router: IRouter = Router();
 
@@ -32,5 +33,6 @@ router.use(messagesRouter);
 router.use(educationRouter);
 router.use(resourcesRouter);
 router.use(videoRouter);
+router.use(memoriesRouter);
 
 export default router;
