@@ -4,7 +4,8 @@ description: User's purple and yellow colour requirement for Me.
 ---
 
 Use dark charcoal backgrounds behind text and dark purple social cards and
-navigation so the yellow writing is readable. The user explicitly wants fonts
+navigation so the yellow writing is readable. Empty areas around the content
+and right-sidebar cards must be white, not charcoal. The user explicitly wants fonts
 across the app to match the bright yellow M in the Me logo, replacing the
 previous dark-gold writing. Keep the existing font families; no text outline
 was requested.
@@ -13,7 +14,8 @@ was requested.
 clarifying that the yellow must match the logo M, not dark gold. Their later
 annotated screenshot requested stronger purple surfaces and white open areas,
 but their subsequent readability correction requested black backgrounds behind
-the yellow writing. Readability now takes priority over the earlier white canvas.
+the yellow writing. They then clarified that all empty background areas should
+be white; keep dark backgrounds limited to text-bearing surfaces.
 
 **How to apply:** Preserve this palette across Me's pages, controls and branding
 when making future visual changes. Keep yellow on dark surfaces rather than

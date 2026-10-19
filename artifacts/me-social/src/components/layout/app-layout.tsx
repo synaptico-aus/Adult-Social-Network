@@ -142,7 +142,7 @@ function MobileHeader() {
 
 function RightPanel() {
   return (
-    <aside className="hidden xl:flex flex-col w-80 lg:w-96 border-s border-border bg-background h-[100dvh] sticky top-0 p-8 overflow-y-auto shrink-0">
+    <aside className="hidden xl:flex flex-col w-80 lg:w-96 border-s border-border bg-white h-[100dvh] sticky top-0 p-8 overflow-y-auto shrink-0">
       <div className="space-y-8">
         <div className="bg-card p-6 rounded-3xl border border-border shadow-sm">
           <div className="w-14 h-14 rounded-2xl bg-secondary flex items-center justify-center mb-5">
@@ -155,7 +155,7 @@ function RightPanel() {
         </div>
         
         <div className="space-y-4">
-          <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider ms-2">Getting Support</h3>
+          <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider bg-card rounded-lg px-3 py-2 w-fit">Getting Support</h3>
           <div className="bg-card border border-border rounded-2xl p-5 flex flex-col gap-3 shadow-sm">
             <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center shrink-0">
               <Users className="w-6 h-6 text-primary" />
@@ -175,12 +175,12 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const { isSimpleView } = useSimpleView();
   
   return (
-    <div className="min-h-[100dvh] flex bg-background w-full">
+    <div className="min-h-[100dvh] flex bg-white w-full">
       <DesktopSidebar />
       <div className="flex-1 flex flex-col min-w-0">
         <MobileHeader />
         <main className="flex-1 overflow-y-auto overflow-x-hidden pb-48 md:pb-8">
-           <div className="max-w-3xl mx-auto w-full p-4 md:p-8 lg:p-10 xl:p-12 min-w-0">
+           <div className="max-w-3xl mx-auto w-full p-4 md:p-8 lg:p-10 xl:p-12 min-w-0 bg-background rounded-b-2xl">
              {children}
            </div>
         </main>
