@@ -14,3 +14,4 @@
 - [Localisation release boundaries](localisation-release-boundaries.md) — reviewed language/coverage gates, provider privacy, offline limits and deliberate country choice.
 - [Commercial boundaries](product-commercial-boundaries.md) — disclose future sponsorship; never monetise private health data or introduce unrequested payments.
 - [Shared database tests](shared-database-tests.md) — pause live API workers for fixture-backed media integration tests; restore the managed service afterward.
+- [Release evidence boundaries](release-evidence-boundaries.md) — consented people, physical native devices and independent human review cannot be replaced by synthetic tests.

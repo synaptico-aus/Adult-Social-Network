@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2048" height="2048" viewBox="0 0 2048 2048">
+  <title>Me crimson splash artwork candidate</title>
+  <rect width="2048" height="2048" fill="#DC143C"/>
+  <circle cx="1024" cy="1024" r="280" fill="#652494"/>
+  <path transform="translate(640 640) scale(.75)" d="M300 720V304h105l107 180 107-180h105v416h-96V480L512 670 396 480v240Z" fill="#FFE45C"/>
+</svg>

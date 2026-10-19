@@ -3,10 +3,12 @@ import { and, desc, eq, sql } from "drizzle-orm";
 import { db, featureControlsTable, operationalCountersTable, operationsRecordsTable, sensitiveActionAuditTable, staffRoleAssignmentsTable, membersTable } from "@workspace/db";
 import type { RequestHandler } from "express";
 import { getAuth } from "@clerk/express";
+import { releaseHold } from "./release-holds";
 
 export const controlKeys = ["uploads", "video_processing", "posting", "messaging", "announcements", "analytics"] as const;
 export const budgetDefaults: Record<string, number> = { backlog: 50, urgent_age_minutes: 15, upload_daily_bytes: 1073741824, storage_bytes: 10737418240, failures_hour: 20, abuse_percent: 10, cost_usd_monthly: 25 };
 export async function featureEnabled(key: string) {
+  if (releaseHold(key)) return false;
   const [row] = await db.select().from(featureControlsTable).where(eq(featureControlsTable.key, key));
   return row?.enabled ?? key !== "analytics";
 }
@@ -27,6 +29,9 @@ export async function accessReviewCurrent(assignment: typeof staffRoleAssignment
 export const operationalFeatureGate: RequestHandler = async (req, res, next) => {
   if (!["POST", "PUT", "PATCH"].includes(req.method)) { next(); return; }
   const path = req.path;
+  if (path === "/account/onboarding" && releaseHold("onboarding")) {
+    res.status(503).json({ error: releaseHold("onboarding") }); return;
+  }
   if (!/^\/(?:reports|appeals|safety|account|security-reports|service-feedback|service-tasks)(?:\/|$)/.test(path)) {
     const userId = getAuth(req).userId;
     if (userId) {
@@ -44,7 +49,7 @@ export const operationalFeatureGate: RequestHandler = async (req, res, next) => 
     : /\/(?:conversations\/[^/]+\/messages|message-requests)(?:\/[^/]+)?$/.test(path) ? "messaging" : null;
   if (!feature) { next(); return; }
   try {
-    if (!(await featureEnabled(feature))) { res.status(503).json({ error: "This feature is temporarily paused by the safety team" }); return; }
+    if (!(await featureEnabled(feature))) { res.status(503).json({ error: releaseHold(feature) ?? "This feature is temporarily paused by the safety team" }); return; }
     next();
   } catch { res.status(503).json({ error: "Feature safety controls are unavailable; changes are paused" }); }
 };

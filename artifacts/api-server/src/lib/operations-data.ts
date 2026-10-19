@@ -1,12 +1,15 @@
 import { randomUUID } from "node:crypto";
 import { and, eq, inArray, or, sql } from "drizzle-orm";
-import { db, serviceMeasurementsTable, humanResponsesTable, notificationEventsTable, deviceRegistrationsTable, notificationDeliveryQueueTable, notificationsTable, notificationPreferencesTable, operationsRecordsTable } from "@workspace/db";
+import { db, serviceMeasurementsTable, humanResponsesTable, notificationEventsTable, deviceRegistrationsTable, notificationDeliveryQueueTable, notificationsTable, notificationPreferencesTable, operationsRecordsTable, operationalCountersTable, membersTable } from "@workspace/db";
+import { rateSubject } from "./shared-rate-limit";
 import { registerDeletionHook, listDeletionHooks } from "./deletion-hooks";
 import "./core-data-deletion";
 
 registerDeletionHook({
   name: "operations-feedback-and-notification-data",
   async run({ memberId }) {
+    const [member] = await db.select({ clerkUserId: membersTable.clerkUserId }).from(membersTable).where(eq(membersTable.id, memberId));
+    if (member) await db.delete(operationalCountersTable).where(sql`${operationalCountersTable.key} like ${`rate:${rateSubject(member.clerkUserId)}:%`}`);
     await db.delete(serviceMeasurementsTable).where(eq(serviceMeasurementsTable.memberId, memberId));
     await db.update(humanResponsesTable).set({ actorMemberId: null }).where(eq(humanResponsesTable.actorMemberId, memberId));
     await db.delete(notificationEventsTable).where(or(eq(notificationEventsTable.recipientMemberId, memberId), eq(notificationEventsTable.actorMemberId, memberId)));

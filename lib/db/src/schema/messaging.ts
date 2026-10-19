@@ -119,7 +119,9 @@ export const messageReportsTable = pgTable("message_reports", {
   conversationIdSnapshot: text("conversation_id_snapshot").notNull(),
   capturedAt: timestamp("captured_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [
-  uniqueIndex("message_report_member_message_unique").on(t.reporterMemberId, t.messageId),
+  // Distinct concerns may each retain exact report-scoped evidence. Intake's
+  // shared advisory lock deduplicates identical reports, not every future report.
+  index("message_report_member_message_idx").on(t.reporterMemberId, t.messageId),
   index("message_report_message_idx").on(t.messageId),
 ]);
 

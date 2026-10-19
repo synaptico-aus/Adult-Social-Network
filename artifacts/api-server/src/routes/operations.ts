@@ -8,6 +8,7 @@ import { requireAuth, memberRateLimit } from "../middlewares/account-auth";
 import { requireStaffMfa } from "../middlewares/staff-auth";
 import { STAFF_ROLE_CAPABILITIES, roleHasCapability } from "../lib/staff-policy";
 import { budgetDefaults, controlKeys, featureEnabled } from "../lib/operations-policy";
+import { releaseHold } from "../lib/release-holds";
 import { operationalMetrics } from "../lib/operations-metrics";
 import { executeDeletion } from "../lib/deletion-workflow";
 import { recordHumanResponse } from "../lib/operations-data";
@@ -39,7 +40,7 @@ router.use("/staff/ops", requireStaffMfa, (_req: Request, res: Response, next: N
 router.get("/staff/ops", async (req, res) => {
   const a = await assignment(req), operational = permits(a, "operations.read") || permits(a, "operations.manage");
   const metrics = operational && !a.groupIds.length ? await operationalMetrics() : [];
-  const features = operational ? await Promise.all(controlKeys.map(async key => ({ key, enabled: await featureEnabled(key), reason: (await db.select().from(featureControlsTable).where(eq(featureControlsTable.key, key)))[0]?.reason ?? "Default policy; analytics is off until deliberately enabled." }))) : [];
+  const features = operational ? await Promise.all(controlKeys.map(async key => ({ key, enabled: await featureEnabled(key), reason: releaseHold(key) ?? (await db.select().from(featureControlsTable).where(eq(featureControlsTable.key, key)))[0]?.reason ?? "Default policy; analytics is off until deliberately enabled." }))) : [];
   const modules = Object.entries(sectionCapabilities).filter(([, cap]) => permits(a, cap)).map(([key]) => ({ key, label: key.replace(/_/g, " "), path: `/staff/operations?section=${key}` }));
   for (const [cap, key, label, path] of [
     ["moderation.queue", "reports", "Reports and appeals", "/staff/moderation"],
@@ -177,6 +178,7 @@ router.post("/staff/ops/commands", memberRateLimit(90, 60000, "ops-command"), as
         await tx.update(dutySessionsTable).set({ heartbeatAt: new Date(), observedSeconds: s.observedSeconds + (elapsed >= 0 && elapsed <= 90 ? elapsed : 0), ...(d.action === "end_shift" ? { endedAt: new Date() } : {}) }).where(eq(dutySessionsTable.id, s.id)); resultId = s.id;
       } else if (d.action === "set_control") {
         need(target && controlKeys.includes(target as typeof controlKeys[number]) && d.enabled !== undefined, "Known feature and enabled/disabled state required");
+        need(!d.enabled || !releaseHold(target!), releaseHold(target!) ?? "Release safety hold", 409);
         await tx.insert(featureControlsTable).values({ key: target, enabled: d.enabled, reason: d.reason, updatedBy: actor }).onConflictDoUpdate({ target: featureControlsTable.key, set: { enabled: d.enabled, reason: d.reason, updatedBy: actor, updatedAt: new Date() } }); resultId = target;
       } else if (d.action === "record_cost") {
         need(["upload_processing", "storage", "hosting"].includes(d.targetId ?? "") && d.numericValue != null && d.numericValue >= 0 && d.numericValue <= 1e9 && d.reference, "Actual USD cost and a provider statement reference are required; never enter payment credentials");

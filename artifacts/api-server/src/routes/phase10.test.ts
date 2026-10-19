@@ -301,6 +301,11 @@ test("message report is exact-report scoped, MFA/capability gated, audited, and 
   const conversation = await call("/api/conversations/direct", ids.bob, { method: "POST", body: { recipientMemberId: ids.alice, body: "reportable" } });
   const report = await call(`/api/messages/${conversation.body.message.id}/report`, ids.alice, { method: "POST", body: { category: "harassment", details: "specific" } });
   assert.equal(report.status, 201);
+  const duplicates = await Promise.all(Array.from({ length: 4 }, () => call(`/api/messages/${conversation.body.message.id}/report`, ids.alice, { method: "POST", body: { category: "harassment", details: "specific" } })));
+  assert.ok(duplicates.every(x => x.status === 201 && x.body.report.id === report.body.report.id && x.body.evidenceId === report.body.evidenceId));
+  const distinct = await call(`/api/messages/${conversation.body.message.id}/report`, ids.alice, { method: "POST", body: { category: "threats", details: "different synthetic urgent concern" } });
+  assert.equal(distinct.status, 201);
+  assert.notEqual(distinct.body.report.id, report.body.report.id);
   assert.equal((await call(`/api/staff/reports/${report.body.report.id}/message-evidence`, ids.staff)).status, 403);
   assert.equal((await call(`/api/staff/reports/${report.body.report.id}/message-evidence`, ids.staff, { method: "GET", headers: { "x-test-mfa": "fresh" } })).status, 400);
   const evidence = await call(`/api/staff/reports/${report.body.report.id}/message-evidence?reason=review`, ids.staff, { headers: { "x-test-mfa": "fresh" } });

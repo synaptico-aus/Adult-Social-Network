@@ -15,6 +15,7 @@ import { requireAuth, memberRateLimit } from "../middlewares/account-auth";
 import { enqueueNotification } from "./notifications";
 import { liveConversationMember } from "../lib/conversation-access";
 import { lockGroupAuthority, lockMemberPair } from "../lib/member-locks";
+import { reportRateLimit } from "../lib/shared-rate-limit";
 
 const router = Router();
 router.use(["/messages", "/conversations", "/message-requests", "/message-contact-settings"], requireAuth);
@@ -511,11 +512,12 @@ router.delete("/messages/:messageId/for-me", async (req, res): Promise<void> => 
   res.sendStatus(204);
 });
 
-router.post("/messages/:messageId/report", async (req, res): Promise<void> => {
+router.post("/messages/:messageId/report", reportRateLimit, async (req, res): Promise<void> => {
   const member = await memberFor(req);
   const parsed = z.object({ category: z.enum(["harassment", "threats", "exploitation", "scams", "impersonation", "hateful_content", "dangerous_medical_claims", "distress_disclosure", "respectful_disagreement"]), details: z.string().max(5000).optional() }).strict().safeParse(req.body);
   if (!member || !parsed.success) { res.status(400).json({ error: "Invalid report" }); return; }
   const result = await db.transaction(async (tx) => {
+    await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${"report:" + member.id}, 0))`);
     const selected = (await tx.select({ conversationId: messagesTable.conversationId }).from(messagesTable).where(eq(messagesTable.id, String(req.params.messageId))).limit(1))[0];
     const selectedConversation = selected && (await tx.select({ groupId: conversationsTable.groupId }).from(conversationsTable).where(eq(conversationsTable.id, selected.conversationId)).limit(1))[0];
     if (selectedConversation?.groupId) await lockGroupAuthority(tx, selectedConversation.groupId);
@@ -524,6 +526,16 @@ router.post("/messages/:messageId/report", async (req, res): Promise<void> => {
     const participants = message ? await tx.select({ memberId: conversationMembersTable.memberId }).from(conversationMembersTable).where(and(eq(conversationMembersTable.conversationId, message.conversationId), eq(conversationMembersTable.status, "active"))) : [];
     if (!message || message.deletedForEveryoneAt || !reporterMembership || await blocked(message.senderMemberId, member.id, tx)) return undefined;
     for (const participant of participants) if (participant.memberId !== member.id && await blocked(participant.memberId, member.id, tx)) return undefined;
+    const [duplicate] = await tx.select().from(reportsTable).where(and(
+      eq(reportsTable.reporterMemberId, member.id), eq(reportsTable.contentId, message.id),
+      eq(reportsTable.contentTargetType, "message"), eq(reportsTable.category, parsed.data.category),
+      sql`${reportsTable.details} is not distinct from ${parsed.data.details ?? null}`,
+      sql`${reportsTable.createdAt} > now() - interval '10 minutes'`,
+    )).orderBy(desc(reportsTable.createdAt)).limit(1);
+    if (duplicate) {
+      const [evidence] = await tx.select().from(messageReportsTable).where(eq(messageReportsTable.reportId, duplicate.id)).limit(1);
+      if (evidence) return { message, report: duplicate, evidence };
+    }
     const [report] = await tx.insert(reportsTable).values({
       id: randomUUID(), reporterMemberId: member.id, targetMemberId: message.senderMemberId,
       contentTargetType: "message", contentId: message.id, category: parsed.data.category, details: parsed.data.details,

@@ -8,6 +8,7 @@ import { requireAuth } from "../middlewares/account-auth";
 import "../lib/safety-deletion-hook";
 import { visiblePost } from "./posts";
 import { lockGroupAuthority, lockMemberPair, memberPair } from "../lib/member-locks";
+import { reportRateLimit } from "../lib/shared-rate-limit";
 
 const router = Router();
 router.use("/safety", requireAuth);
@@ -193,7 +194,7 @@ router.delete("/safety/:kind/:targetMemberId", async (req, res): Promise<void> =
   res.sendStatus(204);
 });
 
-router.post("/reports", async (req, res): Promise<void> => {
+router.post("/reports", reportRateLimit, async (req, res): Promise<void> => {
   const member = await memberFor(req);
   const parsed = z.object({ targetMemberId: z.string().optional(), groupId: z.string().optional(), contentId: z.string().optional(), contentTargetType: z.enum(["post", "comment"]).optional(), contentTargetId: z.string().optional(), category: z.enum(["harassment", "threats", "exploitation", "scams", "impersonation", "hateful_content", "dangerous_medical_claims", "distress_disclosure", "respectful_disagreement"]), details: z.string().max(5000).optional() }).strict().safeParse(req.body);
   if (!member || !parsed.success) { res.status(400).json({ error: "Invalid report" }); return; }
@@ -212,12 +213,14 @@ router.post("/reports", async (req, res): Promise<void> => {
     if (!post && !comment) { res.status(400).json({ error: "Content target not found" }); return; }
   }
   const createdResult = await db.transaction(async (tx) => {
+    await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${"report:" + member.id}, 0))`);
     let evidence: { contentId: string; contentKind: string; authorMemberId: string | null; bodySnapshot: string } | undefined;
     if (contentId) {
       const post = parsed.data.contentTargetType === "comment" ? undefined : (await tx.select().from(postsTable).where(eq(postsTable.id, contentId)).limit(1))[0];
       const comment = parsed.data.contentTargetType === "post" ? undefined : (await tx.select().from(commentsTable).where(eq(commentsTable.id, contentId)).limit(1))[0];
       if (!post && !comment) throw new Error("Content target not found");
       const author = post?.authorMemberId ?? comment?.authorMemberId;
+      if (author && parsed.data.targetMemberId && parsed.data.targetMemberId !== author) throw new Error("Content target not found");
       if (comment) {
         const [parentHint] = await tx.select({ authorMemberId: postsTable.authorMemberId }).from(postsTable).innerJoin(commentsTable, eq(commentsTable.postId, postsTable.id)).where(eq(commentsTable.id, comment.id)).limit(1);
         for (const authorId of [author, parentHint?.authorMemberId].filter((id): id is string => !!id && id !== member.id).sort()) await lockMemberPair(tx, member.id, authorId);
@@ -237,7 +240,19 @@ router.post("/reports", async (req, res): Promise<void> => {
         evidence = { contentId: locked.id, contentKind: "comment", authorMemberId: locked.authorMemberId, bodySnapshot: locked.body };
       }
     }
-    const [created] = await tx.insert(reportsTable).values({ id: randomUUID(), reporterMemberId: member.id, targetMemberId: parsed.data.targetMemberId, groupId: parsed.data.groupId, contentId, category: parsed.data.category, details: parsed.data.details }).returning();
+    const [duplicate] = await tx.select().from(reportsTable).where(and(
+      eq(reportsTable.reporterMemberId, member.id), eq(reportsTable.category, parsed.data.category),
+      sql`${reportsTable.targetMemberId} is not distinct from ${evidence?.authorMemberId ?? parsed.data.targetMemberId ?? null}`,
+      sql`${reportsTable.groupId} is not distinct from ${parsed.data.groupId ?? null}`,
+      sql`${reportsTable.contentId} is not distinct from ${contentId ?? null}`,
+      sql`${reportsTable.details} is not distinct from ${parsed.data.details ?? null}`,
+      sql`${reportsTable.createdAt} > now() - interval '10 minutes'`,
+    )).orderBy(desc(reportsTable.createdAt)).limit(1);
+    if (duplicate) {
+      const [record] = await tx.select().from(moderationRecordsTable).where(eq(moderationRecordsTable.reportId, duplicate.id)).limit(1);
+      if (record) return [duplicate, record] as const;
+    }
+    const [created] = await tx.insert(reportsTable).values({ id: randomUUID(), reporterMemberId: member.id, targetMemberId: evidence?.authorMemberId ?? parsed.data.targetMemberId, groupId: parsed.data.groupId, contentId, category: parsed.data.category, details: parsed.data.details }).returning();
     const [record] = await tx.insert(moderationRecordsTable).values({ id: randomUUID(), reportId: created.id, contentId: created.contentId, subjectMemberId: created.targetMemberId, state: "pending" }).returning();
     if (evidence) await tx.insert(retainedEvidenceTable).values({ id: randomUUID(), reportId: created.id, ...evidence, policyVersion: "phase-6-v1", retentionReason: "reported-content" });
     return [created, record] as const;

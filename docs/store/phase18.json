@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "policyCheckedAt": "2026-10-19",
+  "status": "preparation-only",
+  "owner": {
+    "legalEntity": null,
+    "copyrightOwner": null,
+    "supportEmail": null,
+    "privacyEmail": null,
+    "incidentContactReference": null,
+    "childSafetyContactReference": null
+  },
+  "native": {
+    "iosProject": null,
+    "androidProject": null,
+    "bundleIdentifier": null,
+    "packageName": null,
+    "appleTeamReference": null,
+    "playDeveloperAccountReference": null,
+    "iosSignedArtifact": null,
+    "androidSignedArtifact": null,
+    "minimumSubmissionTools": {
+      "apple": "Xcode 26 or later and iOS 26 SDK or later; reconfirm before upload",
+      "android": "New phone/tablet apps and updates target Android 16/API 36 or higher; reconfirm before upload"
+    }
+  },
+  "urls": {
+    "reviewBackend": null,
+    "support": null,
+    "privacy": null,
+    "terms": null,
+    "community": null,
+    "accountDeletion": null,
+    "childSafetyStandards": null
+  },
+  "listing": {
+    "name": "Me",
+    "appleSubtitle": "Connection, at your pace",
+    "googleShortDescription": "Connect, share and learn in an adult community, at your own pace.",
+    "description": "Me is designed for adults living with dementia, family carers and other adult community members.\n\nConnect with people, share text stories with chosen audiences, and take part in groups. Keep in touch through messages and explore reviewed learning and country resources. Choose Simple View and low-data preferences to suit how you use Me.\n\nMe is for adults aged 18 and over. Me is not an emergency service, medical care, a diagnostic tool or a treatment. Learning and community content do not replace advice from a qualified professional.\n\nThis is a draft description for a future verified release. It must be reconciled with the exact enabled features and completed native journeys before use in a store.",
+    "testNotes": "Controlled beta candidate only. Keep incomplete features disabled. Do not advertise uploads, reels or completed account setup while their release holds remain.",
+    "primaryCategoryProposal": "Social Networking / Social",
+    "eligibilityMinimumAge": 18,
+    "appleAssignedRating": null,
+    "googleIarcRating": null,
+    "screenshots": []
+  },
+  "rollout": {
+    "supportedInterfaceLocales": ["en-AU", "en-GB", "en-US"],
+    "approvedCountries": [],
+    "reviewedModerationLanguages": ["English text intake and human review only; operational staffing remains unverified"],
+    "initialStage": "internal testing only after safety gates",
+    "publicRolloutAuthorised": false,
+    "submissionAuthorised": false
+  },
+  "evidence": [
+    {"id":"native-ios","status":"blocked","owner":"Mobile lead","reference":"No iOS/Expo project exists in the current artifact inventory"},
+    {"id":"native-android","status":"blocked","owner":"Mobile lead","reference":"No Android/Expo project exists in the current artifact inventory"},
+    {"id":"apple-signing","status":"blocked","owner":"Apple account owner","reference":"Native project, team, app record, entitlements and signed archive absent"},
+    {"id":"google-signing","status":"blocked","owner":"Play account owner","reference":"Native project, verified developer account, upload key and signed AAB absent"},
+    {"id":"sdk-binary-audit","status":"blocked","owner":"Mobile/security lead","reference":"Web/server inventory available; native binary, merged permissions and Apple privacy report absent"},
+    {"id":"apple-privacy-labels","status":"partial","owner":"Privacy lead","reference":"docs/store/data-disclosures.md; final binary and processor contracts required"},
+    {"id":"google-data-safety","status":"partial","owner":"Privacy lead","reference":"docs/store/data-disclosures.md; service-provider sharing exceptions require contract review"},
+    {"id":"age-ratings","status":"blocked","owner":"Store account owner","reference":"18+ Me eligibility is not an Apple or IARC questionnaire result"},
+    {"id":"sign-in-assessment","status":"blocked","owner":"Identity/mobile lead","reference":"Desktop /sign-in shows Continue with Google and no Apple equivalent. Assess guideline 4.8 and configure/test an eligible equivalent before iOS submission; production providers and token revocation unverified"},
+    {"id":"published-policies","status":"blocked","owner":"Legal/privacy lead","reference":"docs/store/policy-drafts.md is a draft, not reviewed public policies"},
+    {"id":"account-deletion","status":"blocked","owner":"Privacy/identity lead","reference":"Existing in-app request is pending lifecycle work; full provider erasure, expiry and native end-to-end verification missing"},
+    {"id":"reviewer-isolation","status":"blocked","owner":"Security/QA lead","reference":"docs/store/release-runbook.md; no reviewer identity or safe isolated environment provisioned"},
+    {"id":"review-backend","status":"blocked","owner":"Service owner","reference":"Deployment inspection: isDeployed=false, hasSuccessfulBuild=false, no production URL"},
+    {"id":"ios-testflight","status":"not-run","owner":"Mobile QA lead","reference":"Requires owner-approved signed build and physical devices"},
+    {"id":"android-testing","status":"not-run","owner":"Mobile QA lead","reference":"Requires owner-approved signed build; account-specific closed-test requirements unverified"},
+    {"id":"desktop-journeys","status":"partial","owner":"QA/accessibility lead","reference":"Phase 17 public desktop checks and Phase 18 actual 1280x900 sign-in reference capture; full account journeys blocked by unreadable policies"},
+    {"id":"crash-monitoring","status":"blocked","owner":"Service/privacy lead","reference":"Operational counters exist; native symbolicated crash monitoring and test alert not evidenced"},
+    {"id":"staff-incident-coverage","status":"blocked","owner":"Safety/service lead","reference":"No verified roster, staffed hours, child-safety contact or incident acknowledgement evidence"},
+    {"id":"rollback-restore","status":"blocked","owner":"Service owner","reference":"Phase 17 restore, recovery and live rollback evidence missing"},
+    {"id":"regions-languages","status":"partial","owner":"Regional safety/legal lead","reference":"Three English locale formats implemented; no country approved for launch"},
+    {"id":"accurate-screenshots","status":"blocked","owner":"Store/mobile QA lead","reference":"No signed native build. Web reference captures must not be passed off as device/store captures"},
+    {"id":"permissions","status":"partial","owner":"Mobile/privacy lead","reference":"docs/store/data-disclosures.md; native manifests and denied-permission device tests absent"},
+    {"id":"branding","status":"partial","owner":"Product owner","reference":"Candidate purple/yellow icons and crimson splash assets prepared, not integrated or owner-approved"},
+    {"id":"listing-accuracy","status":"partial","owner":"Store/product owner","reference":"Draft listing prepared; final feature claims and contact details await verification"}
+  ]
+}

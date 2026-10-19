@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { db, featureControlsTable, operationsRecordsTable } from "@workspace/db";
 import { operationalMetrics } from "./operations-metrics";
 import { budgetDefaults } from "./operations-policy";
@@ -25,7 +25,10 @@ export function startOperationalMonitor() {
   let busy = false;
   const timer = setInterval(async () => {
     if (busy) return; busy = true;
-    try { await checkOperationalBudgets(); }
+    try {
+      await db.execute(sql`delete from operational_counters where key like 'rate:%' and updated_at < now() - interval '7 days'`);
+      await checkOperationalBudgets();
+    }
     catch { logger.error("Operational monitor failed; external alert delivery is not configured"); }
     finally { busy = false; }
   }, 60000);

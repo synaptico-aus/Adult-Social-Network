@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "setAt": "2026-10-19T10:15:51Z",
+  "scope": "Proposed measurable beta acceptance targets, not service promises. Review with accountable operations lead before real beta. Dedicated representative staging required for capacity results.",
+  "metrics": {
+    "authenticated-api-p95": { "direction": "max", "limit": 1000, "unit": "ms at 20 concurrent members over 15 minutes", "minSamples": 1000 },
+    "authenticated-api-errors": { "direction": "max", "limit": 1, "unit": "percent unexpected failures (intentional 403/429 excluded)", "minSamples": 1000 },
+    "mobile-text-first-p95": { "direction": "max", "limit": 3000, "unit": "ms at 1.6Mbps/150ms RTT", "minSamples": 100 },
+    "approved-video-start-p95": { "direction": "max", "limit": 5000, "unit": "ms for rights-cleared low-data video on supported devices", "minSamples": 100 },
+    "urgent-human-response-p95": { "direction": "max", "limit": 15, "unit": "minutes during declared staffed hours; outside-hours gaps separately reported", "minSamples": 20 },
+    "welcome-human-response-p95": { "direction": "max", "limit": 240, "unit": "minutes within declared staffed hours", "minSamples": 20 },
+    "ordinary-report-resolution-p95": { "direction": "max", "limit": 48, "unit": "wall-clock hours", "minSamples": 20 },
+    "accessible-core-task-completion": { "direction": "min", "limit": 90, "unit": "percent of consented participant attempts without critical help", "minSamples": 20 },
+    "backlog-oldest-urgent": { "direction": "max", "limit": 15, "unit": "minutes under a 100 ordinary / 10 urgent synthetic-report staging burst", "minSamples": 10 },
+    "restore-rpo": { "direction": "max", "limit": 24, "unit": "hours of data loss, subject to verified provider capability", "minSamples": 1 },
+    "restore-rto": { "direction": "max", "limit": 4, "unit": "hours until validated isolated restore and revocation replay", "minSamples": 1 }
+  }
+}

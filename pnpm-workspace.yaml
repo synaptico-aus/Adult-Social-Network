@@ -75,6 +75,10 @@ onlyBuiltDependencies:
   - unrs-resolver
 
 overrides:
+  # Compatible security backports where upstream parents still pin vulnerable versions.
+  "js-yaml@^4": "^4.3.2"
+  "gaxios@6>uuid": "^11.1.1"
+  "teeny-request@9>uuid": "^11.1.1"
   # replit uses linux-x64 only, we can exclude all other platforms
   "esbuild>@esbuild/darwin-arm64": "-"
   "esbuild>@esbuild/darwin-x64": "-"

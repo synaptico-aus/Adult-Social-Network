@@ -4,6 +4,11 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "store:prepare": "node phase18/prepare.mjs",
+    "store:test": "node --test phase18/policy.test.mjs",
+    "release:check": "node phase17/report.mjs",
+    "release:test": "node --test phase17/policy.test.mjs",
+    "release:smoke": "node phase17/smoke.mjs",
     "hello": "tsx ./src/hello.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },

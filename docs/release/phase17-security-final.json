@@ -1,0 +1,29 @@
+{
+  "observedDate": "2026-10-19",
+  "scope": "Development source and lockfile only. Automated scans and AI code review, not independent human approval.",
+  "dependencyCounts": { "critical": 0, "high": 1, "moderate": 4, "low": 1, "info": 0 },
+  "remaining": [
+    { "package": "braces", "version": "3.0.3", "severity": "high", "advisory": "GHSA-vfj7-8cjw-p6xm", "disposition": "Open. No fixed package version available from current registry. Transitive via micromatch in the Clerk proxy dependency and sandbox tooling. No user-supplied glob patterns identified in Me proxy configuration; independent reachability/remediation decision still required, not automatically waived." },
+    { "package": "esbuild", "version": "0.27.3", "severity": "low", "advisory": "GHSA-g7r4-m6w7-qqqr", "disposition": "Windows development-server issue; workspace runs Linux and uses Vite. Upgrade separately after compatibility review; not a claim of global non-exploitability." },
+    { "package": "fast-copy", "version": "4.0.4", "severity": "moderate", "advisory": "GHSA-jggr-w7fw-pc2j" },
+    { "package": "markdown-it", "version": "14.3.0", "severity": "moderate", "advisory": "GHSA-253c-mchw-3w2r" },
+    { "package": "nanoid", "version": "3.3.16", "severity": "moderate", "advisory": "GHSA-2v37-7h3g-55p8" },
+    { "package": "postcss-selector-parser", "version": "6.0.10", "severity": "moderate", "advisory": "GHSA-rj75-hqrm-r3gf" }
+  ],
+  "sast": { "status": "complete", "findings": 0 },
+  "privacyDataflow": { "status": "complete", "findings": 0 },
+  "aiReviewFindings": [
+    { "finding": "Unbounded direct-to-storage PUT grants", "severity": "high", "status": "Contained by non-overridable upload hold; underlying storage admission remains unresolved" },
+    { "finding": "Report queue flooding", "severity": "high", "status": "Shared report admission and exact-case deduplication implemented and regression-tested" }
+  ],
+  "regressions": {
+    "backendFullSuite": { "passed": 156, "failed": 0, "scope": "Full isolated suite before strengthening the messaging assertions" },
+    "messagingStrengthened": { "passed": 14, "failed": 0, "scope": "Includes concurrent duplicate message reports and a distinct urgent concern after removing the overbroad target-level uniqueness constraint" },
+    "finalAffectedBoundaryRecheck": { "passed": 30, "failed": 0, "scope": "Post/report audience boundaries, strengthened private messaging and Phase 17 admission/containment checks after the final fixes" },
+    "releasePolicyTests": { "passed": 5, "failed": 0 },
+    "reauthenticationClientTests": { "passed": 2, "failed": 0 },
+    "typeChecks": "Shared libraries, API and Me frontend passed",
+    "publicDevelopmentSmoke": { "requests": 84, "failures": 0, "p50Ms": 8, "p95Ms": 25, "scope": "4 concurrent public reads, unauthenticated denials. Not authenticated capacity or production performance." }
+  },
+  "packageNotes": "Scoped uuid 11 overrides retain CommonJS-compatible v4 calls required by gaxios/teeny-request; parent updates were attempted first. Existing React/Clerk peer-version warning remains, with no auth migration or unsupported MFA workaround introduced."
+}

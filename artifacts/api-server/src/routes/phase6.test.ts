@@ -174,6 +174,12 @@ test("hide/save/report plus retained evidence survives deletion and staff access
   assert.equal((await call(`/api/posts/${source.id}/save`, ids.bob, { method: "POST" })).status, 204);
   const report = await call("/api/reports", ids.bob, { method: "POST", body: { contentId: source.id, category: "harassment", details: "retain" } });
   assert.equal(report.status, 201);
+  const duplicate = await call("/api/reports", ids.bob, { method: "POST", body: { contentId: source.id, category: "harassment", details: "retain" } });
+  assert.equal(duplicate.status, 201);
+  assert.equal(duplicate.body.report.id, report.body.report.id);
+  assert.equal(report.body.report.targetMemberId, ids.alice);
+  const misattributed = await call("/api/reports", ids.bob, { method: "POST", body: { contentId: source.id, targetMemberId: ids.carol, category: "harassment", details: "synthetic wrong attribution" } });
+  assert.equal(misattributed.status, 404);
   const evidence = (await db.select().from(retainedEvidenceTable).where(eq(retainedEvidenceTable.reportId, report.body.report.id)))[0];
   await call(`/api/posts/${source.id}`, ids.alice, { method: "DELETE" });
   const access = await call(`/api/staff/evidence/${evidence.id}/access`, ids.staff, { method: "POST", body: { reason: "audit" } });

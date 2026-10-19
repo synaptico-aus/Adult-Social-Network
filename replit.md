@@ -145,6 +145,26 @@ available. No recommended sources are seeded without independent review.
 Private Me external shares remain authenticated deep links, with live original
 permissions rather than public snapshots or bearer-token access.
 
+### Phase 18 store preparation
+
+Store preparation lives in `docs/store/`; `store:assets` in the API workspace
+generates candidate purple/yellow icons and crimson splash artwork, and
+`store:prepare` in the scripts workspace generates the Phase 18 report and
+installed web/server package inventory. These are not native builds, final
+privacy forms, reviewer access or store approval. No native client or signing
+is currently configured. Store submission and release each require owner
+authorisation; never upload or publish automatically.
+
+### Phase 17 release validation
+
+See `docs/phase-17-validation.md`, the owned register in
+`docs/release/phase17-evidence.json`, and predeclared targets in
+`docs/release/phase17-targets.json`. Run `pnpm --filter @workspace/scripts release:check`
+for the generated evidence assessment (currently expected NO-GO / exit 1).
+This is not independent launch approval. Uploads, video processing and new
+onboarding have non-overridable release holds pending their documented safety
+and readable-policy evidence.
+
 ### Phase 16 operating framework
 
 Staff operations live at `/staff/operations`; public service policy/optional

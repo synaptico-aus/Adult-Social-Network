@@ -1,0 +1,236 @@
+{
+  "scope": "Development lockfile, automated tools; not independent human approval",
+  "dependency": {
+    "counts": {
+      "critical": 1,
+      "high": 13,
+      "info": 0,
+      "low": 2,
+      "moderate": 11
+    },
+    "findings": [
+      {
+        "id": "GHSA-6j4f-fj2g-mc7p@brace-expansion-5.0.9",
+        "package": "brace-expansion",
+        "version": "5.0.9",
+        "severity": "high",
+        "fix": "5.0.10",
+        "title": "brace-expansion: DoS via uncontrolled recursion in parseCommaParts causing stack exhaustion"
+      },
+      {
+        "id": "GHSA-q2hr-2g5m-vwhr@brace-expansion-5.0.9",
+        "package": "brace-expansion",
+        "version": "5.0.9",
+        "severity": "moderate",
+        "fix": "5.0.12",
+        "title": "brace-expansion: Quadratic-time expansion of the `{a},b}` rewrite causes CPU denial of service"
+      },
+      {
+        "id": "GHSA-qhr7-859c-m2p7@brace-expansion-5.0.9",
+        "package": "brace-expansion",
+        "version": "5.0.9",
+        "severity": "high",
+        "fix": "5.0.11",
+        "title": "brace-expansion: DoS via uncontrolled recursion on nested brace groups causing stack exhaustion"
+      },
+      {
+        "id": "GHSA-vfj7-8cjw-p6xm@braces-3.0.3",
+        "package": "braces",
+        "version": "3.0.3",
+        "severity": "high",
+        "title": "braces vulnerable to stack-exhaustion denial of service through deeply nested patterns"
+      },
+      {
+        "id": "GHSA-g7r4-m6w7-qqqr@esbuild-0.27.3",
+        "package": "esbuild",
+        "version": "0.27.3",
+        "severity": "low",
+        "fix": "0.28.1",
+        "title": "esbuild allows arbitrary file read when running the development server on Windows"
+      },
+      {
+        "id": "GHSA-jggr-w7fw-pc2j@fast-copy-4.0.4",
+        "package": "fast-copy",
+        "version": "4.0.4",
+        "severity": "moderate",
+        "fix": "4.1.0",
+        "title": "fast-copy: Stack exhaustion in fast-copy when copying deeply-nested values"
+      },
+      {
+        "id": "GHSA-5jgf-p345-68v8@fast-uri-3.1.5",
+        "package": "fast-uri",
+        "version": "3.1.5",
+        "severity": "high",
+        "fix": "3.1.6",
+        "title": "fast-uri vulnerable to host confusion via skipped IDN canonicalization on scheme-relative references"
+      },
+      {
+        "id": "GHSA-f65p-4m7j-42xc@fast-uri-3.1.5",
+        "package": "fast-uri",
+        "version": "3.1.5",
+        "severity": "high",
+        "fix": "3.1.6",
+        "title": "fast-uri vulnerable to server-side request forgery via malformed IPv6 normalization"
+      },
+      {
+        "id": "GHSA-fph4-wmhf-6fwf@fast-uri-3.1.5",
+        "package": "fast-uri",
+        "version": "3.1.5",
+        "severity": "high",
+        "fix": "3.1.6",
+        "title": "fast-uri vulnerable to server-side request forgery via repeated hostname percent-decoding"
+      },
+      {
+        "id": "GHSA-hrr3-gc8f-f4qj@fast-uri-3.1.5",
+        "package": "fast-uri",
+        "version": "3.1.5",
+        "severity": "moderate",
+        "fix": "3.1.8",
+        "title": "fast-uri vulnerable to inconsistent host case normalization via percent-encoded octets"
+      },
+      {
+        "id": "GHSA-jqff-g426-hqxp@fast-uri-3.1.5",
+        "package": "fast-uri",
+        "version": "3.1.5",
+        "severity": "high",
+        "fix": "3.1.6",
+        "title": "fast-uri vulnerable to host confusion via percent-encoded scheme normalization"
+      },
+      {
+        "id": "GHSA-qw65-cvwx-89v3@fast-uri-3.1.5",
+        "package": "fast-uri",
+        "version": "3.1.5",
+        "severity": "high",
+        "fix": "3.1.7",
+        "title": "fast-uri vulnerable to authority injection via an unvalidated port in serialize"
+      },
+      {
+        "id": "GHSA-2883-xcg3-v3hh@js-yaml-4.3.0",
+        "package": "js-yaml",
+        "version": "4.3.0",
+        "severity": "high",
+        "fix": "4.3.2",
+        "title": "js-yaml: maxTotalMergeKeys does not limit CPU use for empty merge sources"
+      },
+      {
+        "id": "GHSA-5p4m-2wfm-xmqj@js-yaml-4.3.0",
+        "package": "js-yaml",
+        "version": "4.3.0",
+        "severity": "high",
+        "fix": "4.3.1",
+        "title": "JS-YAML: Quadratic CPU consumption in !!omap resolution (3.x and 4.x) — CVE-2026-59870 fix not backported"
+      },
+      {
+        "id": "GHSA-253c-mchw-3w2r@markdown-it-14.3.0",
+        "package": "markdown-it",
+        "version": "14.3.0",
+        "severity": "moderate",
+        "fix": "14.3.1",
+        "title": "markdown-it linkify: true has two quadratic paths, so a few hundred KB of markdown blocks the event loop for tens of seconds"
+      },
+      {
+        "id": "GHSA-53v6-4h7p-p4gj@music-metadata-11.15.0",
+        "package": "music-metadata",
+        "version": "11.15.0",
+        "severity": "moderate",
+        "fix": "11.16.0",
+        "title": "music-metadata: Uncontrolled memory allocation in APEv2 parser"
+      },
+      {
+        "id": "GHSA-5gfj-9q3v-qfp3@music-metadata-11.15.0",
+        "package": "music-metadata",
+        "version": "11.15.0",
+        "severity": "moderate",
+        "fix": "11.16.0",
+        "title": "music-metadata: EBML parser trusts element lengths, allowing memory exhaustion or process abort"
+      },
+      {
+        "id": "GHSA-f94x-6692-553q@music-metadata-11.15.0",
+        "package": "music-metadata",
+        "version": "11.15.0",
+        "severity": "moderate",
+        "fix": "11.16.0",
+        "title": "music-metadata: MP4 stsd sample-entry size==0 causes a synchronous infinite loop (DoS) — unreleased regression on master"
+      },
+      {
+        "id": "GHSA-jjpr-9cvf-cq55@music-metadata-11.15.0",
+        "package": "music-metadata",
+        "version": "11.15.0",
+        "severity": "moderate",
+        "fix": "11.16.0",
+        "title": "music-metadata: ID3v2 tag size not validated before allocation, causing memory exhaustion DoS"
+      },
+      {
+        "id": "GHSA-2v37-7h3g-55p8@nanoid-3.3.16",
+        "package": "nanoid",
+        "version": "3.3.16",
+        "severity": "moderate",
+        "fix": "3.3.18",
+        "title": "nanoid: custom generators can loop indefinitely when size is zero"
+      },
+      {
+        "id": "GHSA-rj75-hqrm-r3gf@postcss-selector-parser-6.0.10",
+        "package": "postcss-selector-parser",
+        "version": "6.0.10",
+        "severity": "moderate",
+        "fix": "7.1.6",
+        "title": "PostCSS: Quadratic complexity in flat selector parsing allows CPU exhaustion"
+      },
+      {
+        "id": "GHSA-jqcg-44mw-7w3h@proxy-addr-2.0.7",
+        "package": "proxy-addr",
+        "version": "2.0.7",
+        "severity": "critical",
+        "fix": "2.0.8",
+        "title": "proxy-addr vulnerable to IP spoofing via IPv4-mapped IPv6 trust subnet"
+      },
+      {
+        "id": "GHSA-4mjr-xmp4-gh2g@qs-6.15.3",
+        "package": "qs",
+        "version": "6.15.3",
+        "severity": "moderate",
+        "fix": "6.16.0",
+        "title": "qs: Denial of Service via Attacker Controlled isBuffer"
+      },
+      {
+        "id": "GHSA-x5fp-wj9c-mxmx@qs-6.15.3",
+        "package": "qs",
+        "version": "6.15.3",
+        "severity": "low",
+        "fix": "6.16.0",
+        "title": "qs array-limit bypass via bracket-key comma parsing"
+      },
+      {
+        "id": "GHSA-wq5f-xc86-pv6w@sharp-0.35.4",
+        "package": "sharp",
+        "version": "0.35.4",
+        "severity": "high",
+        "fix": "0.35.5",
+        "title": "sharp : Vulnerability in librsvg dependency CVE-2026-96889"
+      },
+      {
+        "id": "GHSA-68fv-2mgg-jv7q@source-map-js-1.2.1",
+        "package": "source-map-js",
+        "version": "1.2.1",
+        "severity": "high",
+        "fix": "1.2.2",
+        "title": "source-map-js allows event-loop denial of service through indexed source-map section offsets"
+      },
+      {
+        "id": "GHSA-w5hq-g745-h8pq@uuid-9.0.1",
+        "package": "uuid",
+        "version": "9.0.1",
+        "severity": "high",
+        "fix": "11.1.1",
+        "title": "uuid: Missing buffer bounds check in v3/v5/v6 when buf is provided"
+      }
+    ]
+  },
+  "sast": {
+    "incomplete": false,
+    "results": []
+  },
+  "privacy": {
+    "vulnerabilities": []
+  }
+}

@@ -1,0 +1,58 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "WOMxzEU3gh-QS6LvfKP6A"
+uri = "file://generated-artifacts/phase17/go-no-go.html"
+type = "html"
+title = "Me Phase 17 — NO-GO report"
+description = "Evidence, release targets, owned issues and unresolved human, device and operational checks. Not production approval."
+logical_id = "b9c84665-52f7-4cda-82b1-11df859334d8"
+content_hash = "sha256:033d49903375fb9b6ab4756e55fe24952c86bcb9bb1044fe20bed6d504af242c"
+size = 12538
+mtime_ms = 1792405944881
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:9297d1f2-0bfb-4905-a196-065b1a2c9e4d/b9c84665-52f7-4cda-82b1-11df859334d8/3b67713e-7cbf-4aa2-89ac-b777a8f236bf"
+storage_version_token = "1792405950292439"
+content_type = "text/html"
+
+[[outputs]]
+id = "lvgOqgbuATtnRr-uYMT2g"
+uri = "file://generated-artifacts/phase18/submission-readiness.html"
+type = "html"
+title = "Me — Phase 18 submission preparation"
+description = "Official requirement checks, SDK/data worksheets, draft policies, reviewer/signing runbook and owned blockers. NOT READY FOR SUBMISSION."
+logical_id = "3f78b11b-c4fd-43e6-9ffa-feddfad4048d"
+content_hash = "sha256:347bf80cdcd181fc6dc71ecbfb8a4b121419b2b391a36c0bb4f417476ac62dc0"
+size = 230806
+mtime_ms = 1792406836877
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:9297d1f2-0bfb-4905-a196-065b1a2c9e4d/3f78b11b-c4fd-43e6-9ffa-feddfad4048d/64a9e54c-ee46-4796-bc26-11ae31d859c6"
+storage_version_token = "1792406878129788"
+content_type = "text/html"
+
+[[outputs]]
+id = "Q_h1XtC-66AHY8bdn1VAm"
+uri = "file://generated-artifacts/phase18/assets/me-crimson-splash-2048.png"
+type = "image"
+title = "Me crimson splash artwork — candidate"
+description = "2048px crimson background with purple/yellow Me mark. Artwork only; not integrated into a native build or approved for release."
+logical_id = "4f9053ab-dec0-4a95-a527-7093c141a1a2"
+content_hash = "sha256:1dfaadb3043b05c0bbd7a6f549f7ab51a22cf4fda65e76dcd59eea3936761b4d"
+size = 78988
+mtime_ms = 1792406836369
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:9297d1f2-0bfb-4905-a196-065b1a2c9e4d/4f9053ab-dec0-4a95-a527-7093c141a1a2/621732f3-0412-402b-93c4-8440031723d3"
+storage_version_token = "1792406878832140"
+content_type = "image/png"
+
+[[outputs]]
+id = "XOpJvxtgsiqL9zUtrwfQw"
+uri = "file://generated-artifacts/phase18/assets/me-ios-icon-1024.png"
+type = "image"
+title = "Me app icon — candidate"
+description = "Opaque 1024px purple/yellow icon candidate. Native integration and owner review remain required."
+logical_id = "36c29d64-5afd-4a10-bb63-495237bb67bc"
+content_hash = "sha256:d039ecda10bc05546c877c73e1fcb5bf343e4339756562914c765e188a3af479"
+size = 26166
+mtime_ms = 1792406836285
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:9297d1f2-0bfb-4905-a196-065b1a2c9e4d/36c29d64-5afd-4a10-bb63-495237bb67bc/c7060e62-833b-46bb-bce2-dd6ae07bcca5"
+storage_version_token = "1792406879543857"
+content_type = "image/png"
