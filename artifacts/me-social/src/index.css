@@ -50,8 +50,9 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
-/* Light lavender surfaces with the same bright yellow used by the logo M. */
+/* Yellow logo text needs dark surfaces, including behind inputs and menus. */
 :root {
+  color-scheme: dark;
   --button-outline: rgba(32, 33, 36, 0.1);
   --badge-outline: rgba(32, 33, 36, 0.05);
 
@@ -60,28 +61,28 @@
   --elevate-1: rgba(32, 33, 36, 0.03);
   --elevate-2: rgba(32, 33, 36, 0.08);
 
-  --background: 0 0% 100%;
+  --background: 270 12% 9%;
   --foreground: 50 100% 68%;
-  --border: 270 30% 65%;
-  --card: 270 60% 85%;
+  --border: 270 30% 48%;
+  --card: 270 40% 18%;
   --card-foreground: 50 100% 68%;
-  --card-border: 270 30% 65%;
-  --popover: 270 60% 94%;
+  --card-border: 270 30% 48%;
+  --popover: 270 30% 14%;
   --popover-foreground: 50 100% 68%;
-  --popover-border: 270 30% 65%;
+  --popover-border: 270 30% 48%;
   --primary: 270 60% 35%;
   --primary-foreground: 50 100% 68%;
-  --secondary: 270 55% 80%;
+  --secondary: 270 40% 24%;
   --secondary-foreground: 50 100% 68%;
-  --muted: 270 45% 87%;
+  --muted: 270 22% 16%;
   --muted-foreground: 50 100% 68%;
-  --accent: 270 55% 78%;
+  --accent: 270 50% 28%;
   --accent-foreground: 50 100% 68%;
   /* Warning text remains yellow; alerts retain their labels and icons. */
   --destructive: 285 65% 30%;
   --destructive-foreground: 50 100% 68%;
-  --input: 270 30% 65%;
-  --ring: 270 60% 35%;
+  --input: 270 30% 55%;
+  --ring: 50 100% 68%;
 
   --app-font-sans: 'DM Sans', sans-serif;
   --app-font-display: 'Outfit', sans-serif;
@@ -103,9 +104,9 @@
 }
 
 .dark {
-  --background: 0 0% 100%;
-  --card: 270 60% 85%;
-  --popover: 270 60% 94%;
+  --background: 270 12% 9%;
+  --card: 270 40% 18%;
+  --popover: 270 30% 14%;
 }
 
 @layer base {
