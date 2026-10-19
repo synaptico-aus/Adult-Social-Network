@@ -5,6 +5,8 @@ import { startVideoProcessing } from "./lib/video-processing";
 import { startMediaCleanup } from "./lib/media-deletion-hook";
 import { startMalwareScanner } from "./lib/scanner-runtime";
 import { startNonVideoScreeningRetries } from "./lib/non-video-screening";
+import { startDeletionWorker } from "./lib/deletion-workflow";
+import { startOperationalMonitor } from "./lib/operational-monitor";
 
 const rawPort = process.env["PORT"];
 
@@ -32,4 +34,6 @@ app.listen(port, (err) => {
   startResourceStaleChecks();
   startVideoProcessing();
   startMediaCleanup();
+  startDeletionWorker();
+  startOperationalMonitor();
 });

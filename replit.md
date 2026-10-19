@@ -145,6 +145,16 @@ available. No recommended sources are seeded without independent review.
 Private Me external shares remain authenticated deep links, with live original
 permissions rather than public snapshots or bearer-token access.
 
+### Phase 16 operating framework
+
+Staff operations live at `/staff/operations`; public service policy/optional
+measurement at `/service-experience`, security intake at `/security-report`.
+See `docs/phase-16-operations.md`, `docs/phase-16-data-lifecycle.md` and
+`docs/phase-16-launch-register.md`. These record procedures and explicit unverified
+launch gates, not legal/staffing/backup/provider certification or video approval.
+Do not convert operator attestations, sampled page presence, logical bytes or
+partial costs into claims of independent approval, 24/7 coverage or live billing.
+
 ### Phase 13 video boundary
 See `docs/phase13-video.md` for limits, recoverable uploads, processing, coverage,
 private playback and deletion. Reels and video posts use the existing audiences

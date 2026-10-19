@@ -4,6 +4,7 @@ import { requireAuth } from "./account-auth";
 import { db, staffRoleAssignmentsTable } from "@workspace/db";
 import { and, eq } from "drizzle-orm";
 import { STAFF_ROLE_CAPABILITIES, roleHasCapability } from "../lib/staff-policy";
+import { accessReviewCurrent } from "../lib/operations-policy";
 
 /** Staff is an explicit assignment, never a profile label or legacy metadata claim. */
 export const requireStaffMfa: RequestHandler[] = [
@@ -13,7 +14,7 @@ export const requireStaffMfa: RequestHandler[] = [
     const claims = auth.sessionClaims as Record<string, unknown> | undefined;
     const fva = claims?.fva;
     const assignment = (await db.select().from(staffRoleAssignmentsTable).where(and(eq(staffRoleAssignmentsTable.clerkUserId, auth.userId!), eq(staffRoleAssignmentsTable.active, true))).limit(1))[0];
-    if (!assignment || !freshStaffPermission(fva, assignment.role)) {
+    if (!assignment || !freshStaffPermission(fva, assignment.role) || !(await accessReviewCurrent(assignment))) {
       res.status(403).json({ error: "Staff permission and fresh MFA are required" });
       return;
     }
@@ -36,6 +37,19 @@ export function requireStaffCapability(capability: string): RequestHandler[] {
     next();
   }];
 }
+
+export function requireResourceCapability(capability: string): RequestHandler[] {
+  return [...requireStaffMfa, async (req, res, next) => {
+    const [a] = await db.select().from(staffRoleAssignmentsTable).where(and(eq(staffRoleAssignmentsTable.clerkUserId, getAuth(req).userId!), eq(staffRoleAssignmentsTable.active, true)));
+    if (!a || ![capability, "resources.manage"].some(c => roleHasCapability(a.role, c, a.capabilities))) { res.status(403).json({ error: "Resource capability required" }); return; }
+    next();
+  }];
+}
+export const requireStaffResourceRead: RequestHandler[] = [...requireStaffMfa, async (req, res, next) => {
+  const [a] = await db.select().from(staffRoleAssignmentsTable).where(and(eq(staffRoleAssignmentsTable.clerkUserId, getAuth(req).userId!), eq(staffRoleAssignmentsTable.active, true)));
+  if (!a || !["resources.manage", "education.author", "education.review", "education.publish"].some(c => roleHasCapability(a.role, c, a.capabilities))) { res.status(403).json({ error: "Resource staff scope required" }); return; }
+  next();
+}];
 
 /** Read-only education records are available to any active education role. */
 export const requireStaffEducationRead: RequestHandler[] = [

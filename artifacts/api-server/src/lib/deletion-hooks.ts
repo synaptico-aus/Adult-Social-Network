@@ -25,8 +25,9 @@ export function listDeletionHooks(): readonly string[] {
   return hooks.map((hook) => hook.name);
 }
 
-export async function runDeletionHooks(context: DeletionHookContext): Promise<void> {
+export async function runDeletionHooks(context: DeletionHookContext, journal?: (name: string, run: () => Promise<void>) => Promise<void>): Promise<void> {
   for (const hook of hooks) {
-    await hook.run(context);
+    if (journal) await journal(hook.name, () => hook.run(context));
+    else await hook.run(context);
   }
 }

@@ -8,7 +8,7 @@ import {
   RemoveResourceBody, ReportResourceBody, ResolveResourceReportBody,
 } from "@workspace/api-zod";
 import { requireAuth, memberRateLimit } from "../middlewares/account-auth";
-import { requireStaffCapability, requireStaffEducationRead } from "../middlewares/staff-auth";
+import { requireResourceCapability as requireStaffCapability, requireStaffResourceRead as requireStaffEducationRead } from "../middlewares/staff-auth";
 import { authorisedEmbed, extractMetadata, plainMetadata, resourceUrl, safeResourceFetch } from "../lib/safe-resource-fetch";
 import "../lib/resource-deletion-hook";
 

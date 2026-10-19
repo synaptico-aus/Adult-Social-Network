@@ -386,6 +386,9 @@ export default function StaffModerationPage() {
           </div>
         </div>
 
+        <Link href="/staff/operations">
+          <Button variant="outline" className="rounded-xl gap-2 hidden sm:flex bg-card">Operations</Button>
+        </Link>
         <Link href="/staff/translations">
           <Button variant="outline" className="rounded-xl gap-2 hidden sm:flex bg-card">Translations</Button>
         </Link>

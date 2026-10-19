@@ -25,6 +25,46 @@ tags:
   - name: education-staff
     description: Capability-scoped education authoring and review
 paths:
+  /service-policy:
+    get:
+      operationId: getServicePolicy
+      responses: { "200": { description: Honest service availability and privacy limits, content: { application/json: { schema: { $ref: "#/components/schemas/ServicePolicy" } } } } }
+  /security-reports:
+    post:
+      operationId: submitSecurityReport
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/SecurityReportInput" } } } }
+      responses: { "200": { description: "Receipt, not a human response or emergency service", content: { application/json: { schema: { $ref: "#/components/schemas/OperationsCommandResult" } } } } }
+  /staff/ops:
+    get:
+      operationId: getOperationsDashboard
+      responses: { "200": { description: Authorized live operations, content: { application/json: { schema: { $ref: "#/components/schemas/OperationsDashboard" } } } } }
+  /staff/ops/records/{section}:
+    get:
+      operationId: getOperationsRecords
+      parameters:
+        - { name: section, in: path, required: true, schema: { type: string, enum: [users, groups, access, coverage, incidents, security, launch, processors, budgets, deletions, announcements, audit, alerts] } }
+      responses: { "200": { description: Authorized records, content: { application/json: { schema: { $ref: "#/components/schemas/OperationsRecordList" } } } } }
+  /staff/ops/commands:
+    post:
+      operationId: executeOperationsCommand
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/OperationsCommandInput" } } } }
+      responses: { "200": { description: Audited command, content: { application/json: { schema: { $ref: "#/components/schemas/OperationsCommandResult" } } } } }
+  /announcements:
+    get:
+      operationId: listPublicAnnouncements
+      parameters:
+        - { name: region, in: query, required: true, schema: { type: string, enum: [AU, GB, US] } }
+      responses: { "200": { description: Reviewed unexpired service announcements, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/PublicAnnouncement" } } } } } }
+  /service-feedback:
+    post:
+      operationId: submitServiceFeedback
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/ServiceFeedbackInput" } } } }
+      responses: { "200": { description: Optional structured feedback, content: { application/json: { schema: { $ref: "#/components/schemas/OperationsCommandResult" } } } } }
+  /service-tasks:
+    post:
+      operationId: measureServiceTask
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/ServiceTaskInput" } } } }
+      responses: { "200": { description: Consented task outcome, content: { application/json: { schema: { $ref: "#/components/schemas/OperationsCommandResult" } } } } }
   /experience/catalogue:
     get:
       operationId: getExperienceCatalogue
@@ -1699,6 +1739,134 @@ components:
       type: http
       scheme: bearer
   schemas:
+    ServicePolicy:
+      type: object
+      required: [staffingNotice, declaredHours, measurementEnabled, privacyNotice, backupNotice]
+      properties:
+        staffingNotice: { type: string }
+        declaredHours: { type: array, items: { type: string } }
+        measurementEnabled: { type: boolean }
+        privacyNotice: { type: string }
+        backupNotice: { type: string }
+    SecurityReportInput:
+      type: object
+      required: [title, summary]
+      additionalProperties: false
+      properties:
+        title: { type: string, minLength: 5, maxLength: 180 }
+        summary: { type: string, minLength: 20, maxLength: 5000 }
+    OperationsMetric:
+      type: object
+      required: [key, label, value, unit, note]
+      properties:
+        key: { type: string }
+        label: { type: string }
+        value: { type: [number, "null"] }
+        unit: { type: string }
+        note: { type: string }
+    OperationsFeature:
+      type: object
+      required: [key, enabled, reason]
+      properties:
+        key: { type: string }
+        enabled: { type: boolean }
+        reason: { type: string }
+    OperationsModule:
+      type: object
+      required: [key, label, path]
+      properties:
+        key: { type: string }
+        label: { type: string }
+        path: { type: string }
+    OperationsCheck:
+      type: object
+      required: [key, status, note]
+      properties:
+        key: { type: string }
+        status: { type: string }
+        note: { type: string }
+    OperationsDashboard:
+      type: object
+      required: [role, capabilities, metrics, features, modules, checks, updatedAt, staffingNotice]
+      properties:
+        role: { type: string }
+        capabilities: { type: array, items: { type: string } }
+        metrics: { type: array, items: { $ref: "#/components/schemas/OperationsMetric" } }
+        features: { type: array, items: { $ref: "#/components/schemas/OperationsFeature" } }
+        modules: { type: array, items: { $ref: "#/components/schemas/OperationsModule" } }
+        checks: { type: array, items: { $ref: "#/components/schemas/OperationsCheck" } }
+        updatedAt: { type: string }
+        staffingNotice: { type: string }
+    OperationsRecord:
+      type: object
+      required: [id, title, status, summary, createdAt, actions]
+      properties:
+        id: { type: string }
+        title: { type: string }
+        status: { type: string }
+        summary: { type: string }
+        createdAt: { type: string }
+        actions: { type: array, items: { type: string } }
+    OperationsRecordList:
+      type: object
+      required: [section, items, allowedActions]
+      properties:
+        section: { type: string }
+        items: { type: array, items: { $ref: "#/components/schemas/OperationsRecord" } }
+        allowedActions: { type: array, items: { type: string } }
+    OperationsCommandInput:
+      type: object
+      required: [action, reason]
+      additionalProperties: false
+      properties:
+        action: { type: string, enum: [assign_role, review_access, revoke_access, suspend_user, restore_user, suspend_group, restore_group, create_announcement, publish_announcement, withdraw_announcement, start_shift, heartbeat, end_shift, record_incident, resolve_incident, record_security_report, resolve_security_report, record_launch_review, record_processor_evidence, record_cost, set_budget, set_control, acknowledge_alert, retry_deletion, acknowledge_report, set_staffing_hours] }
+        targetId: { type: string }
+        requestId: { type: string }
+        reason: { type: string, minLength: 10, maxLength: 2000 }
+        title: { type: string, maxLength: 180 }
+        body: { type: string, maxLength: 5000 }
+        role: { type: string, enum: [administrator, moderator, education_editor, resource_editor, group_manager, operations_manager, privacy_officer] }
+        capabilities: { type: array, items: { type: string } }
+        groupIds: { type: array, items: { type: string } }
+        numericValue: { type: number, minimum: 0 }
+        enabled: { type: boolean }
+        region: { type: string, enum: [AU, GB, US] }
+        validUntil: { type: string, format: date-time }
+        reference: { type: string, maxLength: 400 }
+        status: { type: string, enum: [pending, reviewed, blocked, verified] }
+    OperationsCommandResult:
+      type: object
+      required: [id, status]
+      properties:
+        id: { type: string }
+        status: { type: string }
+    PublicAnnouncement:
+      type: object
+      required: [id, title, body, region, publishedAt, sponsorshipDisclosure]
+      properties:
+        id: { type: string }
+        title: { type: string }
+        body: { type: string }
+        region: { type: string }
+        publishedAt: { type: string }
+        sponsorshipDisclosure: { type: [string, "null"] }
+    ServiceFeedbackInput:
+      type: object
+      required: [consent, supported]
+      additionalProperties: false
+      properties:
+        consent: { type: boolean, const: true }
+        supported: { type: boolean }
+    ServiceTaskInput:
+      type: object
+      required: [consent, task, completed, usedAssistiveTechnology, durationSeconds]
+      additionalProperties: false
+      properties:
+        consent: { type: boolean, const: true }
+        task: { type: string, enum: [find_support, change_language, save_draft, export_account, report_content] }
+        completed: { type: boolean }
+        usedAssistiveTechnology: { type: boolean }
+        durationSeconds: { type: number, minimum: 0, maximum: 86400 }
     ExperienceInput:
       type: object
       properties:

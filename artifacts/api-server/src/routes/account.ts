@@ -16,7 +16,7 @@ import {
 import { requireAuth, sensitiveRateLimit } from "../middlewares/account-auth";
 import { AGE_POLICY_VERSION, ALLOWED_AGE_METHODS, hasCurrentConsent, isAdultEligible, validOnboardingDocuments, freshFirstFactor } from "../lib/account-policy";
 import { revokeDevicesForClerkSession } from "./notifications";
-import { runDeletionHooks } from "../lib/deletion-hooks";
+import { executeDeletion } from "../lib/deletion-workflow";
 
 const router: IRouter = Router();
 router.use("/account", requireAuth);
@@ -123,18 +123,12 @@ router.post("/account/deletion", sensitiveRateLimit(5), async (req, res): Promis
   const [request] = await db.insert(deletionRequestsTable).values({ id: randomUUID(), memberId: member.id, status: "pending", reauthMethod: "clerk-session-fva", reauthenticatedAt: new Date() }).returning();
   await db.update(membersTable).set({ active: false, deletedAt: new Date() }).where(eq(membersTable.id, member.id));
   await db.update(deviceRegistrationsTable).set({ active: false, revokedAt: new Date() }).where(eq(deviceRegistrationsTable.memberId, member.id));
-  await runDeletionHooks({ memberId: member.id, requestId: request.id });
+  await executeDeletion(request.id);
   res.status(202).json(InitiateDeletionResponse.parse({ status: request.status, requestedAt: request.requestedAt }));
 });
 
 router.delete("/account/deletion", async (req, res): Promise<void> => {
-  const userId = getAuth(req).userId!;
-  const member = (await db.select().from(membersTable).where(eq(membersTable.clerkUserId, userId)).limit(1))[0];
-  if (member) {
-    await db.update(deletionRequestsTable).set({ status: "cancelled", cancelledAt: new Date() }).where(and(eq(deletionRequestsTable.memberId, member.id), eq(deletionRequestsTable.status, "pending")));
-    await db.update(membersTable).set({ active: true, deletedAt: null }).where(eq(membersTable.id, member.id));
-  }
-  res.sendStatus(204);
+  res.status(409).json({ error: "Deletion starts immediately and cannot restore erased data or reactivate the account." });
 });
 
 export default router;

@@ -1,5 +1,5 @@
 import { registerDeletionHook } from "./deletion-hooks";
-import { db, profilesTable, thisIsMeCardsTable, verificationRequestsTable } from "@workspace/db";
+import { db, profilesTable, thisIsMeCardsTable, verificationRequestsTable, mediaCleanupTasksTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { deleteProfilePhoto } from "./profile-photo-storage";
 
@@ -12,7 +12,10 @@ registerDeletionHook({
   name: "profile-and-consent-data",
   async run({ memberId }) {
     const profile = (await db.select().from(profilesTable).where(eq(profilesTable.memberId, memberId)).limit(1))[0];
-    if (profile?.photoPath) await deleteProfilePhoto(profile.photoPath);
+    if (profile?.photoPath) {
+      await db.insert(mediaCleanupTasksTable).values({ assetId: `profile:${memberId}`, paths: [profile.photoPath], nextAttemptAt: new Date(Date.now() + 60000), expiresAt: new Date(Date.now() + 86400000) }).onConflictDoNothing();
+      await deleteProfilePhoto(profile.photoPath);
+    }
     await db.delete(thisIsMeCardsTable).where(eq(thisIsMeCardsTable.memberId, memberId));
     await db.delete(profilesTable).where(eq(profilesTable.memberId, memberId));
     await db.update(verificationRequestsTable)

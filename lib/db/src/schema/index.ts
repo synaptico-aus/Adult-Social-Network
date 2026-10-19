@@ -34,3 +34,4 @@ export * from "./education";
 export * from "./resources";
 export * from "./memories";
 export * from "./experience";
+export * from "./operations";

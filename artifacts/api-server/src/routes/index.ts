@@ -16,10 +16,12 @@ import educationRouter from "./education";
 import resourcesRouter from "./resources";
 import videoRouter from "./video";
 import memoriesRouter from "./memories";
+import operationsRouter from "./operations";
 
 const router: IRouter = Router();
 
 router.use(healthRouter);
+router.use(operationsRouter);
 router.use(experienceRouter);
 router.use(accountRouter);
 router.use(staffRouter);

@@ -4,7 +4,7 @@ import { membersTable } from "./members";
 export const relationshipKinds = ["block", "mute", "restrict"] as const;
 export const reportCategories = ["harassment", "threats", "exploitation", "scams", "impersonation", "hateful_content", "dangerous_medical_claims", "distress_disclosure", "respectful_disagreement"] as const;
 export const moderationStates = ["pending", "allowed", "held", "removed", "appealed"] as const;
-export const staffRoles = ["administrator", "moderator", "education_editor"] as const;
+export const staffRoles = ["administrator", "moderator", "education_editor", "resource_editor", "group_manager", "operations_manager", "privacy_officer"] as const;
 
 export const safetyRelationshipsTable = pgTable("safety_relationships", {
   id: text("id").primaryKey(), actorMemberId: text("actor_member_id").notNull().references(() => membersTable.id, { onDelete: "cascade" }),
@@ -38,6 +38,7 @@ export const appealsTable = pgTable("appeals", {
 export const staffRoleAssignmentsTable = pgTable("staff_role_assignments", {
   id: text("id").primaryKey(), clerkUserId: text("clerk_user_id").notNull(), role: text("role", { enum: staffRoles }).notNull(),
   capabilities: jsonb("capabilities").$type<string[]>().notNull().default([]), active: boolean("active").notNull().default(true),
+  groupIds: jsonb("group_ids").$type<string[]>().notNull().default([]),
   assignedBy: text("assigned_by"), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [index("staff_assignments_user_idx").on(t.clerkUserId, t.active), uniqueIndex("staff_assignments_user_unique").on(t.clerkUserId)]);
 

@@ -11,6 +11,8 @@ export const deletionRequestsTable = pgTable("deletion_requests", {
   reauthenticatedAt: timestamp("reauthenticated_at", { withTimezone: true }).notNull(),
   requestedAt: timestamp("requested_at", { withTimezone: true }).notNull().defaultNow(),
   cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
+  completedAt: timestamp("completed_at", { withTimezone: true }),
+  lastError: text("last_error"),
 });
 
 export const insertDeletionRequestSchema = createInsertSchema(deletionRequestsTable);

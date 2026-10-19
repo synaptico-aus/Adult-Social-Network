@@ -136,6 +136,15 @@ export default function MePage() {
             <ArrowRight className="rtl:-scale-x-100 w-8 h-8 text-muted-foreground group-hover:text-primary transition-colors hidden sm:block" aria-hidden="true" />
           </Link>
 
+          <Link href="/service-experience" className="flex items-center justify-between group p-4 rounded-xl hover:bg-secondary/30 transition-colors" data-testid="link-service-experience">
+            <span className="font-semibold">Service experience (optional)</span>
+          </Link>
+          <Link href="/announcements" className="flex items-center justify-between group p-4 rounded-xl hover:bg-secondary/30 transition-colors" data-testid="link-announcements">
+            <span className="font-semibold">Service notices</span>
+          </Link>
+          <Link href="/security-report" className="flex items-center justify-between group p-4 rounded-xl hover:bg-secondary/30 transition-colors" data-testid="link-security-report">
+            <span className="font-semibold">Report a security problem</span>
+          </Link>
           <Link href="/profile/edit" className="flex items-center justify-between group p-4 rounded-xl hover:bg-secondary/30 transition-colors">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-primary shrink-0">

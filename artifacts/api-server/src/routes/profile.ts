@@ -10,6 +10,8 @@ import { liveConversationMember } from "../lib/conversation-access";
 import { PROFILE_FIELDS, defaultVisibility, visibleProfile, isAssistedAccessInput, isOwnedProfilePhotoPath, cardPayloadIsTextOnly } from "../lib/profile-policy";
 import { profilePhotoFile, requestProfilePhotoUpload } from "../lib/profile-photo-storage";
 import { Readable } from "node:stream";
+import { exportOperations } from "../lib/operations-data";
+import { moduleExportManifest } from "../lib/module-export";
 import "../lib/profile-deletion-hook";
 import { visiblePost } from "./posts";
 import { exportMemberMemories } from "../lib/memory-access";
@@ -237,6 +239,13 @@ router.get("/profile/export", async (req, res): Promise<void> => {
   const resourceReports = await db.select().from(resourceReportsTable).where(eq(resourceReportsTable.memberId, member.id));
   const memoryData = await exportMemberMemories(member.id);
   const experienceData = await exportExperience(member.id);
-  res.json({ memberId: member.id, profile, cards, consents, verification, friendRequests, friendships, follows, settings, posts, comments, reactions, saves, hides, circleMemberships, circles, circleInvitations, historyAccess, groupMemberships, groups, groupRequests, groupHosts, hostTraining, welcomeRequests, reports, conversations, conversationMemberships, messages, messageRequests, messageContactSettings, notificationPreferences, deviceRegistrations, messageReports, educationSaves, educationProgress, resourceReports, memoryData, experienceData, exportedAt: new Date().toISOString() });
+  const operationsData = await exportOperations(member.id);
+  const ownedMedia = await db.select().from(mediaAssetsTable).where(eq(mediaAssetsTable.ownerMemberId, member.id));
+  const mediaManifest = ownedMedia.map(m => ({ id: m.id, kind: m.kind, status: m.status, byteSize: m.byteSize, createdAt: m.createdAt, downloadPath: m.status === "ready" ? `/api/media/${encodeURIComponent(m.id)}` : null,
+    note: "Use the authenticated original-media controls for permitted downloads. Held/retained assets are not made public by an export." }));
+  const safeDevices = deviceRegistrations.map(d => ({ id: d.id, kind: d.kind, platform: d.platform, active: d.active, expiresAt: d.expiresAt }));
+  res.set("Cache-Control", "private, no-store");
+  const payload = { memberId: member.id, profile, cards, consents, verification, friendRequests, friendships, follows, settings, posts, comments, reactions, saves, hides, circleMemberships, circles, circleInvitations, historyAccess, groupMemberships, groups, groupRequests, groupHosts, hostTraining, welcomeRequests, reports, conversations, conversationMemberships, messages, messageRequests, messageContactSettings, notificationPreferences, deviceRegistrations: safeDevices, messageReports, educationSaves, educationProgress, resourceReports, memoryData, experienceData, operationsData, mediaManifest, exportedAt: new Date().toISOString() };
+  res.json({ ...payload, moduleExports: moduleExportManifest(payload) });
 });
 export default router;

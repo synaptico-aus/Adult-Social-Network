@@ -59,6 +59,10 @@ import MyCircle from '@/pages/my-circle';
 import SettingsExperience from '@/pages/settings-experience';
 import CountryResourcesPage from '@/pages/country-resources';
 import StaffTranslationsPage from '@/pages/staff/translations';
+import StaffOperationsPage from '@/pages/staff/operations';
+import ServiceExperience from '@/pages/service-experience';
+import AnnouncementsPage from '@/pages/announcements';
+import SecurityReport from '@/pages/security-report';
 import { ExperienceProvider } from '@/lib/experience';
 import { endAccountSession } from '@/lib/draft-store';
 import {
@@ -194,6 +198,10 @@ function Router() {
                   <Route path="/account/security"><RequireMember><AccountSecurity /></RequireMember></Route>
                   <Route path="/safety"><RequireMember><SafetyPage /></RequireMember></Route>
                   <Route path="/staff/moderation"><RequireMember><StaffModerationPage /></RequireMember></Route>
+                  <Route path="/staff/operations"><RequireMember><StaffOperationsPage /></RequireMember></Route>
+                  <Route path="/service-experience"><RequireMember><ServiceExperience /></RequireMember></Route>
+                  <Route path="/security-report" component={SecurityReport} />
+                  <Route path="/announcements" component={AnnouncementsPage} />
                   <Route path="/staff/education"><RequireMember><StaffEducationPage /></RequireMember></Route>
                   <Route path="/staff/resources"><RequireMember><StaffResourcesPage /></RequireMember></Route>
                   <Route path="/settings/experience"><RequireMember><SettingsExperience /></RequireMember></Route>

@@ -142,7 +142,7 @@ function MobileHeader() {
 
 function RightPanel() {
   return (
-    <aside className="hidden xl:flex flex-col w-80 lg:w-96 border-s border-border bg-muted/20 h-[100dvh] sticky top-0 p-8 overflow-y-auto shrink-0">
+    <aside className="hidden xl:flex flex-col w-80 lg:w-96 border-s border-border bg-background h-[100dvh] sticky top-0 p-8 overflow-y-auto shrink-0">
       <div className="space-y-8">
         <div className="bg-card p-6 rounded-3xl border border-border shadow-sm">
           <div className="w-14 h-14 rounded-2xl bg-secondary flex items-center justify-center mb-5">

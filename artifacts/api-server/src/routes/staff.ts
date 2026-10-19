@@ -1,19 +1,20 @@
 import { Router, type IRouter, type Request, type Response } from "express";
 import { requireStaffCapability, requireStaffMfa } from "../middlewares/staff-auth";
 import { STAFF_ROLE_CAPABILITIES, roleHasCapability } from "../lib/staff-policy";
-import { db, appealsTable, evidenceAccessAuditTable, messageReportsTable, messageReportContextTable, messagesTable, moderationRecordsTable, reportsTable, retainedEvidenceTable, sensitiveActionAuditTable, staffRoleAssignmentsTable, verificationRequestsTable } from "@workspace/db";
+import { db, appealsTable, evidenceAccessAuditTable, messageReportsTable, messageReportContextTable, messagesTable, moderationRecordsTable, reportsTable, retainedEvidenceTable, sensitiveActionAuditTable, staffRoleAssignmentsTable, verificationRequestsTable, operationsRecordsTable, membersTable } from "@workspace/db";
 import { and, desc, eq, inArray, or } from "drizzle-orm";
 import { z } from "zod";
 import { getAuth } from "@clerk/express";
 import { randomUUID } from "node:crypto";
 import { canTransitionModeration, MODERATION_SANCTIONS, urgentCategory } from "../lib/moderation-policy";
+import { recordHumanResponse } from "../lib/operations-data";
 
 const router: IRouter = Router();
 router.get("/staff/capabilities", requireStaffMfa, async (req: Request, res: Response): Promise<void> => {
   const actor = getAuth(req).userId!;
   const assignment = (await db.select().from(staffRoleAssignmentsTable).where(and(eq(staffRoleAssignmentsTable.clerkUserId, actor), eq(staffRoleAssignmentsTable.active, true))).limit(1))[0];
   if (!assignment) { res.status(403).json({ error: "Staff assignment is required" }); return; }
-  const capabilities = assignment.capabilities.length ? assignment.capabilities : STAFF_ROLE_CAPABILITIES[assignment.role] ?? [];
+  const capabilities = (assignment.capabilities.length ? assignment.capabilities : STAFF_ROLE_CAPABILITIES[assignment.role] ?? []).filter(c => roleHasCapability(assignment.role, c, assignment.capabilities));
   res.json({ role: assignment.role, capabilities, tools: capabilities.map((capability) => ({ capability, enabled: roleHasCapability(assignment.role, capability, assignment.capabilities) })) });
 });
 router.get("/staff/tools", requireStaffCapability("moderation.queue"), (_req: Request, res: Response): void => { res.json({ enabled: true, message: "Staff tools are server-authorized." }); });
@@ -87,6 +88,15 @@ router.post("/staff/moderation/:id/decision", requireStaffCapability("moderation
   const result = await db.transaction(async (tx) => {
     const [before] = await tx.select().from(moderationRecordsTable).where(eq(moderationRecordsTable.id, String(req.params.id))).limit(1);
     if (!before || !canTransitionModeration(before.state, parsed.data.state)) return null;
+    if (parsed.data.sanction && ["temporary_restriction", "suspension", "permanent_removal"].includes(parsed.data.sanction)) {
+      const [assignment] = await tx.select().from(staffRoleAssignmentsTable).where(eq(staffRoleAssignmentsTable.clerkUserId, actor));
+      if (assignment?.groupIds.length) return null;
+      const [subject] = before.subjectMemberId ? await tx.select().from(membersTable).where(eq(membersTable.id, before.subjectMemberId)) : [];
+      if (subject?.clerkUserId === actor) return null;
+      const otherStaff = subject ? await tx.select().from(staffRoleAssignmentsTable).where(and(eq(staffRoleAssignmentsTable.clerkUserId, subject.clerkUserId), eq(staffRoleAssignmentsTable.active, true))) : [];
+      if (otherStaff.length && assignment?.role !== "administrator") return null;
+      await tx.insert(operationsRecordsTable).values({ id: randomUUID(), kind: "sanctions", targetId: before.id, title: parsed.data.sanction, note: parsed.data.reason, status: "active", actorClerkUserId: actor, validUntil: parsed.data.sanction === "temporary_restriction" ? new Date(Date.now() + 86400000) : null });
+    }
     const [record] = await tx.update(moderationRecordsTable).set({ ...parsed.data, decidedBy: actor }).where(eq(moderationRecordsTable.id, before.id)).returning();
     await tx.update(reportsTable).set({ status: parsed.data.state }).where(eq(reportsTable.id, before.reportId!));
     await tx.insert(sensitiveActionAuditTable).values({ id: randomUUID(), actorClerkUserId: actor, action: "moderation.decision", subjectId: record.id, metadata: { priorState: before.state, newState: record.state, reason: parsed.data.reason, outcome: "updated" } });
@@ -94,6 +104,7 @@ router.post("/staff/moderation/:id/decision", requireStaffCapability("moderation
   });
   if (!result) { res.status(409).json({ error: "Moderation state transition is not allowed" }); return; }
   const record = result;
+  if (record.reportId) await recordHumanResponse("report", record.reportId, actor);
   res.json(record);
 });
 router.get("/staff/appeals", requireStaffCapability("appeals.review"), async (_req: Request, res: Response): Promise<void> => { res.json(await db.select().from(appealsTable).where(eq(appealsTable.status, "pending")).orderBy(desc(appealsTable.createdAt))); });

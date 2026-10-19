@@ -21,7 +21,7 @@ const errMsg = (e: unknown) => (e as { message?: string })?.message ?? "Please t
 export default function StaffResourcesPage() {
   const caps = useGetStaffCapabilities()
   if (caps.isLoading) return <div className="h-48 rounded-3xl bg-muted animate-pulse" aria-busy="true" />
-  const list = caps.data?.capabilities.filter(c => c.startsWith("education.")) ?? []
+  const list = caps.data?.capabilities.filter(c => c.startsWith("education.") || c === "resources.manage") ?? []
   if (caps.isError || !caps.data || list.length === 0) return (
     <div role="alert" className="rounded-3xl border border-border bg-card p-10 text-center max-w-xl mx-auto">
       <h1 className="font-display text-2xl font-semibold">Staff access required</h1>
@@ -35,9 +35,9 @@ export default function StaffResourcesPage() {
 function Dashboard({ caps }: { caps: string[] }) {
   const qc = useQueryClient()
   const { toast } = useToast()
-  const canAuthor = caps.includes("education.author")
-  const canReview = caps.includes("education.review")
-  const canPublish = caps.includes("education.publish")
+  const canAuthor = (caps.includes("education.author") || caps.includes("resources.manage"))
+  const canReview = (caps.includes("education.review") || caps.includes("resources.manage"))
+  const canPublish = (caps.includes("education.publish") || caps.includes("resources.manage"))
   const resources = useListStaffResources({ query: { queryKey: getListStaffResourcesQueryKey(), refetchInterval: 30000 } })
   const reports = useListResourceReports({ query: { queryKey: getListResourceReportsQueryKey(), refetchInterval: 30000 } })
   const create = useCreateResource()

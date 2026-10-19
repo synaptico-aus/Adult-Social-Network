@@ -11,6 +11,7 @@ import { db, mediaAssetsTable, mediaVariantsTable, videoJobsTable, mediaScreenin
 import { mediaFile, mediaObjectPath, storeProcessedFile, deleteMediaObject } from "./media-storage";
 import { REEL_DURATION, VIDEO_DURATION, validateDeclared, VIDEO_LIMIT } from "./media-validation";
 import { logger } from "./logger";
+import { featureEnabled } from "./operations-policy";
 import { getScannerHealth, scanLocalFile } from "./malware-scanner";
 
 export function runMediaTool(binary: string, args: string[], timeout = 90000, maxOutput = 1024 * 1024): Promise<string> {
@@ -208,6 +209,7 @@ export function startVideoProcessing() {
     if (working) return;
     working = true;
     try {
+      if (!(await featureEnabled("video_processing"))) return;
       await db.update(videoJobsTable).set({ state: "failed", error: "Processing retry limit reached" }).where(and(eq(videoJobsTable.state, "processing"), lt(videoJobsTable.leaseUntil, new Date()), sql`${videoJobsTable.attempts} >= 3`));
       await db.update(mediaAssetsTable).set({ status: "held", rejectionReason: "Processing failed after bounded retries; staff intervention required" })
         .where(and(eq(mediaAssetsTable.status, "quarantined"), sql`exists (select 1 from video_processing_jobs j where j.asset_id = ${mediaAssetsTable.id} and j.state = 'failed')`));

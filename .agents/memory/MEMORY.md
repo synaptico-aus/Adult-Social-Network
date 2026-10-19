@@ -12,3 +12,5 @@
 - [Malware scan completion](malware-scan-completion.md) — ClamAV can assume skipped over-limit files are clean; verify complete coverage and signature freshness.
 - [Memory Collection authority](memory-collection-authority.md) — curator and viewer source access both matter; collections are not new grants or clinical treatment.
 - [Localisation release boundaries](localisation-release-boundaries.md) — reviewed language/coverage gates, provider privacy, offline limits and deliberate country choice.
+- [Commercial boundaries](product-commercial-boundaries.md) — disclose future sponsorship; never monetise private health data or introduce unrequested payments.
+- [Shared database tests](shared-database-tests.md) — pause live API workers for fixture-backed media integration tests; restore the managed service afterward.

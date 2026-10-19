@@ -60,10 +60,10 @@
   --elevate-1: rgba(32, 33, 36, 0.03);
   --elevate-2: rgba(32, 33, 36, 0.08);
 
-  --background: 270 60% 94%;
+  --background: 0 0% 100%;
   --foreground: 50 100% 68%;
   --border: 270 30% 65%;
-  --card: 270 60% 90%;
+  --card: 270 60% 85%;
   --card-foreground: 50 100% 68%;
   --card-border: 270 30% 65%;
   --popover: 270 60% 94%;
@@ -71,11 +71,11 @@
   --popover-border: 270 30% 65%;
   --primary: 270 60% 35%;
   --primary-foreground: 50 100% 68%;
-  --secondary: 270 55% 87%;
+  --secondary: 270 55% 80%;
   --secondary-foreground: 50 100% 68%;
-  --muted: 270 45% 91%;
+  --muted: 270 45% 87%;
   --muted-foreground: 50 100% 68%;
-  --accent: 270 55% 85%;
+  --accent: 270 55% 78%;
   --accent-foreground: 50 100% 68%;
   /* Warning text remains yellow; alerts retain their labels and icons. */
   --destructive: 285 65% 30%;
@@ -103,8 +103,8 @@
 }
 
 .dark {
-  --background: 270 60% 94%;
-  --card: 270 60% 90%;
+  --background: 0 0% 100%;
+  --card: 270 60% 85%;
   --popover: 270 60% 94%;
 }
 

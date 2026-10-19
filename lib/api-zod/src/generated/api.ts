@@ -8,6 +8,164 @@
 import * as zod from 'zod';
 
 
+export const GetServicePolicyResponse = zod.object({
+  "staffingNotice": zod.string(),
+  "declaredHours": zod.array(zod.string()),
+  "measurementEnabled": zod.boolean(),
+  "privacyNotice": zod.string(),
+  "backupNotice": zod.string()
+})
+
+
+export const submitSecurityReportBodyTitleMin = 5;
+export const submitSecurityReportBodyTitleMax = 180;
+
+export const submitSecurityReportBodySummaryMin = 20;
+export const submitSecurityReportBodySummaryMax = 5000;
+
+
+
+export const SubmitSecurityReportBody = zod.object({
+  "title": zod.string().min(submitSecurityReportBodyTitleMin).max(submitSecurityReportBodyTitleMax),
+  "summary": zod.string().min(submitSecurityReportBodySummaryMin).max(submitSecurityReportBodySummaryMax)
+})
+
+export const SubmitSecurityReportResponse = zod.object({
+  "id": zod.string(),
+  "status": zod.string()
+})
+
+
+export const GetOperationsDashboardResponse = zod.object({
+  "role": zod.string(),
+  "capabilities": zod.array(zod.string()),
+  "metrics": zod.array(zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "value": zod.number().nullable(),
+  "unit": zod.string(),
+  "note": zod.string()
+})),
+  "features": zod.array(zod.object({
+  "key": zod.string(),
+  "enabled": zod.boolean(),
+  "reason": zod.string()
+})),
+  "modules": zod.array(zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "path": zod.string()
+})),
+  "checks": zod.array(zod.object({
+  "key": zod.string(),
+  "status": zod.string(),
+  "note": zod.string()
+})),
+  "updatedAt": zod.string(),
+  "staffingNotice": zod.string()
+})
+
+
+export const GetOperationsRecordsParams = zod.object({
+  "section": zod.enum(['users', 'groups', 'access', 'coverage', 'incidents', 'security', 'launch', 'processors', 'budgets', 'deletions', 'announcements', 'audit', 'alerts'])
+})
+
+export const GetOperationsRecordsResponse = zod.object({
+  "section": zod.string(),
+  "items": zod.array(zod.object({
+  "id": zod.string(),
+  "title": zod.string(),
+  "status": zod.string(),
+  "summary": zod.string(),
+  "createdAt": zod.string(),
+  "actions": zod.array(zod.string())
+})),
+  "allowedActions": zod.array(zod.string())
+})
+
+
+export const executeOperationsCommandBodyReasonMin = 10;
+export const executeOperationsCommandBodyReasonMax = 2000;
+
+export const executeOperationsCommandBodyTitleMax = 180;
+
+export const executeOperationsCommandBodyBodyMax = 5000;
+
+export const executeOperationsCommandBodyNumericValueMin = 0;
+
+export const executeOperationsCommandBodyReferenceMax = 400;
+
+
+
+export const ExecuteOperationsCommandBody = zod.object({
+  "action": zod.enum(['assign_role', 'review_access', 'revoke_access', 'suspend_user', 'restore_user', 'suspend_group', 'restore_group', 'create_announcement', 'publish_announcement', 'withdraw_announcement', 'start_shift', 'heartbeat', 'end_shift', 'record_incident', 'resolve_incident', 'record_security_report', 'resolve_security_report', 'record_launch_review', 'record_processor_evidence', 'record_cost', 'set_budget', 'set_control', 'acknowledge_alert', 'retry_deletion', 'acknowledge_report', 'set_staffing_hours']),
+  "targetId": zod.string().optional(),
+  "requestId": zod.string().optional(),
+  "reason": zod.string().min(executeOperationsCommandBodyReasonMin).max(executeOperationsCommandBodyReasonMax),
+  "title": zod.string().max(executeOperationsCommandBodyTitleMax).optional(),
+  "body": zod.string().max(executeOperationsCommandBodyBodyMax).optional(),
+  "role": zod.enum(['administrator', 'moderator', 'education_editor', 'resource_editor', 'group_manager', 'operations_manager', 'privacy_officer']).optional(),
+  "capabilities": zod.array(zod.string()).optional(),
+  "groupIds": zod.array(zod.string()).optional(),
+  "numericValue": zod.number().min(executeOperationsCommandBodyNumericValueMin).optional(),
+  "enabled": zod.boolean().optional(),
+  "region": zod.enum(['AU', 'GB', 'US']).optional(),
+  "validUntil": zod.coerce.date().optional(),
+  "reference": zod.string().max(executeOperationsCommandBodyReferenceMax).optional(),
+  "status": zod.enum(['pending', 'reviewed', 'blocked', 'verified']).optional()
+})
+
+export const ExecuteOperationsCommandResponse = zod.object({
+  "id": zod.string(),
+  "status": zod.string()
+})
+
+
+export const ListPublicAnnouncementsQueryParams = zod.object({
+  "region": zod.enum(['AU', 'GB', 'US'])
+})
+
+export const ListPublicAnnouncementsResponseItem = zod.object({
+  "id": zod.string(),
+  "title": zod.string(),
+  "body": zod.string(),
+  "region": zod.string(),
+  "publishedAt": zod.string(),
+  "sponsorshipDisclosure": zod.string().nullable()
+})
+export const ListPublicAnnouncementsResponse = zod.array(ListPublicAnnouncementsResponseItem)
+
+
+export const SubmitServiceFeedbackBody = zod.object({
+  "consent": zod.literal(true),
+  "supported": zod.boolean()
+})
+
+export const SubmitServiceFeedbackResponse = zod.object({
+  "id": zod.string(),
+  "status": zod.string()
+})
+
+
+export const measureServiceTaskBodyDurationSecondsMin = 0;
+export const measureServiceTaskBodyDurationSecondsMax = 86400;
+
+
+
+export const MeasureServiceTaskBody = zod.object({
+  "consent": zod.literal(true),
+  "task": zod.enum(['find_support', 'change_language', 'save_draft', 'export_account', 'report_content']),
+  "completed": zod.boolean(),
+  "usedAssistiveTechnology": zod.boolean(),
+  "durationSeconds": zod.number().min(measureServiceTaskBodyDurationSecondsMin).max(measureServiceTaskBodyDurationSecondsMax)
+})
+
+export const MeasureServiceTaskResponse = zod.object({
+  "id": zod.string(),
+  "status": zod.string()
+})
+
+
 export const GetExperienceCatalogueResponse = zod.object({
   "locales": zod.array(zod.object({
   "code": zod.string(),

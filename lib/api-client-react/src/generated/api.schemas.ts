@@ -5,6 +5,213 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+export interface ServicePolicy {
+  staffingNotice: string;
+  declaredHours: string[];
+  measurementEnabled: boolean;
+  privacyNotice: string;
+  backupNotice: string;
+}
+
+export interface SecurityReportInput {
+  /**
+     * @minLength 5
+     * @maxLength 180
+     */
+  title: string;
+  /**
+     * @minLength 20
+     * @maxLength 5000
+     */
+  summary: string;
+}
+
+export interface OperationsMetric {
+  key: string;
+  label: string;
+  /** @nullable */
+  value: number | null;
+  unit: string;
+  note: string;
+}
+
+export interface OperationsFeature {
+  key: string;
+  enabled: boolean;
+  reason: string;
+}
+
+export interface OperationsModule {
+  key: string;
+  label: string;
+  path: string;
+}
+
+export interface OperationsCheck {
+  key: string;
+  status: string;
+  note: string;
+}
+
+export interface OperationsDashboard {
+  role: string;
+  capabilities: string[];
+  metrics: OperationsMetric[];
+  features: OperationsFeature[];
+  modules: OperationsModule[];
+  checks: OperationsCheck[];
+  updatedAt: string;
+  staffingNotice: string;
+}
+
+export interface OperationsRecord {
+  id: string;
+  title: string;
+  status: string;
+  summary: string;
+  createdAt: string;
+  actions: string[];
+}
+
+export interface OperationsRecordList {
+  section: string;
+  items: OperationsRecord[];
+  allowedActions: string[];
+}
+
+export type OperationsCommandInputAction = typeof OperationsCommandInputAction[keyof typeof OperationsCommandInputAction];
+
+
+export const OperationsCommandInputAction = {
+  assign_role: 'assign_role',
+  review_access: 'review_access',
+  revoke_access: 'revoke_access',
+  suspend_user: 'suspend_user',
+  restore_user: 'restore_user',
+  suspend_group: 'suspend_group',
+  restore_group: 'restore_group',
+  create_announcement: 'create_announcement',
+  publish_announcement: 'publish_announcement',
+  withdraw_announcement: 'withdraw_announcement',
+  start_shift: 'start_shift',
+  heartbeat: 'heartbeat',
+  end_shift: 'end_shift',
+  record_incident: 'record_incident',
+  resolve_incident: 'resolve_incident',
+  record_security_report: 'record_security_report',
+  resolve_security_report: 'resolve_security_report',
+  record_launch_review: 'record_launch_review',
+  record_processor_evidence: 'record_processor_evidence',
+  record_cost: 'record_cost',
+  set_budget: 'set_budget',
+  set_control: 'set_control',
+  acknowledge_alert: 'acknowledge_alert',
+  retry_deletion: 'retry_deletion',
+  acknowledge_report: 'acknowledge_report',
+  set_staffing_hours: 'set_staffing_hours',
+} as const;
+
+export type OperationsCommandInputRole = typeof OperationsCommandInputRole[keyof typeof OperationsCommandInputRole];
+
+
+export const OperationsCommandInputRole = {
+  administrator: 'administrator',
+  moderator: 'moderator',
+  education_editor: 'education_editor',
+  resource_editor: 'resource_editor',
+  group_manager: 'group_manager',
+  operations_manager: 'operations_manager',
+  privacy_officer: 'privacy_officer',
+} as const;
+
+export type OperationsCommandInputRegion = typeof OperationsCommandInputRegion[keyof typeof OperationsCommandInputRegion];
+
+
+export const OperationsCommandInputRegion = {
+  AU: 'AU',
+  GB: 'GB',
+  US: 'US',
+} as const;
+
+export type OperationsCommandInputStatus = typeof OperationsCommandInputStatus[keyof typeof OperationsCommandInputStatus];
+
+
+export const OperationsCommandInputStatus = {
+  pending: 'pending',
+  reviewed: 'reviewed',
+  blocked: 'blocked',
+  verified: 'verified',
+} as const;
+
+export interface OperationsCommandInput {
+  action: OperationsCommandInputAction;
+  targetId?: string;
+  requestId?: string;
+  /**
+     * @minLength 10
+     * @maxLength 2000
+     */
+  reason: string;
+  /** @maxLength 180 */
+  title?: string;
+  /** @maxLength 5000 */
+  body?: string;
+  role?: OperationsCommandInputRole;
+  capabilities?: string[];
+  groupIds?: string[];
+  /** @minimum 0 */
+  numericValue?: number;
+  enabled?: boolean;
+  region?: OperationsCommandInputRegion;
+  validUntil?: string;
+  /** @maxLength 400 */
+  reference?: string;
+  status?: OperationsCommandInputStatus;
+}
+
+export interface OperationsCommandResult {
+  id: string;
+  status: string;
+}
+
+export interface PublicAnnouncement {
+  id: string;
+  title: string;
+  body: string;
+  region: string;
+  publishedAt: string;
+  /** @nullable */
+  sponsorshipDisclosure: string | null;
+}
+
+export interface ServiceFeedbackInput {
+  consent: true;
+  supported: boolean;
+}
+
+export type ServiceTaskInputTask = typeof ServiceTaskInputTask[keyof typeof ServiceTaskInputTask];
+
+
+export const ServiceTaskInputTask = {
+  find_support: 'find_support',
+  change_language: 'change_language',
+  save_draft: 'save_draft',
+  export_account: 'export_account',
+  report_content: 'report_content',
+} as const;
+
+export interface ServiceTaskInput {
+  consent: true;
+  task: ServiceTaskInputTask;
+  completed: boolean;
+  usedAssistiveTechnology: boolean;
+  /**
+     * @minimum 0
+     * @maximum 86400
+     */
+  durationSeconds: number;
+}
+
 export type ExperienceInputLocale = typeof ExperienceInputLocale[keyof typeof ExperienceInputLocale];
 
 
@@ -2900,6 +3107,19 @@ export interface EducationVisibleCompletionList {
   items: EducationVisibleCompletion[];
   completionDisclaimer: 'Educational activity only; not a clinical qualification.';
 }
+
+export type ListPublicAnnouncementsParams = {
+region: ListPublicAnnouncementsRegion;
+};
+
+export type ListPublicAnnouncementsRegion = typeof ListPublicAnnouncementsRegion[keyof typeof ListPublicAnnouncementsRegion];
+
+
+export const ListPublicAnnouncementsRegion = {
+  AU: 'AU',
+  GB: 'GB',
+  US: 'US',
+} as const;
 
 export type GetCountryResourcesParams = {
 country: GetCountryResourcesCountry;
