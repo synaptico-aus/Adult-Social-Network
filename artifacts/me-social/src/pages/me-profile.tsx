@@ -1,8 +1,9 @@
+import { ControlledAvatarImage } from "@/components/media/controlled-media";
 import { PageHeader } from "@/components/shared/page-header"
 import { useSimpleView } from "@/lib/simple-view"
 import { useTheme } from "@/components/theme-provider"
 import { Switch } from "@/components/ui/switch"
-import { ArrowRight, Info, Heart, Layers, Edit, FileText, Shield, Eye, Settings, FileBox, Bookmark, LogOut, BookOpen } from "lucide-react"
+import { ArrowRight, Info, Heart, Layers, Edit, FileText, Shield, Eye, Settings, FileBox, Bookmark, LogOut, BookOpen, Globe2, LifeBuoy } from "lucide-react"
 import { Link, useLocation } from "wouter"
 import { useGetOwnProfile, getGetOwnProfileQueryKey, useRevokeCurrentNotificationDevice, getListNotificationsQueryKey } from "@workspace/api-client-react"
 import { getPhotoUrl } from "@/hooks/use-profile-photo"
@@ -56,9 +57,9 @@ export default function MePage() {
         description="Your profile and preferences."
       />
 
-      <div className="bg-card border border-border p-8 md:p-10 rounded-[2rem] flex flex-col sm:flex-row items-center sm:items-start gap-8 shadow-sm text-center sm:text-left">
+      <div className="bg-card border border-border p-8 md:p-10 rounded-[2rem] flex flex-col sm:flex-row items-center sm:items-start gap-8 shadow-sm text-center sm:text-start">
         {profile?.photoPath ? (
-          <img src={getPhotoUrl(profile.photoPath)} alt="Profile" className="w-32 h-32 rounded-full object-cover shadow-md shrink-0 border-4 border-card" />
+          <ControlledAvatarImage src={getPhotoUrl(profile.photoPath) ?? ""} alt="profile photo" className="w-32 h-32 rounded-full object-cover shadow-md shrink-0 border-4 border-card" fallback={<div className="w-32 h-32 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-6xl font-display font-bold shadow-md shrink-0">{profile.preferredName?.[0]?.toUpperCase() || "M"}</div>} />
         ) : (
           <div className="w-32 h-32 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-6xl font-display font-bold shadow-md shrink-0">
             {profile?.preferredName?.[0]?.toUpperCase() || 'M'}
@@ -72,7 +73,7 @@ export default function MePage() {
 
       <div className="bg-card border border-border rounded-[2rem] overflow-hidden shadow-sm flex flex-col">
         <div className="p-8 border-b border-border flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="max-w-md text-left">
+          <div className="max-w-md text-start">
             <h3 className="text-2xl font-semibold text-foreground">Simple View</h3>
             <p className="text-muted-foreground mt-2 text-lg leading-relaxed">Increase text size, reduce options, and emphasize clarity across the app.</p>
           </div>
@@ -82,7 +83,7 @@ export default function MePage() {
         </div>
 
         <div className="p-8 border-b border-border flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="max-w-md text-left">
+          <div className="max-w-md text-start">
             <h3 className="text-2xl font-semibold text-foreground">Dark Theme</h3>
             <p className="text-muted-foreground mt-2 text-lg leading-relaxed">Switch to a darker appearance for easier reading in low light.</p>
           </div>
@@ -95,7 +96,7 @@ export default function MePage() {
           </div>
         </div>
 
-        <div className="p-4 md:p-6 text-left grid grid-cols-1 divide-y divide-border/50">
+        <div className="p-4 md:p-6 text-start grid grid-cols-1 divide-y divide-border/50">
           <Link href="/me/learning" className="flex items-center justify-between group p-4 rounded-xl hover:bg-secondary/30 transition-colors" data-testid="link-my-learning">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-primary shrink-0">
@@ -106,7 +107,7 @@ export default function MePage() {
                 <p className="text-muted-foreground mt-1 text-lg">Your saved modules and progress.</p>
               </div>
             </div>
-            <ArrowRight className="w-8 h-8 text-muted-foreground group-hover:text-primary transition-colors hidden sm:block" aria-hidden="true" />
+            <ArrowRight className="rtl:-scale-x-100 w-8 h-8 text-muted-foreground group-hover:text-primary transition-colors hidden sm:block" aria-hidden="true" />
           </Link>
 
           <Link href="/me/posts" className="flex items-center justify-between group p-4 rounded-xl hover:bg-secondary/30 transition-colors" data-testid="link-my-posts">
@@ -119,7 +120,7 @@ export default function MePage() {
                 <p className="text-muted-foreground mt-1 text-lg">Manage your drafts and published posts.</p>
               </div>
             </div>
-            <ArrowRight className="w-8 h-8 text-muted-foreground group-hover:text-primary transition-colors hidden sm:block" aria-hidden="true" />
+            <ArrowRight className="rtl:-scale-x-100 w-8 h-8 text-muted-foreground group-hover:text-primary transition-colors hidden sm:block" aria-hidden="true" />
           </Link>
 
           <Link href="/saved" className="flex items-center justify-between group p-4 rounded-xl hover:bg-secondary/30 transition-colors" data-testid="link-saved-posts">
@@ -132,7 +133,7 @@ export default function MePage() {
                 <p className="text-muted-foreground mt-1 text-lg">Review posts you've saved for later.</p>
               </div>
             </div>
-            <ArrowRight className="w-8 h-8 text-muted-foreground group-hover:text-primary transition-colors hidden sm:block" aria-hidden="true" />
+            <ArrowRight className="rtl:-scale-x-100 w-8 h-8 text-muted-foreground group-hover:text-primary transition-colors hidden sm:block" aria-hidden="true" />
           </Link>
 
           <Link href="/profile/edit" className="flex items-center justify-between group p-4 rounded-xl hover:bg-secondary/30 transition-colors">
@@ -145,7 +146,7 @@ export default function MePage() {
                 <p className="text-muted-foreground mt-1 text-lg">Update your name, bio, and details.</p>
               </div>
             </div>
-            <ArrowRight className="w-8 h-8 text-muted-foreground group-hover:text-primary transition-colors hidden sm:block" aria-hidden="true" />
+            <ArrowRight className="rtl:-scale-x-100 w-8 h-8 text-muted-foreground group-hover:text-primary transition-colors hidden sm:block" aria-hidden="true" />
           </Link>
 
           <Link href="/profile/preview" className="flex items-center justify-between group p-4 rounded-xl hover:bg-secondary/30 transition-colors">
@@ -158,7 +159,7 @@ export default function MePage() {
                 <p className="text-muted-foreground mt-1 text-lg">See how others view your profile.</p>
               </div>
             </div>
-            <ArrowRight className="w-8 h-8 text-muted-foreground group-hover:text-primary transition-colors hidden sm:block" aria-hidden="true" />
+            <ArrowRight className="rtl:-scale-x-100 w-8 h-8 text-muted-foreground group-hover:text-primary transition-colors hidden sm:block" aria-hidden="true" />
           </Link>
 
           <Link href="/this-is-me" className="flex items-center justify-between group p-4 rounded-xl hover:bg-secondary/30 transition-colors">
@@ -171,7 +172,7 @@ export default function MePage() {
                 <p className="text-muted-foreground mt-1 text-lg">Manage your personal introduction cards.</p>
               </div>
             </div>
-            <ArrowRight className="w-8 h-8 text-muted-foreground group-hover:text-primary transition-colors hidden sm:block" aria-hidden="true" />
+            <ArrowRight className="rtl:-scale-x-100 w-8 h-8 text-muted-foreground group-hover:text-primary transition-colors hidden sm:block" aria-hidden="true" />
           </Link>
 
           <Link href="/profile/privacy" className="flex items-center justify-between group p-4 rounded-xl hover:bg-secondary/30 transition-colors">
@@ -184,7 +185,7 @@ export default function MePage() {
                 <p className="text-muted-foreground mt-1 text-lg">Control what others can see and access your data.</p>
               </div>
             </div>
-            <ArrowRight className="w-8 h-8 text-muted-foreground group-hover:text-primary transition-colors hidden sm:block" aria-hidden="true" />
+            <ArrowRight className="rtl:-scale-x-100 w-8 h-8 text-muted-foreground group-hover:text-primary transition-colors hidden sm:block" aria-hidden="true" />
           </Link>
 
           <Link href="/safety" className="flex items-center justify-between group p-4 rounded-xl hover:bg-secondary/30 transition-colors">
@@ -197,7 +198,7 @@ export default function MePage() {
                 <p className="text-muted-foreground mt-1 text-lg">Manage blocked accounts, reports, and appeals.</p>
               </div>
             </div>
-            <ArrowRight className="w-8 h-8 text-muted-foreground group-hover:text-primary transition-colors hidden sm:block" aria-hidden="true" />
+            <ArrowRight className="rtl:-scale-x-100 w-8 h-8 text-muted-foreground group-hover:text-primary transition-colors hidden sm:block" aria-hidden="true" />
           </Link>
 
           <Link href="/account/security" className="flex items-center justify-between group p-4 rounded-xl hover:bg-secondary/30 transition-colors">
@@ -210,10 +211,36 @@ export default function MePage() {
                 <p className="text-muted-foreground mt-1 text-lg">Manage MFA and account access.</p>
               </div>
             </div>
-            <ArrowRight className="w-8 h-8 text-muted-foreground hidden sm:block" aria-hidden="true" />
+            <ArrowRight className="rtl:-scale-x-100 w-8 h-8 text-muted-foreground hidden sm:block" aria-hidden="true" />
           </Link>
 
-          <button onClick={handleSignOut} className="w-full flex items-center justify-between group p-4 rounded-xl hover:bg-destructive/10 transition-colors text-left">
+          <Link href="/settings/experience" className="flex items-center justify-between group p-4 rounded-xl hover:bg-secondary/30 transition-colors" data-testid="link-experience-settings">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-primary shrink-0">
+                <Globe2 className="w-6 h-6" aria-hidden="true" />
+              </div>
+              <div>
+                <h3 className="text-2xl font-semibold text-foreground group-hover:text-primary transition-colors">Language, region and data</h3>
+                <p className="text-muted-foreground mt-1 text-lg">Time zone, low-data mode, reading direction and drafts.</p>
+              </div>
+            </div>
+            <ArrowRight className="w-8 h-8 text-muted-foreground hidden sm:block rtl:-scale-x-100" aria-hidden="true" />
+          </Link>
+
+          <Link href="/country-resources" className="flex items-center justify-between group p-4 rounded-xl hover:bg-secondary/30 transition-colors" data-testid="link-country-resources-me">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-primary shrink-0">
+                <LifeBuoy className="w-6 h-6" aria-hidden="true" />
+              </div>
+              <div>
+                <h3 className="text-2xl font-semibold text-foreground group-hover:text-primary transition-colors">Support by country</h3>
+                <p className="text-muted-foreground mt-1 text-lg">Emergency and dementia support lines.</p>
+              </div>
+            </div>
+            <ArrowRight className="w-8 h-8 text-muted-foreground hidden sm:block rtl:-scale-x-100" aria-hidden="true" />
+          </Link>
+
+          <button onClick={handleSignOut} className="w-full flex items-center justify-between group p-4 rounded-xl hover:bg-destructive/10 transition-colors text-start">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center text-destructive shrink-0">
                 <LogOut className="w-6 h-6" aria-hidden="true" />

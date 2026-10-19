@@ -19,7 +19,7 @@ export function GroupCard({ group, suggestedReason }: { group: Group, suggestedR
         
         {suggestedReason && (
           <div className="mb-4 inline-flex items-start bg-secondary/50 rounded-xl p-3 border border-secondary-border">
-            <Search className="w-4 h-4 text-primary shrink-0 mt-0.5 mr-2" />
+            <Search className="w-4 h-4 text-primary shrink-0 mt-0.5 me-2" />
             <span className="text-sm font-medium text-secondary-foreground leading-snug">
               Suggested because you share: {suggestedReason}
             </span>

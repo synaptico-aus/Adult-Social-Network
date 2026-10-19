@@ -131,9 +131,9 @@ export default function GroupDetailPage() {
   return (
     <div className="flex flex-col gap-8 animate-in fade-in duration-500">
       <div>
-        <Button variant="ghost" size="sm" asChild className="-ml-4 mb-4 text-muted-foreground hover:text-foreground">
+        <Button variant="ghost" size="sm" asChild className="-ms-4 mb-4 text-muted-foreground hover:text-foreground">
           <Link href="/groups">
-            <ChevronLeft className="w-4 h-4 mr-1" />
+            <ChevronLeft className="rtl:-scale-x-100 w-4 h-4 me-1" />
             Back to Groups
           </Link>
         </Button>
@@ -159,7 +159,7 @@ export default function GroupDetailPage() {
                 <>
                   {isOwner && group.status !== "closed" ? (
                     <Button variant="outline" className="rounded-xl font-semibold text-destructive hover:bg-destructive/10 hover:text-destructive border-destructive/20" onClick={handleClose} disabled={closeGroupMutation.isPending}>
-                      {closeGroupMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+                      {closeGroupMutation.isPending ? <Loader2 className="w-4 h-4 me-2 animate-spin" /> : null}
                       Close Group
                     </Button>
                   ) : !isOwner ? (
@@ -175,7 +175,7 @@ export default function GroupDetailPage() {
                   </div>
                 ) : (
                   <Button className="rounded-xl font-semibold" size="lg" onClick={handleJoin} disabled={joinGroup.isPending}>
-                    {joinGroup.isPending && <Loader2 className="w-5 h-5 mr-2 animate-spin" />}
+                    {joinGroup.isPending && <Loader2 className="w-5 h-5 me-2 animate-spin" />}
                     {group.joinPolicy === "approval" ? "Request to Join" : "Join Group"}
                   </Button>
                 )
@@ -203,7 +203,7 @@ export default function GroupDetailPage() {
                       </>
                     )}
                     <DropdownMenuItem onClick={() => setReportOpen(true)} className="text-destructive focus:bg-destructive/10 cursor-pointer py-3">
-                      <Flag className="w-4 h-4 mr-2" />
+                      <Flag className="w-4 h-4 me-2" />
                       Report Group
                     </DropdownMenuItem>
                   </DropdownMenuContent>

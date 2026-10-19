@@ -13,6 +13,14 @@ import { toast } from "sonner"
 import { Switch } from "@/components/ui/switch"
 import { Input } from "@/components/ui/input"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Link } from "wouter"
+import { useExperience } from "@/lib/experience"
+import { notificationPreferenceInput } from "@/lib/notification-preference-input"
+import { formatTime } from "@/lib/locale-format"
+
+const HHMM = /^([01]\d|2[0-3]):[0-5]\d$/
+const normTime = (v: unknown, fallback: string) => (typeof v === "string" && v.length >= 5 && HHMM.test(v.slice(0, 5)) ? v.slice(0, 5) : fallback)
+const sampleAt = (hhmm: string) => { const [h, m] = hhmm.split(":").map(Number); const d = new Date(); d.setUTCHours(h, m, 0, 0); return formatTime(d, "UTC") }
 
 export default function NotificationSettings() {
   const [, setLocation] = useLocation()
@@ -30,12 +38,13 @@ export default function NotificationSettings() {
   const revokeCurrent = useRevokeCurrentNotificationDevice()
   const revokeAll = useRevokeAllNotificationDevices()
 
+  const { prefs: exp } = useExperience()
   const [localPrefs, setLocalPrefs] = useState<any>(null)
   const [browserPerm, setBrowserPerm] = useState(Notification.permission)
 
   useEffect(() => {
     if (prefs) {
-      setLocalPrefs(prefs)
+      setLocalPrefs({ ...prefs, quietHoursStart: normTime((prefs as any).quietHoursStart, "22:00"), quietHoursEnd: normTime((prefs as any).quietHoursEnd, "08:00") })
     }
   }, [prefs])
 
@@ -48,9 +57,13 @@ export default function NotificationSettings() {
   }
 
   const handleSave = async () => {
+    if (localPrefs.quietHoursEnabled && (!HHMM.test(localPrefs.quietHoursStart ?? "") || !HHMM.test(localPrefs.quietHoursEnd ?? ""))) {
+      toast.error("Enter quiet hours as a valid time, for example 22:00")
+      return
+    }
     try {
       await updatePrefs.mutateAsync({
-        data: localPrefs
+        data: { ...notificationPreferenceInput(localPrefs), quietHoursTimezone: localPrefs.quietHoursTimezone || exp.timeZone }
       })
       queryClient.invalidateQueries({ queryKey: getGetNotificationPreferencesQueryKey() })
       toast.success("Settings saved")
@@ -79,7 +92,7 @@ export default function NotificationSettings() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-6">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => setLocation('/notifications')} className="rounded-xl" aria-label="Go back">
-            <ChevronLeft className="w-6 h-6" />
+            <ChevronLeft className="rtl:-scale-x-100 w-6 h-6" />
           </Button>
           <PageHeader title="Notification Settings" description="Control how and when you are alerted." className="mb-0" />
         </div>
@@ -88,7 +101,7 @@ export default function NotificationSettings() {
           onClick={handleSave}
           disabled={updatePrefs.isPending}
         >
-          {updatePrefs.isPending && <Loader2 className="w-5 h-5 mr-2 animate-spin" />}
+          {updatePrefs.isPending && <Loader2 className="w-5 h-5 me-2 animate-spin" />}
           Save Changes
         </Button>
       </div>
@@ -153,23 +166,26 @@ export default function NotificationSettings() {
              {localPrefs.quietHoursEnabled && (
                 <div className="grid grid-cols-2 gap-4 p-4 rounded-xl bg-secondary/30 border border-border/50">
                   <div>
-                    <label className="text-sm font-semibold mb-1.5 block">Start Time (HH:MM)</label>
+                    <label className="text-sm font-semibold mb-1.5 block">Start time (24-hour HH:mm)</label>
                     <Input 
                        type="time" 
-                       value={localPrefs.quietHoursStart || "22:00"} 
-                       onChange={e => handleChange("quietHoursStart", e.target.value)} 
+                       value={localPrefs.quietHoursStart || "22:00"} step={60} required data-testid="input-quiet-start"
+                       onChange={e => handleChange("quietHoursStart", e.target.value.slice(0, 5))}
                        className="bg-background rounded-xl"
                     />
                   </div>
                   <div>
-                    <label className="text-sm font-semibold mb-1.5 block">End Time (HH:MM)</label>
+                    <label className="text-sm font-semibold mb-1.5 block">End time (24-hour HH:mm)</label>
                     <Input 
                        type="time" 
-                       value={localPrefs.quietHoursEnd || "08:00"} 
-                       onChange={e => handleChange("quietHoursEnd", e.target.value)} 
+                       value={localPrefs.quietHoursEnd || "08:00"} step={60} required data-testid="input-quiet-end"
+                       onChange={e => handleChange("quietHoursEnd", e.target.value.slice(0, 5))}
                        className="bg-background rounded-xl"
                     />
                   </div>
+                  <p className="col-span-2 text-sm text-muted-foreground" data-testid="text-quiet-tz">
+                    Quiet from {sampleAt(localPrefs.quietHoursStart || "22:00")} to {sampleAt(localPrefs.quietHoursEnd || "08:00")}, in time zone {localPrefs.quietHoursTimezone || exp.timeZone}. <Link href="/settings/experience" className="underline">Change time zones</Link>
+                  </p>
                 </div>
              )}
           </div>
@@ -220,11 +236,11 @@ export default function NotificationSettings() {
                  
                  {browserPerm === 'granted' ? (
                    <div className="text-sm font-semibold text-green-600 flex items-center">
-                     <Settings className="w-4 h-4 mr-2" /> Allowed (Manage in browser settings)
+                     <Settings className="w-4 h-4 me-2" /> Allowed (Manage in browser settings)
                    </div>
                  ) : browserPerm === 'denied' ? (
                    <div className="text-sm font-semibold text-destructive flex items-center">
-                     <BellOff className="w-4 h-4 mr-2" /> Blocked by browser
+                     <BellOff className="w-4 h-4 me-2" /> Blocked by browser
                    </div>
                  ) : (
                    <Button onClick={requestBrowserPermission} variant="outline" className="w-full rounded-xl">

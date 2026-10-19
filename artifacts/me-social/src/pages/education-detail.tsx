@@ -1,3 +1,6 @@
+import { formatDate } from "@/lib/locale-format";
+import { TranslationPanel } from "@/components/translations/translation-panel";
+import { ControlledAudio, ControlledVideo } from "@/components/media/controlled-media";
 import { useState, useRef, useEffect } from "react"
 import { useParams, Link } from "wouter"
 import { useAuth } from "@clerk/react"
@@ -128,7 +131,7 @@ export default function EducationDetailPage() {
     <div className="flex flex-col gap-8 md:gap-10 animate-in fade-in duration-500 max-w-3xl mx-auto pb-24">
       <div>
         <Link href="/understanding-dementia" className="inline-flex items-center text-muted-foreground hover:text-foreground font-medium mb-6 transition-colors">
-          <ChevronLeft className="w-5 h-5 mr-1" />
+          <ChevronLeft className="rtl:-scale-x-100 w-5 h-5 me-1" />
           Back to Library
         </Link>
         <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-6">
@@ -152,6 +155,7 @@ export default function EducationDetailPage() {
         <p className="text-xl md:text-2xl text-muted-foreground leading-relaxed">
           {lesson.summary}
         </p>
+        <TranslationPanel sourceType="lesson" sourceId={lesson.id} />
 
         <div className="mt-6 flex flex-wrap items-center gap-3 text-sm">
           {revision.region && (
@@ -161,7 +165,7 @@ export default function EducationDetailPage() {
           )}
           {lesson.publishedAt && (
             <span className="text-muted-foreground font-medium">
-              Published: {new Date(lesson.publishedAt).toLocaleDateString()}
+              Published: {formatDate(lesson.publishedAt)}
             </span>
           )}
         </div>
@@ -193,15 +197,9 @@ export default function EducationDetailPage() {
           </div>
           
           {accessibleMedia.kind === 'audio' ? (
-            <audio controls preload="metadata" className="w-full h-12 rounded-xl focus:outline-none">
-              <source src={accessibleMedia.url} />
-              Your browser does not support the audio element.
-            </audio>
+            <ControlledAudio src={accessibleMedia.url} label="Lesson audio" className="w-full h-12 rounded-xl focus:outline-none" />
           ) : (
-            <video controls preload="metadata" className="w-full rounded-2xl bg-black overflow-hidden focus:outline-none" width={accessibleMedia.width || 640} height={accessibleMedia.height || 360}>
-              <source src={accessibleMedia.url} />
-              Your browser does not support the video element.
-            </video>
+            <ControlledVideo src={accessibleMedia.url} className="w-full rounded-2xl bg-black overflow-hidden focus:outline-none" width={accessibleMedia.width || 640} height={accessibleMedia.height || 360} />
           )}
 
           {accessibleMedia.transcript && (
@@ -255,7 +253,7 @@ export default function EducationDetailPage() {
             <div className="space-y-6">
               <div className="flex items-center gap-3 text-green-600 dark:text-green-500 bg-green-50 dark:bg-green-950/20 p-4 rounded-xl border border-green-200 dark:border-green-900">
                 <CheckCircle2 className="w-6 h-6" />
-                <span className="font-semibold text-lg">Completed on {new Date(myProgress.completedAt).toLocaleDateString()}</span>
+                <span className="font-semibold text-lg">Completed on {formatDate(myProgress.completedAt)}</span>
               </div>
               
               <div className="flex items-center justify-between gap-4 p-4 bg-muted/50 rounded-xl border border-border">

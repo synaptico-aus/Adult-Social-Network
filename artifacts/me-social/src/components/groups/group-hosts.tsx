@@ -1,3 +1,4 @@
+import { formatDate } from "@/lib/locale-format";
 import { useState } from "react";
 import { ShieldCheck, UserMinus, Plus, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -84,7 +85,7 @@ export function GroupHosts({ groupId, members }: { groupId: string, members?: Gr
             </Select>
           </div>
           <Button onClick={handleAssign} disabled={!selectedMember || assignHost.isPending} className="w-full sm:w-auto rounded-xl">
-            {assignHost.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Plus className="w-4 h-4 mr-2" />}
+            {assignHost.isPending ? <Loader2 className="w-4 h-4 me-2 animate-spin" /> : <Plus className="w-4 h-4 me-2" />}
             Assign Host
           </Button>
         </div>
@@ -105,7 +106,7 @@ export function GroupHosts({ groupId, members }: { groupId: string, members?: Gr
                 <ShieldCheck className="w-4 h-4 text-primary" />
               </p>
               <p className="text-sm text-muted-foreground">
-                Assigned {new Date(host.createdAt).toLocaleDateString()}
+                Assigned {formatDate(host.createdAt)}
               </p>
             </div>
             <Button 
@@ -114,7 +115,7 @@ export function GroupHosts({ groupId, members }: { groupId: string, members?: Gr
               onClick={() => handleDeactivate(host.hostMemberId)}
               className="text-destructive hover:bg-destructive/10 hover:text-destructive"
             >
-              <UserMinus className="w-4 h-4 mr-1" />
+              <UserMinus className="w-4 h-4 me-1" />
               Deactivate
             </Button>
           </div>

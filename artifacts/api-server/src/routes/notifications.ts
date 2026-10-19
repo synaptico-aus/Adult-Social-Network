@@ -12,6 +12,7 @@ import { requireAuth } from "../middlewares/account-auth";
 import { visiblePost } from "./posts";
 import { liveConversationMember } from "../lib/conversation-access";
 import { lockGroupAuthority } from "../lib/member-locks";
+import { inQuietHours, validQuietTime } from "../lib/quiet-hours";
 
 const router = Router();
 router.use(["/notifications", "/notification-preferences", "/devices", "/delivery"], requireAuth);
@@ -70,20 +71,13 @@ const preferenceInput = z.object({
   inAppRequests: z.boolean().optional(), browserRequests: z.boolean().optional(), nativeRequests: z.boolean().optional(),
   inAppGroupActivity: z.boolean().optional(), browserGroupActivity: z.boolean().optional(), nativeGroupActivity: z.boolean().optional(),
   inAppSafety: z.boolean().optional(), browserSafety: z.boolean().optional(), nativeSafety: z.boolean().optional(),
-  quietHoursEnabled: z.boolean().optional(), quietHoursStart: z.string().regex(/^\d\d:\d\d$/).nullable().optional(),
-  quietHoursEnd: z.string().regex(/^\d\d:\d\d$/).nullable().optional(), quietHoursTimezone: z.string().nullable().optional(),
+  quietHoursEnabled: z.boolean().optional(), quietHoursStart: z.string().refine(validQuietTime).nullable().optional(),
+  quietHoursEnd: z.string().refine(validQuietTime).nullable().optional(), quietHoursTimezone: z.string().nullable().optional(),
   lockScreenPreview: z.enum(["private", "generic", "off"]).optional(),
 }).strict();
 function validTimezone(value: string | null | undefined) {
   if (!value) return true;
   try { new Intl.DateTimeFormat("en-US", { timeZone: value }).format(); return true; } catch { return false; }
-}
-function inQuietHours(preferences: { quietHoursEnabled: boolean; quietHoursStart: string | null; quietHoursEnd: string | null; quietHoursTimezone: string | null }) {
-  if (!preferences.quietHoursEnabled || !preferences.quietHoursStart || !preferences.quietHoursEnd || !preferences.quietHoursTimezone) return false;
-  const hhmm = new Intl.DateTimeFormat("en-GB", { timeZone: preferences.quietHoursTimezone, hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date());
-  const n = (x: string) => Number(x.slice(0, 2)) * 60 + Number(x.slice(3));
-  const now = n(hhmm); const start = n(preferences.quietHoursStart); const end = n(preferences.quietHoursEnd);
-  return start === end ? true : start < end ? now >= start && now < end : now >= start || now < end;
 }
 
 router.get("/notifications", async (req, res): Promise<void> => {
@@ -178,7 +172,9 @@ router.get("/notification-preferences", async (req, res): Promise<void> => {
 router.patch("/notification-preferences", async (req, res): Promise<void> => {
   const member = await memberFor(req); const parsed = preferenceInput.safeParse(req.body);
   if (!member || !parsed.success || !validTimezone(parsed.data.quietHoursTimezone)) { res.status(400).json({ error: "Invalid notification preferences or IANA timezone" }); return; }
-  if (parsed.data.quietHoursEnabled && (!parsed.data.quietHoursStart || !parsed.data.quietHoursEnd || !parsed.data.quietHoursTimezone)) { res.status(400).json({ error: "Quiet hours require start, end, and timezone" }); return; }
+  const previous = (await db.select().from(notificationPreferencesTable).where(eq(notificationPreferencesTable.memberId, member.id)).limit(1))[0];
+  const merged = { ...previous, ...parsed.data };
+  if (merged.quietHoursEnabled && (!merged.quietHoursStart || !merged.quietHoursEnd || !merged.quietHoursTimezone)) { res.status(400).json({ error: "Quiet hours require start, end, and timezone" }); return; }
   const [row] = await db.insert(notificationPreferencesTable).values({ memberId: member.id, ...parsed.data }).onConflictDoUpdate({ target: notificationPreferencesTable.memberId, set: { ...parsed.data, updatedAt: new Date() } }).returning();
   res.json(row);
 });

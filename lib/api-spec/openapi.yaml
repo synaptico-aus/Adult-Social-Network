@@ -25,6 +25,61 @@ tags:
   - name: education-staff
     description: Capability-scoped education authoring and review
 paths:
+  /experience/catalogue:
+    get:
+      operationId: getExperienceCatalogue
+      responses: { "200": { description: Reviewed language gate and curated countries, content: { application/json: { schema: { $ref: "#/components/schemas/ExperienceCatalogue" } } } } }
+  /experience/preferences:
+    get:
+      operationId: getExperiencePreferences
+      responses: { "200": { description: Account-scoped preferences, content: { application/json: { schema: { $ref: "#/components/schemas/ExperiencePreferences" } } } } }
+    patch:
+      operationId: updateExperiencePreferences
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/ExperienceInput" } } } }
+      responses: { "200": { description: Saved, content: { application/json: { schema: { $ref: "#/components/schemas/ExperiencePreferences" } } } } }
+  /experience/draft:
+    get:
+      operationId: getExperienceDraft
+      responses: { "200": { description: Private unpublished draft, content: { application/json: { schema: { $ref: "#/components/schemas/ExperienceDraftResponse" } } } } }
+    put:
+      operationId: saveExperienceDraft
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/ExperienceDraftInput" } } } }
+      responses: { "200": { description: Saved without publishing, content: { application/json: { schema: { $ref: "#/components/schemas/ExperienceDraftResponse" } } } } }
+    delete:
+      operationId: deleteExperienceDraft
+      responses: { "204": { description: Discarded } }
+  /country-resources:
+    get:
+      operationId: getCountryResources
+      parameters: [{ in: query, name: country, required: true, schema: { type: string, enum: [AU, GB, US] } }]
+      responses: { "200": { description: Source-checked directory, content: { application/json: { schema: { $ref: "#/components/schemas/CountryDirectory" } } } } }
+  /translations:
+    get:
+      operationId: listTranslations
+      parameters:
+        - { in: query, name: sourceType, required: true, schema: { type: string, enum: [post, lesson] } }
+        - { in: query, name: sourceId, required: true, schema: { type: string } }
+      responses: { "200": { description: Live-authorized translations with original retained, content: { application/json: { schema: { $ref: "#/components/schemas/TranslationPage" } } } } }
+    post:
+      operationId: submitTranslation
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/TranslationInput" } } } }
+      responses: { "201": { description: Pending independent review, content: { application/json: { schema: { $ref: "#/components/schemas/ContentTranslation" } } } } }
+  /translations/{id}/reports:
+    post:
+      operationId: reportTranslation
+      parameters: [{ in: path, name: id, required: true, schema: { type: string } }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/TranslationReportInput" } } } }
+      responses: { "201": { description: Report recorded } }
+  /staff/translations:
+    get:
+      operationId: listStaffTranslations
+      responses: { "200": { description: Authorized review queue, content: { application/json: { schema: { $ref: "#/components/schemas/TranslationPage" } } } } }
+  /staff/translations/{id}/review:
+    post:
+      operationId: reviewTranslation
+      parameters: [{ in: path, name: id, required: true, schema: { type: string } }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/TranslationReviewInput" } } } }
+      responses: { "200": { description: Revision-bound independent decision, content: { application/json: { schema: { $ref: "#/components/schemas/ContentTranslation" } } } } }
   /memory-collections:
     get:
       operationId: listMemoryCollections
@@ -1644,6 +1699,128 @@ components:
       type: http
       scheme: bearer
   schemas:
+    ExperienceInput:
+      type: object
+      properties:
+        locale: { type: string, enum: [en-AU, en-GB, en-US] }
+        timeZone: { type: string }
+        direction: { type: string, enum: [auto, ltr, rtl] }
+        lowData: { type: boolean }
+        textFirst: { type: boolean }
+        offlineDrafts: { type: boolean }
+        country: { type: string, enum: [AU, GB, US] }
+    ExperiencePreferences:
+      allOf:
+        - { $ref: "#/components/schemas/ExperienceInput" }
+        - { type: object, required: [locale, timeZone, direction, lowData, textFirst, offlineDrafts, country] }
+    ExperienceCatalogue:
+      type: object
+      required: [locales, countries]
+      properties:
+        locales:
+          type: array
+          items:
+            type: object
+            required: [code, label, direction, enabled, reviewedAt, reviewNote, moderationCoverage]
+            properties:
+              code: { type: string }
+              label: { type: string }
+              direction: { type: string }
+              enabled: { type: boolean }
+              reviewedAt: { type: [string, "null"] }
+              reviewNote: { type: string }
+              moderationCoverage: { type: string }
+        countries:
+          type: array
+          items: { type: object, required: [code, name], properties: { code: { type: string }, name: { type: string } } }
+    ExperienceDraftInput:
+      type: object
+      required: [body, audience]
+      properties:
+        body: { type: string, maxLength: 10000 }
+        audience: { type: string, enum: [only_me, friends, my_circle, this_group, public] }
+        circleId: { type: [string, "null"] }
+        groupId: { type: [string, "null"] }
+        updatedAt: { type: string }
+    ExperienceDraftResponse:
+      type: object
+      required: [draft]
+      properties:
+        draft:
+          anyOf:
+            - { $ref: "#/components/schemas/ExperienceDraftInput" }
+            - { type: "null" }
+    CountryDirectory:
+      type: object
+      required: [country, disclaimer, items]
+      properties:
+        country: { type: string }
+        disclaimer: { type: string }
+        items:
+          type: array
+          items:
+            type: object
+            required: [id, country, name, kind, phone, url, sourceUrl, hours, hoursTimeZone, checkedAt, notes]
+            properties:
+              id: { type: string }
+              country: { type: string }
+              name: { type: string }
+              kind: { type: string, enum: [emergency, dementia, crisis] }
+              phone: { type: string }
+              url: { type: string }
+              sourceUrl: { type: string }
+              hours: { type: string }
+              hoursTimeZone: { type: string }
+              checkedAt: { type: string }
+              notes: { type: string }
+    TranslationInput:
+      type: object
+      required: [sourceType, sourceId, locale, text, machineTranslated, rightsConfirmed]
+      properties:
+        sourceType: { type: string, enum: [post, lesson] }
+        sourceId: { type: string }
+        locale: { type: string, enum: [en-AU, en-GB, en-US] }
+        text: { type: string, minLength: 1, maxLength: 20000 }
+        machineTranslated: { type: boolean }
+        correctionOf: { type: string }
+        rightsConfirmed: { type: boolean }
+    ContentTranslation:
+      type: object
+      required: [id, sourceType, sourceId, sourceHash, locale, text, machineTranslated, status, createdAt, reviewedAt, reviewedBy]
+      properties:
+        id: { type: string }
+        sourceType: { type: string, enum: [post, lesson] }
+        sourceId: { type: string }
+        sourceHash: { type: string }
+        locale: { type: string }
+        text: { type: string }
+        machineTranslated: { type: boolean }
+        status: { type: string, enum: [pending, reviewed, published, removed] }
+        createdAt: { type: string }
+        reviewedAt: { type: [string, "null"] }
+        reviewedBy: { type: [string, "null"] }
+        authorMemberId: { type: [string, "null"] }
+        reviewNote: { type: [string, "null"] }
+        reports:
+          type: array
+          items: { type: object, required: [reason, createdAt], properties: { reason: { type: string }, createdAt: { type: string } } }
+    TranslationPage:
+      type: object
+      required: [items]
+      properties:
+        providerEnabled: { type: boolean }
+        items: { type: array, items: { $ref: "#/components/schemas/ContentTranslation" } }
+    TranslationReportInput:
+      type: object
+      required: [reason]
+      properties:
+        reason: { type: string, minLength: 1, maxLength: 1000 }
+    TranslationReviewInput:
+      type: object
+      required: [action, note]
+      properties:
+        action: { type: string, enum: [review, publish, remove] }
+        note: { type: string, minLength: 10, maxLength: 2000 }
     MemoryCollectionInput:
       type: object
       properties:

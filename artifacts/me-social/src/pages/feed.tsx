@@ -86,12 +86,12 @@ export default function HomeFeed() {
         </div>
         <div className="flex items-center gap-2">
           <Button variant="secondary" className="rounded-full px-4 h-10 opacity-60 cursor-not-allowed" title="Groups (Coming Soon)">
-            <Users className="w-4 h-4 mr-2" />
-            Groups <span className="ml-1 text-[10px] uppercase tracking-wider">(Soon)</span>
+            <Users className="w-4 h-4 me-2" />
+            Groups <span className="ms-1 text-[10px] uppercase tracking-wider">(Soon)</span>
           </Button>
           <Button variant="secondary" className="rounded-full px-4 h-10 opacity-60 cursor-not-allowed" title="Education (Coming Soon)">
-            <BookOpen className="w-4 h-4 mr-2" />
-            Education <span className="ml-1 text-[10px] uppercase tracking-wider">(Soon)</span>
+            <BookOpen className="w-4 h-4 me-2" />
+            Education <span className="ms-1 text-[10px] uppercase tracking-wider">(Soon)</span>
           </Button>
         </div>
       </div>
@@ -124,7 +124,7 @@ export default function HomeFeed() {
             disabled={isFetching}
             data-testid="button-load-more"
           >
-            {isFetching ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
+            {isFetching ? <Loader2 className="w-5 h-5 animate-spin me-2" /> : null}
             Load more
           </Button>
         </div>

@@ -56,6 +56,11 @@ import StaffVideoReviewPage from '@/pages/staff/video-review';
 import Memories from '@/pages/memories';
 import MemoryDetail from '@/pages/memory-detail';
 import MyCircle from '@/pages/my-circle';
+import SettingsExperience from '@/pages/settings-experience';
+import CountryResourcesPage from '@/pages/country-resources';
+import StaffTranslationsPage from '@/pages/staff/translations';
+import { ExperienceProvider } from '@/lib/experience';
+import { endAccountSession } from '@/lib/draft-store';
 import {
   getGetAccountSummaryQueryKey,
   useGetAccountSummary,
@@ -95,12 +100,20 @@ function ClerkQueryClientCacheInvalidator() {
 
 function RequireMember({ children }: { children: ReactNode }) {
   const { isLoaded, isSignedIn } = useAuth();
+  const accountQueryClient = useQueryClient();
   const summary = useGetAccountSummary({
     query: {
       enabled: Boolean(isLoaded && isSignedIn),
       queryKey: getGetAccountSummaryQueryKey(),
+      retry: false,
     },
   });
+  const { userId } = useAuth();
+  const summaryStatus = (summary.error as { status?: number } | undefined)?.status;
+  useEffect(() => {
+    // Inactive or deleted account while Clerk is still signed in: erase drafts and stop composer writers.
+    if (summaryStatus === 403) endAccountSession(userId ?? null);
+  }, [summaryStatus, userId]);
   if (!isLoaded) return <div className="p-8 text-center">Loading your account…</div>;
   if (!isSignedIn) {
     return (
@@ -115,7 +128,10 @@ function RequireMember({ children }: { children: ReactNode }) {
   if (summary.isError) {
     const status = (summary.error as { status?: number } | undefined)?.status;
     if (status === 401) return <div className="p-8 text-center"><a className="text-primary underline" href={`${basePath}/sign-in`}>Sign in to continue</a></div>;
-    if (status === 404) return <Onboarding onComplete={() => summary.refetch()} />;
+    if (status === 404) return <Onboarding onComplete={async () => {
+      await accountQueryClient.invalidateQueries({ queryKey: ["experience", "preferences", userId] });
+      await summary.refetch();
+    }} />;
     return <div role="alert" className="mx-auto max-w-xl rounded-3xl border border-destructive/30 bg-card p-8 text-center"><h1 className="font-display text-2xl font-bold">Account unavailable</h1><p className="mt-2 text-muted-foreground">We could not check your account setup.</p><button className="mt-5 rounded-xl border border-border px-4 py-3" onClick={() => summary.refetch()}>Try again</button></div>;
   }
   return <>{children}</>;
@@ -180,6 +196,9 @@ function Router() {
                   <Route path="/staff/moderation"><RequireMember><StaffModerationPage /></RequireMember></Route>
                   <Route path="/staff/education"><RequireMember><StaffEducationPage /></RequireMember></Route>
                   <Route path="/staff/resources"><RequireMember><StaffResourcesPage /></RequireMember></Route>
+                  <Route path="/settings/experience"><RequireMember><SettingsExperience /></RequireMember></Route>
+                  <Route path="/country-resources"><CountryResourcesPage /></Route>
+                  <Route path="/staff/translations"><RequireMember><StaffTranslationsPage /></RequireMember></Route>
                   <Route path="/resources" component={ResourcesPage} />
                   <Route path="/resources/:id" component={ResourceDetail} />
                   <Route path="/components-preview" component={ComponentsPreview} />
@@ -245,10 +264,12 @@ function ClerkProviderWithRoutes() {
     >
       <QueryClientProvider client={queryClient}>
         <ClerkQueryClientCacheInvalidator />
-        <TooltipProvider>
-          <Router />
-          <Toaster />
-        </TooltipProvider>
+        <ExperienceProvider>
+          <TooltipProvider>
+            <Router />
+            <Toaster />
+          </TooltipProvider>
+        </ExperienceProvider>
       </QueryClientProvider>
     </ClerkProvider>
   );

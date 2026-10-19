@@ -29,3 +29,8 @@ could proceed by completing the ordinary onboarding flow for its test identity.
 **How to apply:** Verify normal onboarding with current documents and the test
 identity's real verified email before declaring sign-in blocked. Do not bypass
 onboarding or weaken MFA/permissions to create a testable session.
+
+A settings/preferences request made before onboarding can also return 401 for
+the missing app member. Do not interpret that response as account deletion or
+repeatedly invalidate the account summary: allow its 404 to render onboarding,
+then refresh member-scoped settings after successful onboarding.

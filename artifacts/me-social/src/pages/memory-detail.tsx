@@ -1,3 +1,5 @@
+import { formatDate } from "@/lib/locale-format";
+import { ControlledAudio, ControlledImage } from "@/components/media/controlled-media";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useParams } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
@@ -32,10 +34,10 @@ function Item({ item, onHide }: { item: MemoryItem; onHide: (h: boolean) => void
   const postLink = item.sourcePostId || (item.kind === "post" ? item.sourceId : null);
   return (
     <article className="space-y-3" data-testid={`memory-${item.id}`}>
-      <p className="text-sm font-semibold uppercase tracking-wide">{item.kind ? kindLabel[item.kind] : "Memory"}{item.sourceDate ? ` - Source date: ${new Date(item.sourceDate).toLocaleDateString()}` : ""}</p>
+      <p className="text-sm font-semibold uppercase tracking-wide">{item.kind ? kindLabel[item.kind] : "Memory"}{item.sourceDate ? ` - Source date: ${formatDate(item.sourceDate)}` : ""}</p>
       {item.title && <h3 className="font-display text-2xl font-semibold">{item.title}</h3>}
-      {item.kind === "photo" && item.mediaUrl && <img src={item.mediaUrl} alt={item.altText || "Photo in this memory"} className="max-h-[480px] w-full rounded-2xl object-contain bg-muted" />}
-      {item.kind === "audio" && item.mediaUrl && <audio controls preload="none" src={item.mediaUrl} className="w-full" aria-label="Recording" />}
+      {item.kind === "photo" && item.mediaUrl && <ControlledImage src={item.mediaUrl} alt={item.altText || "Photo in this memory"} className="max-h-[480px] w-full rounded-2xl object-contain bg-muted" />}
+      {item.kind === "audio" && item.mediaUrl && <ControlledAudio src={item.mediaUrl} label="Recording" className="w-full" />}
       {item.body && <p className="text-lg whitespace-pre-wrap">{item.body}</p>}
       {item.transcript && (
         <details className="rounded-xl bg-muted p-3"><summary className="cursor-pointer font-semibold min-h-[40px] flex items-center">Read transcript</summary><p className="mt-2 whitespace-pre-wrap">{item.transcript}</p></details>
@@ -155,7 +157,7 @@ export default function MemoryDetail() {
   return (
     <div className="space-y-8" ref={wrap}>
       <div>
-        <Link href="/memories" className="inline-flex items-center gap-1 min-h-[48px] font-semibold"><ChevronLeft className="w-5 h-5" aria-hidden="true" />All collections</Link>
+        <Link href="/memories" className="inline-flex items-center gap-1 min-h-[48px] font-semibold"><ChevronLeft className="rtl:-scale-x-100 w-5 h-5" aria-hidden="true" />All collections</Link>
         <h1 className="font-display text-3xl md:text-4xl font-bold" data-testid="text-collection-name">{col.name}</h1>
         <p className="text-lg">{owner ? "Your collection" : "Shared with you"} - {audienceLabels[col.audience]}</p>
         {col.sharingHeld && <p role="status" className="mt-2 rounded-xl border border-border bg-muted p-3">A safety check has paused sharing. Only you can see this collection. Edit its name or captions, or remove a memory, to check it again.</p>}
@@ -169,8 +171,8 @@ export default function MemoryDetail() {
             <p aria-live="polite">Memory {idx + 1} of {items.length}</p>
             <Item key={cur.id + (cur.unavailable ? "u" : "a") + (cur.hidden ? "h" : "")} item={cur} onHide={(h) => run(() => hide.mutateAsync({ id, itemId: cur.id, data: { hidden: h } }), h ? "Memory hidden" : "Memory restored")} />
             <div className="flex justify-between gap-3">
-              <Button data-testid="button-prev-memory" variant="outline" size="lg" className="min-h-[56px] text-lg gap-1" disabled={idx === 0} onClick={() => setIdx(idx - 1)}><ChevronLeft className="w-5 h-5" aria-hidden="true" />Previous</Button>
-              <Button data-testid="button-next-memory" variant="outline" size="lg" className="min-h-[56px] text-lg gap-1" disabled={idx >= items.length - 1} onClick={() => setIdx(idx + 1)}>Next<ChevronRight className="w-5 h-5" aria-hidden="true" /></Button>
+              <Button data-testid="button-prev-memory" variant="outline" size="lg" className="min-h-[56px] text-lg gap-1" disabled={idx === 0} onClick={() => setIdx(idx - 1)}><ChevronLeft className="rtl:-scale-x-100 w-5 h-5" aria-hidden="true" />Previous</Button>
+              <Button data-testid="button-next-memory" variant="outline" size="lg" className="min-h-[56px] text-lg gap-1" disabled={idx >= items.length - 1} onClick={() => setIdx(idx + 1)}>Next<ChevronRight className="rtl:-scale-x-100 w-5 h-5" aria-hidden="true" /></Button>
             </div>
           </>
         )}
@@ -231,7 +233,7 @@ export default function MemoryDetail() {
                 <label className="block font-semibold">Caption (optional)<Input className="mt-1 min-h-[48px] text-base font-normal" maxLength={500} value={pickCaption} onChange={(e) => setPickCaption(e.target.value)} /></label>
                 <Button data-testid="button-add-source" size="lg" className="min-h-[56px] text-lg" disabled={!chosen || add.isPending}
                   onClick={async () => { if (chosen?.kind && chosen.sourceId && await run(() => add.mutateAsync({ id, data: { kind: chosen.kind!, sourceId: chosen.sourceId!, sourcePostId: chosen.sourcePostId, caption: pickCaption || undefined } }), "Added to collection")) { setPick(""); setPickCaption(""); } }}>
-                  {add.isPending && <Loader2 className="w-5 h-5 animate-spin mr-2" />}Add to collection
+                  {add.isPending && <Loader2 className="w-5 h-5 animate-spin me-2" />}Add to collection
                 </Button>
               </>
             )}

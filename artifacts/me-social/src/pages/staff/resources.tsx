@@ -89,6 +89,7 @@ function Dashboard({ caps }: { caps: string[] }) {
         {canAuthor && <Button className="h-12 rounded-xl" onClick={() => openEdit(null)} data-testid="button-new-resource">Add a source</Button>}
         <Link href="/resources" className="text-primary underline">Public library</Link>
         <Link href="/staff/education" className="text-primary underline">Curriculum</Link>
+        <Link href="/staff/translations" className="text-primary underline" data-testid="link-staff-translations">Translations</Link>
       </div>
 
       <section aria-labelledby="src-h" className="space-y-4">

@@ -27,7 +27,7 @@ export default function ReelsPage() {
       <PageHeader title="Reels" />
       <div className="flex items-center justify-between gap-3">
         <p className="text-muted-foreground">Short portrait videos. One plays at a time, only when you choose.</p>
-        <Button asChild className="rounded-xl shrink-0" data-testid="link-add-reel"><Link href="/"><Plus className="mr-1.5 h-4 w-4" />Add a reel</Link></Button>
+        <Button asChild className="rounded-xl shrink-0" data-testid="link-add-reel"><Link href="/"><Plus className="me-1.5 h-4 w-4" />Add a reel</Link></Button>
       </div>
 
       {isLoading && <Skeleton className="h-[60dvh] w-full rounded-3xl" />}
@@ -58,9 +58,9 @@ export default function ReelsPage() {
           {video ? <VideoPlayer key={video.id} asset={video} /> : <p className="text-muted-foreground">This reel has no playable video.</p>}
           <PostCard key={post.id} post={post} suppressMedia />
           <div className="flex items-center justify-between gap-2">
-            <Button variant="outline" className="rounded-xl" disabled={index === 0} onClick={() => go(-1)} data-testid="button-reel-previous"><ChevronLeft className="mr-1 h-4 w-4" />Previous</Button>
+            <Button variant="outline" className="rounded-xl" disabled={index === 0} onClick={() => go(-1)} data-testid="button-reel-previous"><ChevronLeft className="rtl:-scale-x-100 me-1 h-4 w-4" />Previous</Button>
             <span className="text-sm text-muted-foreground" aria-live="polite">{index + 1} of {items.length}</span>
-            <Button variant="outline" className="rounded-xl" disabled={index >= items.length - 1} onClick={() => go(1)} data-testid="button-reel-next">Next<ChevronRight className="ml-1 h-4 w-4" /></Button>
+            <Button variant="outline" className="rounded-xl" disabled={index >= items.length - 1} onClick={() => go(1)} data-testid="button-reel-next">Next<ChevronRight className="rtl:-scale-x-100 ms-1 h-4 w-4" /></Button>
           </div>
           <p className="text-center text-sm text-muted-foreground">Swipe sideways on a touch screen to change reels.</p>
           {index >= items.length - 1 && (

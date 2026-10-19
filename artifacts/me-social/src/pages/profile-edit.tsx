@@ -1,3 +1,4 @@
+import { ControlledAvatarImage } from "@/components/media/controlled-media";
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -171,7 +172,7 @@ export default function ProfileEdit() {
     <div className="flex flex-col gap-8 md:gap-10 animate-in fade-in duration-500 max-w-3xl mx-auto">
       <div>
         <Link href="/me" className="inline-flex items-center text-primary font-semibold mb-6 hover:underline">
-          <ArrowLeft className="w-5 h-5 mr-2" /> Back to Me
+          <ArrowLeft className="rtl:-scale-x-100 w-5 h-5 me-2" /> Back to Me
         </Link>
         <PageHeader
           title="Edit Profile"
@@ -184,7 +185,7 @@ export default function ProfileEdit() {
           <h3 className="text-xl font-display font-semibold mb-4 text-foreground">Profile Photo</h3>
           <div className="flex flex-col sm:flex-row items-center gap-6">
             {profile?.photoPath ? (
-              <img src={getPhotoUrl(profile.photoPath)} alt="Profile" className="w-24 h-24 rounded-full object-cover shrink-0 border border-border" />
+              <ControlledAvatarImage src={getPhotoUrl(profile.photoPath) ?? ""} alt="profile photo" className="w-24 h-24 rounded-full object-cover shrink-0 border border-border" fallback={<div className="w-24 h-24 rounded-full bg-secondary text-primary flex items-center justify-center text-4xl font-display font-bold shrink-0 border border-border">{profile.preferredName?.[0]?.toUpperCase() || "M"}</div>} />
             ) : (
               <div className="w-24 h-24 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center text-3xl font-display font-bold shrink-0">
                 {profile?.preferredName?.[0]?.toUpperCase() || 'M'}
@@ -194,7 +195,7 @@ export default function ProfileEdit() {
             <div className="flex flex-col gap-2">
               <div className="flex items-center gap-4">
                 <Button variant="outline" className="relative cursor-pointer" disabled={isUploading}>
-                  {isUploading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Upload className="w-4 h-4 mr-2" />}
+                  {isUploading ? <Loader2 className="w-4 h-4 me-2 animate-spin" /> : <Upload className="w-4 h-4 me-2" />}
                   {isUploading ? "Uploading..." : "Upload new photo"}
                   <input
                     type="file"

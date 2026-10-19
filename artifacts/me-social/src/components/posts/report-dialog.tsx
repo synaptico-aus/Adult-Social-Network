@@ -79,7 +79,7 @@ export function ReportDialog({ isOpen, onOpenChange, postId, commentId, groupId,
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px] rounded-[2rem] p-6 sm:p-8 border border-border shadow-lg">
-        <DialogHeader className="mb-4 text-left">
+        <DialogHeader className="mb-4 text-start">
           <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-primary mb-4">
             <Flag className="w-6 h-6" aria-hidden="true" />
           </div>

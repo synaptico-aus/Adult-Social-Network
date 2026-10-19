@@ -143,7 +143,7 @@ export function MediaUploader({
           className="rounded-xl border-dashed border-2 hover:bg-secondary"
           aria-label="Choose photo"
         >
-          <ImageIcon className="w-4 h-4 mr-2" /> Choose Photo
+          <ImageIcon className="w-4 h-4 me-2" /> Choose Photo
         </Button>
         <Button 
           type="button" 
@@ -152,7 +152,7 @@ export function MediaUploader({
           className="rounded-xl border-dashed border-2 hover:bg-secondary"
           aria-label="Take photo"
         >
-          <Camera className="w-4 h-4 mr-2" /> Take Photo
+          <Camera className="w-4 h-4 me-2" /> Take Photo
         </Button>
         <Button 
           type="button" 
@@ -161,14 +161,14 @@ export function MediaUploader({
           className="rounded-xl border-dashed border-2 hover:bg-secondary"
           aria-label="Choose audio file"
         >
-          <FileAudio className="w-4 h-4 mr-2" /> Choose Audio
+          <FileAudio className="w-4 h-4 me-2" /> Choose Audio
         </Button>
         
         <Button type="button" variant="outline" onClick={() => reelInputRef.current?.click()} className="rounded-xl border-dashed border-2 hover:bg-secondary" aria-label="Add reel" hidden={!addVideo} data-testid="button-add-reel">
-          <Clapperboard className="w-4 h-4 mr-2" /> Add Reel
+          <Clapperboard className="w-4 h-4 me-2" /> Add Reel
         </Button>
         <Button type="button" variant="outline" onClick={() => videoInputRef.current?.click()} className="rounded-xl border-dashed border-2 hover:bg-secondary" aria-label="Add video" hidden={!addVideo} data-testid="button-add-video">
-          <Video className="w-4 h-4 mr-2" /> Add Video
+          <Video className="w-4 h-4 me-2" /> Add Video
         </Button>
 
         {!isRecording ? (
@@ -179,7 +179,7 @@ export function MediaUploader({
             className="rounded-xl border-dashed border-2 hover:bg-secondary"
             aria-label="Record audio"
           >
-            <Mic className="w-4 h-4 mr-2" /> Record Audio
+            <Mic className="w-4 h-4 me-2" /> Record Audio
           </Button>
         ) : (
           <Button 
@@ -189,7 +189,7 @@ export function MediaUploader({
             className="rounded-xl animate-pulse"
             aria-label="Stop recording"
           >
-            <Square className="w-4 h-4 mr-2" /> Stop ({formatTime(recordingDuration)})
+            <Square className="w-4 h-4 me-2" /> Stop ({formatTime(recordingDuration)})
           </Button>
         )}
 
@@ -201,7 +201,7 @@ export function MediaUploader({
       </div>
 
       <p className="text-xs text-muted-foreground">Reels: portrait, up to 64 MiB and 2 minutes. Videos: up to 200 MiB and 10 minutes. MP4, WebM or QuickTime. Final limits are checked by the server.</p>
-      {videoError && <div role="alert" className="p-3 text-sm rounded-xl border border-destructive/20 bg-destructive/10 flex items-center"><AlertCircle className="w-4 h-4 mr-2 shrink-0" />{videoError}</div>}
+      {videoError && <div role="alert" className="p-3 text-sm rounded-xl border border-destructive/20 bg-destructive/10 flex items-center"><AlertCircle className="w-4 h-4 me-2 shrink-0" />{videoError}</div>}
       {recoverable.filter(r => (!r.status || r.status === 'uploading') && !items.some(i => i.clientIdempotencyKey === r.key)).map(r => (
         <div key={r.key} className="p-3 text-sm rounded-xl border border-border bg-secondary/30 flex items-center justify-between gap-2" data-testid={`recover-${r.key}`}>
           <span>Interrupted {r.format === 'reel' ? 'reel' : 'video'} upload: {r.name}. Choose the same file again to restart; the whole file is sent again, not resumed.</span>
@@ -211,7 +211,7 @@ export function MediaUploader({
 
       {micError && (
         <div className="p-3 bg-destructive/10 text-destructive text-sm rounded-xl flex items-center border border-destructive/20">
-          <AlertCircle className="w-4 h-4 mr-2 shrink-0" />
+          <AlertCircle className="w-4 h-4 me-2 shrink-0" />
           {micError}
         </div>
       )}
@@ -243,7 +243,7 @@ export function MediaUploader({
                   )}
                 </div>
 
-                <div className="flex-1 min-w-0 w-full pr-8">
+                <div className="flex-1 min-w-0 w-full pe-8">
                   {/* Audio Controls */}
                   {item.kind === 'video' && <VideoUploadPanel item={item} updateItem={updateItem} startUpload={startUpload} />}
                   {item.kind === 'audio' && item.status !== 'uploading' && item.status !== 'requesting' && (
@@ -333,7 +333,7 @@ export function MediaUploader({
                   {/* Ready State Details */}
                   {item.kind !== 'video' && item.status === 'ready' && (
                     <div className="mt-2 text-sm font-medium text-green-700 flex items-center">
-                      <CheckCircle2 className="w-4 h-4 mr-1.5" /> Ready to attach
+                      <CheckCircle2 className="w-4 h-4 me-1.5" /> Ready to attach
                     </div>
                   )}
 
@@ -341,10 +341,10 @@ export function MediaUploader({
                   {item.kind !== 'video' && item.error && (
                     <div className="text-sm text-destructive mt-2 flex items-center justify-between">
                       <div className="flex items-center">
-                        <AlertCircle className="w-3 h-3 mr-1 shrink-0" /> {item.error}
+                        <AlertCircle className="w-3 h-3 me-1 shrink-0" /> {item.error}
                       </div>
                       {(item.status === 'error' || item.status === 'rejected') && (
-                        <Button variant="outline" size="sm" className="h-7 text-xs rounded-lg shrink-0 ml-2" onClick={() => startUpload(item.clientId)}>
+                        <Button variant="outline" size="sm" className="h-7 text-xs rounded-lg shrink-0 ms-2" onClick={() => startUpload(item.clientId)}>
                           Retry
                         </Button>
                       )}

@@ -165,3 +165,7 @@ as part of development scanner maintenance.
 ### Memory Collections
 See `docs/phase14-memory-collections.md` for source authority, deliberate sharing,
 in-page reminder consent, rights-aware exports and reference-only deletion.
+
+### Localisation and data use
+See `docs/phase15-localisation-data-and-resources.md` for the language release gate,
+translation review, optional encrypted drafts, quiet-hour zones and curated directory.

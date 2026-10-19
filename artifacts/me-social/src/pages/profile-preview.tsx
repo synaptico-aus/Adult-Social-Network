@@ -1,3 +1,4 @@
+import { ControlledAvatarImage } from "@/components/media/controlled-media";
 import { usePreviewProfileAsMember, getPreviewProfileAsMemberQueryKey } from "@workspace/api-client-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { ArrowLeft, Loader2, MapPin, Globe, Activity, Heart, ShieldAlert } from "lucide-react";
@@ -35,7 +36,7 @@ export default function ProfilePreview() {
     <div className="flex flex-col gap-8 md:gap-10 animate-in fade-in duration-500 max-w-3xl mx-auto">
       <div>
         <Link href="/me" className="inline-flex items-center text-primary font-semibold mb-6 hover:underline">
-          <ArrowLeft className="w-5 h-5 mr-2" /> Back to Me
+          <ArrowLeft className="rtl:-scale-x-100 w-5 h-5 me-2" /> Back to Me
         </Link>
         <PageHeader
           title="Profile Preview"
@@ -50,10 +51,11 @@ export default function ProfilePreview() {
         <div className="px-8 pb-10">
           <div className="flex flex-col sm:flex-row gap-6 items-start -mt-16 mb-6">
             {profile.photoPath ? (
-              <img
-                src={getPhotoUrl(profile.photoPath)}
-                alt="Profile"
+              <ControlledAvatarImage
+                src={getPhotoUrl(profile.photoPath) ?? ""}
+                alt="profile photo"
                 className="w-32 h-32 rounded-full object-cover shadow-md border-4 border-card bg-card"
+                fallback={<div className="w-32 h-32 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-6xl font-display font-bold shadow-md border-4 border-card">{profile.preferredName?.[0]?.toUpperCase() || 'M'}</div>}
               />
             ) : (
               <div className="w-32 h-32 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-6xl font-display font-bold shadow-md border-4 border-card">

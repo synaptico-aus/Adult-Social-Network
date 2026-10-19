@@ -218,32 +218,32 @@ export function MemberCard({
         {incomingRequestId ? (
           <>
             <Button size="default" variant="default" onClick={handleAcceptRequest} disabled={isPending} className="rounded-xl h-11 px-5" data-testid={`button-accept-${memberId}`}>
-              <Check className="w-4 h-4 mr-2" /> Accept
+              <Check className="w-4 h-4 me-2" /> Accept
             </Button>
             <Button size="default" variant="outline" onClick={handleDeclineRequest} disabled={isPending} className="rounded-xl h-11 px-5" data-testid={`button-decline-${memberId}`}>
-              <X className="w-4 h-4 mr-2" /> Decline
+              <X className="w-4 h-4 me-2" /> Decline
             </Button>
           </>
         ) : outgoingRequestId ? (
           <Button size="default" variant="secondary" onClick={handleCancelRequest} disabled={isPending} className="rounded-xl h-11 px-5" data-testid={`button-cancel-request-${memberId}`}>
-            <Clock className="w-4 h-4 mr-2" /> Cancel Request
+            <Clock className="w-4 h-4 me-2" /> Cancel Request
           </Button>
         ) : isFriend ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button size="default" variant="outline" disabled={isPending} className="rounded-xl h-11 px-5" data-testid={`button-friends-${memberId}`}>
-                <UserCheck className="w-4 h-4 mr-2" /> Friends
+                <UserCheck className="w-4 h-4 me-2" /> Friends
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48 p-2 rounded-xl">
               <DropdownMenuItem onClick={handleUnfriend} className="text-destructive focus:bg-destructive/10 rounded-lg cursor-pointer py-2.5" data-testid={`button-unfriend-${memberId}`}>
-                <UserMinus className="w-4 h-4 mr-2" /> Unfriend
+                <UserMinus className="w-4 h-4 me-2" /> Unfriend
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         ) : (
           <Button size="default" variant="default" onClick={handleSendRequest} disabled={isPending} className="rounded-xl h-11 px-5" data-testid={`button-add-friend-${memberId}`}>
-            <UserPlus className="w-4 h-4 mr-2" /> Add Friend
+            <UserPlus className="w-4 h-4 me-2" /> Add Friend
           </Button>
         )}
 
@@ -267,11 +267,11 @@ export function MemberCard({
           <DropdownMenuContent align="end" className="w-56 p-2 rounded-xl">
             {suggestionReason && (
               <DropdownMenuItem onClick={handleHideSuggestion} className="rounded-lg cursor-pointer py-2.5" data-testid={`button-hide-suggestion-${memberId}`}>
-                <EyeOff className="w-4 h-4 mr-2" /> Hide Suggestion
+                <EyeOff className="w-4 h-4 me-2" /> Hide Suggestion
               </DropdownMenuItem>
             )}
             <DropdownMenuItem onClick={() => setIsBlockDialogOpen(true)} className="text-destructive focus:bg-destructive/10 rounded-lg cursor-pointer py-2.5" data-testid={`button-block-${memberId}`}>
-              <ShieldAlert className="w-4 h-4 mr-2" /> Block Member
+              <ShieldAlert className="w-4 h-4 me-2" /> Block Member
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

@@ -172,7 +172,7 @@ export default function ThisIsMe() {
     <div className="flex flex-col gap-8 md:gap-10 animate-in fade-in duration-500 max-w-3xl mx-auto">
       <div>
         <Link href="/me" className="inline-flex items-center text-primary font-semibold mb-6 hover:underline">
-          <ArrowLeft className="w-5 h-5 mr-2" /> Back to Me
+          <ArrowLeft className="rtl:-scale-x-100 w-5 h-5 me-2" /> Back to Me
         </Link>
         <PageHeader
           title="This is Me"
@@ -246,7 +246,7 @@ export default function ThisIsMe() {
                   <h3 className="text-2xl font-display font-semibold text-foreground">{label}</h3>
                   <div className="flex gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                     <Button variant="outline" size="sm" onClick={() => handleEdit(card)} className="rounded-lg h-9">
-                      <Edit2 className="w-4 h-4 mr-2" /> Edit
+                      <Edit2 className="w-4 h-4 me-2" /> Edit
                     </Button>
                     <Button variant="outline" size="sm" onClick={() => handleDelete(card.id)} className="rounded-lg h-9 text-destructive border-destructive/30 hover:bg-destructive/10">
                       <Trash2 className="w-4 h-4" />
@@ -269,7 +269,7 @@ export default function ThisIsMe() {
             <div key={kind} className="bg-secondary/10 border border-dashed border-border/60 p-6 md:p-8 rounded-[2rem] text-center flex flex-col items-center justify-center gap-4">
               <h3 className="text-xl font-display font-medium text-muted-foreground">{label}</h3>
               <Button onClick={() => startCreate(kind)} variant="outline" className="rounded-xl bg-card">
-                <Plus className="w-4 h-4 mr-2" /> Add this card
+                <Plus className="w-4 h-4 me-2" /> Add this card
               </Button>
             </div>
           );

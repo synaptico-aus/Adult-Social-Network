@@ -16,6 +16,8 @@ import { invalidatePhase6 } from "@/lib/invalidation";
 import { useMediaUploads } from "@/hooks/use-media-upload";
 import { MediaUploader } from "@/components/media/media-uploader";
 import { v4 as uuidv4 } from "uuid";
+import { DraftRecovery } from "@/components/posts/draft-recovery";
+import { canRestoreDraftHere } from "@/lib/draft-scope";
 
 const formSchema = z.object({
   body: z.string().min(1, "Post cannot be empty").max(20000, "Post is too long"),
@@ -67,6 +69,7 @@ export function PostComposer({ post, onSuccess, isStandalone = false, circleId, 
   const publishPost = usePublishPost();
   const [isPublishing, setIsPublishing] = useState(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
+  const [draftClearTick, setDraftClearTick] = useState(0);
 
   const isPublished = post?.status === "published";
 
@@ -130,6 +133,7 @@ export function PostComposer({ post, onSuccess, isStandalone = false, circleId, 
       }
 
       form.reset();
+      setDraftClearTick(t => t + 1);
       setMediaItems([]);
       invalidatePhase6(queryClient, post?.id);
       if (onSuccess) onSuccess();
@@ -171,6 +175,7 @@ export function PostComposer({ post, onSuccess, isStandalone = false, circleId, 
       }
       toast({ title: "Draft saved" });
       form.reset();
+      setDraftClearTick(t => t + 1);
       setMediaItems([]);
       invalidatePhase6(queryClient, post?.id);
       if (onSuccess) onSuccess();
@@ -187,6 +192,24 @@ export function PostComposer({ post, onSuccess, isStandalone = false, circleId, 
     <div className={`bg-card border border-border p-4 md:p-6 rounded-3xl shadow-sm ${isStandalone ? 'mb-8' : ''}`}>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          {!post && (
+            <DraftRecovery
+              clearTick={draftClearTick}
+              values={{ body: form.watch("body"), audience: form.watch("audience"), circleId: form.watch("circleId"), groupId: form.watch("groupId") }}
+              onRestore={(d) => {
+                if (!canRestoreDraftHere({ circleId, groupId }, d)) {
+                  toast({ title: "Keep this draft's original audience", description: "Return to where you wrote this draft: Home, its circle or its group. It has not been discarded.", variant: "destructive" });
+                  return false;
+                }
+                form.setValue("body", d.body, { shouldDirty: true });
+                const aud = ["only_me", "friends", "my_circle", "this_group", "public"].includes(d.audience) ? d.audience : "only_me";
+                form.setValue("audience", aud as FormValues["audience"], { shouldDirty: true });
+                form.setValue("circleId", d.circleId ?? undefined);
+                form.setValue("groupId", d.groupId ?? undefined);
+                return true;
+              }}
+            />
+          )}
           <FormField
             control={form.control}
             name="body"
@@ -283,7 +306,7 @@ export function PostComposer({ post, onSuccess, isStandalone = false, circleId, 
                 name="audience"
                 render={({ field }) => (
                   <FormItem>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger className="h-10 rounded-xl bg-secondary/50 border-0 font-medium" data-testid="select-post-audience">
                           <SelectValue placeholder="Audience" />

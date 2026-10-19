@@ -3,6 +3,7 @@ import { Pause, Play, Volume2, VolumeX, AlertCircle, Film } from 'lucide-react';
 import type { MediaAttachment } from '@workspace/api-client-react';
 import { Button } from '@/components/ui/button';
 import { useVideoPrefs } from '@/hooks/use-video-prefs';
+import { useExperience } from '@/lib/experience';
 import { fetchBlob, mediaAssetUrl, preferredVideoVariant } from '@/lib/media-url';
 
 const esc = (t: string) => t.replace(/\r\n?/g, '\n').replace(/\n{2,}/g, '\n').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -22,7 +23,10 @@ export interface VideoPlayerProps {
 }
 
 export function VideoPlayer({ asset, className }: VideoPlayerProps) {
-  const { prefs, update, userId } = useVideoPrefs();
+  const { prefs: videoPrefs, update, userId } = useVideoPrefs();
+  const { mediaGated, prefs: expPrefs } = useExperience();
+  // The account-wide low-data / text-first settings are the single authority for thumbnails and autoplay; the old per-device lowData flag no longer overrides them.
+  const prefs = { ...videoPrefs, lowData: mediaGated, autoplay: videoPrefs.autoplay && !mediaGated && !expPrefs.textFirst };
   const videoRef = useRef<HTMLVideoElement>(null);
   const boxRef = useRef<HTMLDivElement>(null);
   const pendingPlay = useRef(false);
@@ -183,12 +187,12 @@ export function VideoPlayer({ asset, className }: VideoPlayerProps) {
 
       <div className="flex flex-wrap items-center gap-2 border-t border-border p-3">
         <Button type="button" size="sm" variant="outline" onClick={toggle} className="rounded-xl" data-testid={`button-toggle-play-${asset.id}`}>
-          {paused ? <Play className="mr-1.5 h-4 w-4" /> : <Pause className="mr-1.5 h-4 w-4" />}{paused ? 'Play' : 'Pause'}
+          {paused ? <Play className="me-1.5 h-4 w-4" /> : <Pause className="me-1.5 h-4 w-4" />}{paused ? 'Play' : 'Pause'}
         </Button>
         <Button type="button" size="sm" variant="outline" disabled={!src} className="rounded-xl"
           onClick={() => { if (videoRef.current) videoRef.current.muted = !videoRef.current.muted; }}
           data-testid={`button-toggle-mute-${asset.id}`}>
-          {muted ? <VolumeX className="mr-1.5 h-4 w-4" /> : <Volume2 className="mr-1.5 h-4 w-4" />}{muted ? 'Unmute' : 'Mute'}
+          {muted ? <VolumeX className="me-1.5 h-4 w-4" /> : <Volume2 className="me-1.5 h-4 w-4" />}{muted ? 'Unmute' : 'Mute'}
         </Button>
         {captionNote && <span className="text-sm text-muted-foreground">{captionNote}</span>}
       </div>
@@ -196,7 +200,7 @@ export function VideoPlayer({ asset, className }: VideoPlayerProps) {
       <details className="border-t border-border p-3 text-sm">
         <summary className="cursor-pointer font-semibold">Playback settings</summary>
         <div className="mt-3 space-y-2">
-          <label className="flex items-center gap-2"><input type="checkbox" checked={prefs.lowData} onChange={(e) => update({ lowData: e.target.checked })} /> Low-data mode (no previews until you choose)</label>
+          <p className="text-muted-foreground">Previews and autoplay follow your account setting in Language, region and data. {prefs.lowData ? "Low-data or text-first is on, so nothing loads until you press play." : "Previews are allowed."}</p>
           <label className="flex items-center gap-2"><input type="checkbox" checked={prefs.lowQuality} disabled={!hasLow} onChange={(e) => update({ lowQuality: e.target.checked })} /> Use lower quality{!hasLow && ' (not available for this video)'}</label>
           <label className="flex items-center gap-2"><input type="checkbox" checked={prefs.autoplay} onChange={(e) => update({ autoplay: e.target.checked })} /> Autoplay muted when visible</label>
           {prefs.autoplay && (reduced || saveData) && <p className="text-muted-foreground">Autoplay is off because your device asks for reduced motion or data saving.</p>}

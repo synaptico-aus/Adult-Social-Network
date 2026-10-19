@@ -39,7 +39,7 @@ export default function UnderstandingDementiaPage() {
 
       <Link href="/resources" data-testid="link-resources" className="rounded-2xl border border-border bg-card p-5 flex items-center justify-between hover:border-primary/30">
         <span><span className="block font-display text-xl font-semibold">External resource library</span><span className="block text-muted-foreground">Articles, helplines, podcasts and more from other organisations, each with its review status shown.</span></span>
-        <ChevronRight className="w-5 h-5 text-primary" aria-hidden="true" />
+        <ChevronRight className="rtl:-scale-x-100 w-5 h-5 text-primary" aria-hidden="true" />
       </Link>
 
       <div className="flex flex-col md:flex-row gap-4">
@@ -50,7 +50,7 @@ export default function UnderstandingDementiaPage() {
             id="search-education"
             type="search"
             placeholder="Search for topics, symptoms, or guidance..."
-            className="pl-10 h-12 text-lg rounded-2xl bg-card border-border"
+            className="ps-10 h-12 text-lg rounded-2xl bg-card border-border"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -106,7 +106,7 @@ export default function UnderstandingDementiaPage() {
                     </p>
                     <div className="mt-6 pt-4 border-t border-border/50 flex items-center justify-between text-primary font-medium">
                       Read lesson
-                      <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                      <ChevronRight className="rtl:-scale-x-100 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                     </div>
                   </article>
                 </Link>

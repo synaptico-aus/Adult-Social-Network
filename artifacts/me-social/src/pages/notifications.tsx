@@ -6,7 +6,7 @@ import {
 } from "@workspace/api-client-react"
 import { Bell, Settings, CheckCheck, MessageSquare, Users, ShieldAlert, FileText, ChevronRight } from "lucide-react"
 import { useQueryClient } from "@tanstack/react-query"
-import { formatDistanceToNow } from "date-fns"
+import { formatRelative } from "@/lib/locale-format";
 import { Link } from "wouter"
 
 function getIconForKind(kind: string) {
@@ -75,7 +75,7 @@ export default function NotificationsPage() {
         />
         <div className="flex gap-3">
           <Button variant="outline" className="rounded-xl h-12" onClick={handleMarkAllRead} disabled={markAllRead.isPending}>
-            <CheckCheck className="w-5 h-5 mr-2" /> Mark all read
+            <CheckCheck className="w-5 h-5 me-2" /> Mark all read
           </Button>
           <Link href="/notifications/settings" className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors shadow-sm shrink-0" aria-label="Notification settings">
             <Settings className="w-5 h-5" />
@@ -115,7 +115,7 @@ export default function NotificationsPage() {
                       {notif.title}
                     </h3>
                     <span className={`text-xs whitespace-nowrap shrink-0 ${isUnread ? 'text-primary font-medium' : 'text-muted-foreground'}`}>
-                      {formatDistanceToNow(new Date(notif.createdAt), { addSuffix: true })}
+                      {formatRelative(notif.createdAt)}
                     </span>
                   </div>
                   <p className={`text-sm ${isUnread ? 'text-foreground/90 font-medium' : 'text-muted-foreground'}`}>
@@ -123,7 +123,7 @@ export default function NotificationsPage() {
                   </p>
                 </div>
                 
-                <div className="self-center pl-2">
+                <div className="self-center ps-2">
                   <ChevronRight className={`w-5 h-5 transition-transform group-hover:translate-x-1 ${isUnread ? 'text-primary' : 'text-muted-foreground opacity-0 group-hover:opacity-100'}`} />
                 </div>
               </div>

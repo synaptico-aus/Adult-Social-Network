@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { Search } from "lucide-react"
+import { Link } from "wouter"
 import { useListResources, getListResourcesQueryKey } from "@workspace/api-client-react"
 import { PageHeader } from "@/components/shared/page-header"
 import { Input } from "@/components/ui/input"
@@ -20,11 +21,12 @@ export default function ResourcesPage() {
   return (
     <div className="flex flex-col gap-8 animate-in fade-in duration-500">
       <PageHeader title="Resources from elsewhere" description="Links to other organisations, chosen and checked by our staff. We show who reviewed each source and when. Reviewing a source does not mean we have verified everything on it, and none of it is medical advice." />
+      <Link href="/country-resources" className="inline-flex w-fit items-center rounded-xl border border-border bg-card px-4 py-3 font-semibold text-primary underline" data-testid="link-country-resources">Emergency and dementia support by country</Link>
       <div className="grid gap-4 md:grid-cols-[1fr_14rem_12rem]">
         <div className="relative">
           <label htmlFor="res-q" className="sr-only">Search resources</label>
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" aria-hidden="true" />
-          <Input id="res-q" type="search" data-testid="input-resource-search" value={q} onChange={e => setQ(e.target.value)} placeholder="Search by title or topic" className="pl-10 h-12 text-lg rounded-2xl bg-card" />
+          <Input id="res-q" type="search" data-testid="input-resource-search" value={q} onChange={e => setQ(e.target.value)} placeholder="Search by title or topic" className="ps-10 h-12 text-lg rounded-2xl bg-card" />
         </div>
         <div>
           <label htmlFor="res-cat" className="sr-only">Category</label>

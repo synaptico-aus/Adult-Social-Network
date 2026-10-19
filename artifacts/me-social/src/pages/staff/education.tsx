@@ -1,3 +1,4 @@
+import { formatDate, formatDateTime } from "@/lib/locale-format";
 import { useState } from "react"
 import { useQueryClient } from "@tanstack/react-query"
 import { Link } from "wouter"
@@ -71,7 +72,7 @@ function SourceEditor({ sources, updateSource, removeSource, addSource }: { sour
       </div>
       
       <div className="bg-primary/5 p-3 rounded-lg border border-primary/20 text-xs">
-        <AlertTriangle className="w-4 h-4 inline mr-1 text-primary"/>
+        <AlertTriangle className="w-4 h-4 inline me-1 text-primary"/>
         <strong>Policy Note:</strong> `current_evidence` source dates must be within 5 years. Verified/checked dates must be within 1 year. Historical sources require at least one `current_evidence` source in this revision.
       </div>
       
@@ -82,7 +83,7 @@ function SourceEditor({ sources, updateSource, removeSource, addSource }: { sour
               <Trash2 className="w-4 h-4" />
             </Button>
           )}
-          <div className="grid grid-cols-2 gap-3 pr-10">
+          <div className="grid grid-cols-2 gap-3 pe-10">
             <div>
               <label className="block text-xs font-medium mb-1">Kind</label>
               <Select value={src.kind} onValueChange={(v) => updateSource(idx, 'kind', v as any)}>
@@ -210,7 +211,7 @@ function LessonDetailDialog({ lessonId, open, onOpenChange, caps }: { lessonId: 
                 <p className="text-sm text-muted-foreground mb-1">Slug: {detailData.lesson.slug}</p>
                 <div className="flex items-center gap-2 mt-2">
                   <span className="text-xs px-2 py-1 bg-secondary text-secondary-foreground font-semibold rounded uppercase tracking-wider">{detailData.lesson.status}</span>
-                  {detailData.lesson.updatedAt && <span className="text-xs text-muted-foreground">Updated: {new Date(detailData.lesson.updatedAt).toLocaleDateString()}</span>}
+                  {detailData.lesson.updatedAt && <span className="text-xs text-muted-foreground">Updated: {formatDate(detailData.lesson.updatedAt)}</span>}
                 </div>
               </div>
               
@@ -232,7 +233,7 @@ function LessonDetailDialog({ lessonId, open, onOpenChange, caps }: { lessonId: 
                         <Select value={correctRevId} onValueChange={setCorrectRevId}>
                           <SelectTrigger><SelectValue placeholder="Select revision" /></SelectTrigger>
                           <SelectContent>
-                            {detailData.revisions.map(r => <SelectItem key={r.id} value={r.id}>v{r.version} ({new Date(r.createdAt || "").toLocaleDateString()})</SelectItem>)}
+                            {detailData.revisions.map(r => <SelectItem key={r.id} value={r.id}>v{r.version} ({formatDate(r.createdAt || "")})</SelectItem>)}
                           </SelectContent>
                         </Select>
                       </div>
@@ -242,7 +243,7 @@ function LessonDetailDialog({ lessonId, open, onOpenChange, caps }: { lessonId: 
                           <SelectTrigger><SelectValue placeholder="Select revision" /></SelectTrigger>
                           <SelectContent>
                             <SelectItem value="none">None</SelectItem>
-                            {detailData.revisions.map(r => <SelectItem key={r.id} value={r.id}>v{r.version} ({new Date(r.createdAt || "").toLocaleDateString()})</SelectItem>)}
+                            {detailData.revisions.map(r => <SelectItem key={r.id} value={r.id}>v{r.version} ({formatDate(r.createdAt || "")})</SelectItem>)}
                           </SelectContent>
                         </Select>
                       </div>
@@ -263,14 +264,14 @@ function LessonDetailDialog({ lessonId, open, onOpenChange, caps }: { lessonId: 
                         v{rev.version} — {rev.status}
                         {rev.status && <span className="text-[10px] bg-card px-2 py-0.5 rounded border border-border">Rev Status: {rev.status}</span>}
                       </span>
-                      <span className="text-xs text-muted-foreground">{rev.createdAt ? new Date(rev.createdAt).toLocaleString() : 'Unknown'}</span>
+                      <span className="text-xs text-muted-foreground">{rev.createdAt ? formatDateTime(rev.createdAt) : 'Unknown'}</span>
                     </div>
                     <p className="text-muted-foreground mb-3">{rev.summary}</p>
                     
                     <div className="grid grid-cols-2 gap-4">
                       <div className="bg-card rounded-lg p-3 border border-border/50 text-xs">
                         <h5 className="font-semibold mb-2">Attestations</h5>
-                        <ul className="list-disc pl-4 space-y-1">
+                        <ul className="list-disc ps-4 space-y-1">
                           <li>Avoids blame: {rev.avoidsBlameAttestation ? 'Yes' : 'No'}</li>
                           <li>Avoids guarantees: {rev.avoidsIndividualGuaranteesAttestation ? 'Yes' : 'No'}</li>
                           <li>Rights confirmed: {rev.contentRightsConfirmed ? 'Yes' : 'No'}</li>
@@ -283,7 +284,7 @@ function LessonDetailDialog({ lessonId, open, onOpenChange, caps }: { lessonId: 
                       <div className="bg-card rounded-lg p-3 border border-border/50 text-xs">
                         <h5 className="font-semibold mb-2">Review Info</h5>
                         <ul className="space-y-1">
-                          <li>Reviewed At: {rev.reviewedAt ? new Date(rev.reviewedAt).toLocaleString() : 'Pending'}</li>
+                          <li>Reviewed At: {rev.reviewedAt ? formatDateTime(rev.reviewedAt) : 'Pending'}</li>
                         </ul>
                       </div>
                     </div>
@@ -687,7 +688,7 @@ function StaffEducationDashboard({ caps }: { caps: any }) {
             <Switch checked={containsCopiedRestrictedContent} onCheckedChange={setContainsCopiedRestrictedContent} />
             <span className="text-sm text-destructive font-bold">Declaration: This contains copied restricted content.</span>
           </div>
-          <p className="text-xs text-muted-foreground mt-1 ml-14">
+          <p className="text-xs text-muted-foreground mt-1 ms-14">
             This is a manual declaration by the author, not an automated plagiarism check. Submission is blocked if true.
           </p>
         </div>
@@ -812,7 +813,7 @@ function StaffEducationDashboard({ caps }: { caps: any }) {
                         </DialogHeader>
                         <div className="space-y-6 py-4">
                           <div className="bg-primary/10 border border-primary/20 p-4 rounded-xl mb-4 text-sm">
-                            <AlertTriangle className="w-5 h-5 text-primary inline mr-2"/>
+                            <AlertTriangle className="w-5 h-5 text-primary inline me-2"/>
                             You are authoring a new revision for <strong>{lesson.title}</strong>. Please deliberately review all attestations and sources.
                           </div>
                           {renderFormFields(false)}
@@ -929,6 +930,9 @@ export default function StaffEducationPage() {
           </div>
         </div>
 
+        <Link href="/staff/translations" data-testid="link-staff-translations">
+          <Button variant="outline" className="rounded-xl gap-2 hidden sm:flex bg-card">Translations</Button>
+        </Link>
         <Link href="/staff/resources" data-testid="link-staff-resources">
           <Button variant="outline" className="rounded-xl gap-2 hidden sm:flex bg-card">Resource sources</Button>
         </Link>

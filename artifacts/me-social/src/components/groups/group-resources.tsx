@@ -74,7 +74,7 @@ export function GroupResources({ groupId, isMod }: { groupId: string, isMod: boo
             </div>
             <div className="flex justify-end pt-2">
               <Button onClick={handleCreate} disabled={!title || !url || createResource.isPending} className="rounded-xl font-semibold">
-                {createResource.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Plus className="w-4 h-4 mr-2" />}
+                {createResource.isPending ? <Loader2 className="w-4 h-4 me-2 animate-spin" /> : <Plus className="w-4 h-4 me-2" />}
                 Add Resource
               </Button>
             </div>

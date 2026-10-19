@@ -11,3 +11,4 @@
 - [Browser codec verification](browser-codec-verification.md) — the test browser can support MP4 containers but lack H.264/AAC; distinguish decoding from private-access failures.
 - [Malware scan completion](malware-scan-completion.md) — ClamAV can assume skipped over-limit files are clean; verify complete coverage and signature freshness.
 - [Memory Collection authority](memory-collection-authority.md) — curator and viewer source access both matter; collections are not new grants or clinical treatment.
+- [Localisation release boundaries](localisation-release-boundaries.md) — reviewed language/coverage gates, provider privacy, offline limits and deliberate country choice.

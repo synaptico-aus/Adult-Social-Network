@@ -80,13 +80,13 @@ export function DiscoverTab() {
           <Input 
             type="search"
             placeholder="Search members by name or interests..."
-            className="w-full pl-12 pr-4 h-14 text-lg rounded-2xl bg-secondary/30 border-secondary-border focus-visible:ring-primary focus-visible:border-primary"
+            className="w-full ps-12 pe-4 h-14 text-lg rounded-2xl bg-secondary/30 border-secondary-border focus-visible:ring-primary focus-visible:border-primary"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             data-testid="input-search-members"
           />
         </div>
-        <p className="text-sm text-muted-foreground mt-3 ml-2">
+        <p className="text-sm text-muted-foreground mt-3 ms-2">
           Only members who have chosen to be discoverable will appear in search results.
         </p>
       </div>
@@ -128,7 +128,7 @@ export function DiscoverTab() {
                     data-testid="button-load-more-search"
                   >
                     {isFetchingNextPage ? (
-                      <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Loading...</>
+                      <><Loader2 className="w-4 h-4 me-2 animate-spin" /> Loading...</>
                     ) : (
                       "Load More"
                     )}

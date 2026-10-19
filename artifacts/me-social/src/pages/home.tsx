@@ -181,7 +181,7 @@ export default function Home() {
                     <ShieldCheck className="w-6 h-6 text-primary" aria-hidden="true" />
                     <h3 className="font-display text-xl font-semibold text-foreground">Never Sold</h3>
                   </div>
-                  <p className="text-foreground/70 leading-relaxed pl-9">
+                  <p className="text-foreground/70 leading-relaxed ps-9">
                     Your personal health information, interactions, and connections will never be monetized or sold to third parties.
                   </p>
                 </div>
@@ -191,7 +191,7 @@ export default function Home() {
                     <EyeOff className="w-6 h-6 text-primary" aria-hidden="true" />
                     <h3 className="font-display text-xl font-semibold text-foreground">Ad-Free Space</h3>
                   </div>
-                  <p className="text-foreground/70 leading-relaxed pl-9">
+                  <p className="text-foreground/70 leading-relaxed ps-9">
                     A strictly ad-free environment. No manipulative algorithms, no tracking pixels, and no distracting sponsored content.
                   </p>
                 </div>
@@ -201,7 +201,7 @@ export default function Home() {
                     <Lock className="w-6 h-6 text-primary" aria-hidden="true" />
                     <h3 className="font-display text-xl font-semibold text-foreground">Controlled Visibility</h3>
                   </div>
-                  <p className="text-foreground/70 leading-relaxed pl-9">
+                  <p className="text-foreground/70 leading-relaxed ps-9">
                     Granular, easy-to-understand controls allowing you to choose exactly who sees your updates, from a single caregiver to a trusted group.
                   </p>
                 </div>

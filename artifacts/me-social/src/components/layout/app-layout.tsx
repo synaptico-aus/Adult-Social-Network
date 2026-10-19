@@ -5,8 +5,9 @@ import { useSimpleView } from "@/lib/simple-view"
 import { Button } from "@/components/ui/button"
 import { useGetNotificationUnreadCount, getGetNotificationUnreadCountQueryKey } from "@workspace/api-client-react"
 import { useAuth } from "@clerk/react"
+import { interfaceText, type InterfaceKey } from "@/lib/interface-messages"
 
-const navItems = [
+const navItems: Array<{ href: string; label: InterfaceKey; icon: typeof Home; advanced?: boolean }> = [
   { href: "/", label: "Home", icon: Home },
   { href: "/explore", label: "Explore", icon: Compass, advanced: true },
   { href: "/reels", label: "Reels", icon: Film },
@@ -34,7 +35,7 @@ function DesktopSidebar() {
   const items = isSimpleView ? navItems.filter(i => !i.advanced) : navItems
 
   return (
-    <aside className="hidden md:flex flex-col w-72 lg:w-80 border-r border-border bg-card h-[100dvh] sticky top-0 shrink-0">
+    <aside className="hidden md:flex flex-col w-72 lg:w-80 border-e border-border bg-card h-[100dvh] sticky top-0 shrink-0">
       <div className="p-6 lg:p-8 flex items-center gap-3">
          <div className="flex items-center justify-center w-14 h-14 rounded-full bg-primary text-primary-foreground font-display font-bold text-2xl leading-none shadow-sm">
            M
@@ -51,12 +52,12 @@ function DesktopSidebar() {
               <div className="relative">
                 <item.icon className={`w-8 h-8 shrink-0 ${active ? 'fill-primary/10 text-primary' : ''}`} aria-hidden="true" />
                 {unread > 0 && (
-                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground shadow-sm ring-2 ring-card">
+                  <span className="absolute -top-1 -end-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground shadow-sm ring-2 ring-card">
                     {unread > 9 ? '9+' : unread}
                   </span>
                 )}
               </div>
-              <span className="truncate">{item.label}</span>
+              <span className="truncate">{interfaceText(item.label)}</span>
             </Link>
           )
         })}
@@ -97,12 +98,12 @@ function MobileBottomNav() {
             <div className="relative">
               <item.icon className={`w-7 h-7 shrink-0 ${active ? 'fill-primary/20 text-primary' : ''}`} aria-hidden="true" />
               {unread > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-3 w-3 items-center justify-center rounded-full bg-primary text-[8px] font-bold text-primary-foreground shadow-sm ring-1 ring-card">
+                <span className="absolute -top-1 -end-1 flex h-3 w-3 items-center justify-center rounded-full bg-primary text-[8px] font-bold text-primary-foreground shadow-sm ring-1 ring-card">
                   {unread > 9 ? '9+' : unread}
                 </span>
               )}
             </div>
-            <span className={`text-[10px] leading-tight text-center mt-1 ${active ? 'font-bold' : 'font-medium'}`}>{item.label}</span>
+            <span className={`text-[10px] leading-tight text-center mt-1 ${active ? 'font-bold' : 'font-medium'}`}>{interfaceText(item.label)}</span>
           </Link>
         )
       })}
@@ -141,7 +142,7 @@ function MobileHeader() {
 
 function RightPanel() {
   return (
-    <aside className="hidden xl:flex flex-col w-80 lg:w-96 border-l border-border bg-muted/20 h-[100dvh] sticky top-0 p-8 overflow-y-auto shrink-0">
+    <aside className="hidden xl:flex flex-col w-80 lg:w-96 border-s border-border bg-muted/20 h-[100dvh] sticky top-0 p-8 overflow-y-auto shrink-0">
       <div className="space-y-8">
         <div className="bg-card p-6 rounded-3xl border border-border shadow-sm">
           <div className="w-14 h-14 rounded-2xl bg-secondary flex items-center justify-center mb-5">
@@ -154,7 +155,7 @@ function RightPanel() {
         </div>
         
         <div className="space-y-4">
-          <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider ml-2">Getting Support</h3>
+          <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider ms-2">Getting Support</h3>
           <div className="bg-card border border-border rounded-2xl p-5 flex flex-col gap-3 shadow-sm">
             <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center shrink-0">
               <Users className="w-6 h-6 text-primary" />

@@ -1,3 +1,4 @@
+import { formatDate } from "@/lib/locale-format";
 import { useState } from "react";
 import { HandHeart, Loader2, Check, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -63,7 +64,7 @@ export function GroupWelcomeMember({ groupId, availabilityText }: { groupId: str
             <p className="text-muted-foreground mb-4">
               Status: <span className="font-semibold text-foreground capitalize">{req.status}</span>
               <br />
-              Requested on {new Date(req.requestedAt!).toLocaleDateString()}
+              Requested on {formatDate(req.requestedAt!)}
             </p>
             <div className="bg-card border border-border rounded-xl p-4 text-sm text-foreground/90 italic">
               "Trained hosts volunteer to welcome new members. Replies depend on host availability and are not guaranteed. Your request remains pending until a host is available to acknowledge it."
@@ -103,7 +104,7 @@ export function GroupWelcomeMember({ groupId, availabilityText }: { groupId: str
         </div>
         <div className="flex justify-end">
           <Button onClick={handleRequest} disabled={createRequest.isPending} className="rounded-xl font-semibold">
-            {createRequest.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+            {createRequest.isPending && <Loader2 className="w-4 h-4 me-2 animate-spin" />}
             Send Request
           </Button>
         </div>
@@ -168,7 +169,7 @@ export function GroupWelcomeQueue({ groupId }: { groupId: string }) {
             <div>
               <p className="font-semibold text-lg">{req.requesterPreferredName}</p>
               <p className="text-sm text-muted-foreground">
-                Requested on {new Date(req.requestedAt).toLocaleDateString()} · Status: <span className="font-medium text-foreground capitalize">{req.status}</span>
+                Requested on {formatDate(req.requestedAt)} · Status: <span className="font-medium text-foreground capitalize">{req.status}</span>
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-2 shrink-0">
@@ -179,7 +180,7 @@ export function GroupWelcomeQueue({ groupId }: { groupId: string }) {
                   onClick={() => handleAction(req.id, 'acknowledge')}
                   disabled={ackWelcome.isPending || closeWelcome.isPending}
                 >
-                  <Check className="w-4 h-4 mr-1" />
+                  <Check className="w-4 h-4 me-1" />
                   Acknowledge
                 </Button>
               )}
@@ -190,7 +191,7 @@ export function GroupWelcomeQueue({ groupId }: { groupId: string }) {
                 onClick={() => handleAction(req.id, 'close')}
                 disabled={ackWelcome.isPending || closeWelcome.isPending}
               >
-                <CheckCircle2 className="w-4 h-4 mr-1" />
+                <CheckCircle2 className="w-4 h-4 me-1" />
                 Close
               </Button>
             </div>

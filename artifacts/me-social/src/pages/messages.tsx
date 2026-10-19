@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useListConversations, useListMessageRequests, getListConversationsQueryKey, getListMessageRequestsQueryKey } from "@workspace/api-client-react"
 import { Link } from "wouter"
 import { MessageSquare, Plus, MailQuestion, Settings, Users, ArrowRight, UserCircle } from "lucide-react"
-import { formatDistanceToNow } from "date-fns"
+import { formatRelative } from "@/lib/locale-format";
 
 function ConversationList() {
   const { data: conversations, isLoading } = useListConversations({
@@ -28,7 +28,7 @@ function ConversationList() {
         <h3 className="font-display text-2xl font-semibold mb-2">No messages yet</h3>
         <p className="text-muted-foreground mb-6 max-w-sm text-lg">Start a conversation with a connection or create a group chat.</p>
         <Link href="/messages/new" className="inline-flex h-12 items-center justify-center rounded-xl bg-primary px-6 font-semibold text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm">
-          <Plus className="w-5 h-5 mr-2" />
+          <Plus className="w-5 h-5 me-2" />
           New Message
         </Link>
       </div>
@@ -48,10 +48,10 @@ function ConversationList() {
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex justify-between items-baseline mb-1">
-              <h3 className="font-semibold text-lg text-foreground truncate pr-2">{conv.displayTitle}</h3>
+              <h3 className="font-semibold text-lg text-foreground truncate pe-2">{conv.displayTitle}</h3>
               {conv.lastMessage && (
                 <span className="text-xs text-muted-foreground shrink-0 whitespace-nowrap">
-                  {formatDistanceToNow(new Date(conv.lastMessage.createdAt), { addSuffix: true })}
+                  {formatRelative(conv.lastMessage.createdAt)}
                 </span>
               )}
             </div>
@@ -63,7 +63,7 @@ function ConversationList() {
               <p className="text-muted-foreground text-sm italic">No messages yet</p>
             )}
           </div>
-          <ArrowRight className="w-5 h-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+          <ArrowRight className="rtl:-scale-x-100 w-5 h-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
         </Link>
       ))}
     </div>
@@ -127,7 +127,7 @@ export default function MessagesPage() {
             <Settings className="w-5 h-5" />
           </Link>
           <Link href="/messages/new" className="inline-flex h-12 flex-1 sm:flex-none items-center justify-center rounded-xl bg-primary px-6 font-semibold text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm">
-            <Plus className="w-5 h-5 mr-2" />
+            <Plus className="w-5 h-5 me-2" />
             New Message
           </Link>
         </div>

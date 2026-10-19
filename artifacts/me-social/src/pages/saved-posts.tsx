@@ -43,9 +43,9 @@ export default function SavedPosts() {
   return (
     <div className="flex flex-col gap-8 md:gap-10 animate-in fade-in duration-500">
       <div>
-        <Button variant="ghost" className="mb-6 -ml-4 text-muted-foreground hover:text-foreground" asChild>
+        <Button variant="ghost" className="mb-6 -ms-4 text-muted-foreground hover:text-foreground" asChild>
           <Link href="/me">
-            <ArrowLeft className="w-4 h-4 mr-2" />
+            <ArrowLeft className="rtl:-scale-x-100 w-4 h-4 me-2" />
             Back to Me
           </Link>
         </Button>
@@ -82,7 +82,7 @@ export default function SavedPosts() {
             disabled={isFetching}
             data-testid="button-load-more"
           >
-            {isFetching ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
+            {isFetching ? <Loader2 className="w-5 h-5 animate-spin me-2" /> : null}
             Load more
           </Button>
         </div>

@@ -57,7 +57,7 @@ export default function GroupsPage() {
         />
         <Button asChild className="rounded-xl font-semibold shrink-0">
           <Link href="/groups/new">
-            <Plus className="w-5 h-5 mr-2" />
+            <Plus className="w-5 h-5 me-2" />
             Create group
           </Link>
         </Button>
@@ -72,7 +72,7 @@ export default function GroupsPage() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search groups..."
-            className="pl-10 h-12 rounded-xl text-lg"
+            className="ps-10 h-12 rounded-xl text-lg"
           />
         </div>
         <Button type="submit" size="lg" className="rounded-xl px-6 font-semibold">Search</Button>

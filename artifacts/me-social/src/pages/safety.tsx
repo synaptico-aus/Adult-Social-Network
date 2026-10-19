@@ -126,7 +126,7 @@ export default function SafetyPage() {
     <div className="flex flex-col gap-10 animate-in fade-in duration-500 max-w-3xl mx-auto">
       <div>
         <Link href="/me" className="inline-flex items-center text-primary font-semibold mb-6 hover:underline">
-          <ArrowLeft className="w-5 h-5 mr-2" /> Back to Me
+          <ArrowLeft className="rtl:-scale-x-100 w-5 h-5 me-2" /> Back to Me
         </Link>
         <PageHeader
           title="Safety & Support"
@@ -189,13 +189,13 @@ export default function SafetyPage() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="mute"><div className="flex items-center"><EyeOff className="w-4 h-4 mr-2"/> Mute</div></SelectItem>
-              <SelectItem value="block"><div className="flex items-center"><Ban className="w-4 h-4 mr-2"/> Block</div></SelectItem>
-              <SelectItem value="restrict"><div className="flex items-center"><Shield className="w-4 h-4 mr-2"/> Restrict</div></SelectItem>
+              <SelectItem value="mute"><div className="flex items-center"><EyeOff className="w-4 h-4 me-2"/> Mute</div></SelectItem>
+              <SelectItem value="block"><div className="flex items-center"><Ban className="w-4 h-4 me-2"/> Block</div></SelectItem>
+              <SelectItem value="restrict"><div className="flex items-center"><Shield className="w-4 h-4 me-2"/> Restrict</div></SelectItem>
             </SelectContent>
           </Select>
           <Button onClick={handleAddRelationship} disabled={createRel.isPending || !relTarget} className="rounded-xl px-6" data-testid="button-add-relationship">
-            <Plus className="w-5 h-5 mr-1" /> Add
+            <Plus className="w-5 h-5 me-1" /> Add
           </Button>
         </div>
 
@@ -206,7 +206,7 @@ export default function SafetyPage() {
             relationships.map(rel => (
               <div key={rel.id} className="flex items-center justify-between p-4 border border-border bg-secondary/10 rounded-xl" data-testid={`row-relationship-${rel.id}`}>
                 <div>
-                  <span className="font-medium mr-3">{rel.targetMemberId}</span>
+                  <span className="font-medium me-3">{rel.targetMemberId}</span>
                   <span className="text-sm bg-secondary text-secondary-foreground px-2 py-1 rounded-md uppercase tracking-wider font-semibold">
                     {rel.kind}
                   </span>

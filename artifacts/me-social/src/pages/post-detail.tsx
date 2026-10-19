@@ -26,7 +26,7 @@ export default function PostDetail() {
     return (
       <div className="flex flex-col gap-6 items-center justify-center min-h-[50vh] text-center px-4 animate-in fade-in">
         <div className="w-16 h-16 rounded-full bg-secondary flex items-center justify-center mb-2">
-          <ArrowLeft className="w-8 h-8 text-muted-foreground" />
+          <ArrowLeft className="rtl:-scale-x-100 w-8 h-8 text-muted-foreground" />
         </div>
         <h2 className="text-2xl font-display font-semibold" data-testid="status-post-unavailable">Post unavailable</h2>
         <p className="text-muted-foreground max-w-md">This post may have been deleted, hidden, or is no longer shared with you.</p>
@@ -40,8 +40,8 @@ export default function PostDetail() {
   return (
     <div className="flex flex-col gap-8 animate-in fade-in duration-500">
       <div>
-        <Button variant="ghost" className="mb-6 -ml-4 text-muted-foreground hover:text-foreground" onClick={() => window.history.back()}>
-          <ArrowLeft className="w-4 h-4 mr-2" />
+        <Button variant="ghost" className="mb-6 -ms-4 text-muted-foreground hover:text-foreground" onClick={() => window.history.back()}>
+          <ArrowLeft className="rtl:-scale-x-100 w-4 h-4 me-2" />
           Back
         </Button>
       </div>

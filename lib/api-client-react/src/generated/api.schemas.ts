@@ -5,6 +5,227 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+export type ExperienceInputLocale = typeof ExperienceInputLocale[keyof typeof ExperienceInputLocale];
+
+
+export const ExperienceInputLocale = {
+  'en-AU': 'en-AU',
+  'en-GB': 'en-GB',
+  'en-US': 'en-US',
+} as const;
+
+export type ExperienceInputDirection = typeof ExperienceInputDirection[keyof typeof ExperienceInputDirection];
+
+
+export const ExperienceInputDirection = {
+  auto: 'auto',
+  ltr: 'ltr',
+  rtl: 'rtl',
+} as const;
+
+export type ExperienceInputCountry = typeof ExperienceInputCountry[keyof typeof ExperienceInputCountry];
+
+
+export const ExperienceInputCountry = {
+  AU: 'AU',
+  GB: 'GB',
+  US: 'US',
+} as const;
+
+export interface ExperienceInput {
+  locale?: ExperienceInputLocale;
+  timeZone?: string;
+  direction?: ExperienceInputDirection;
+  lowData?: boolean;
+  textFirst?: boolean;
+  offlineDrafts?: boolean;
+  country?: ExperienceInputCountry;
+}
+
+export type ExperiencePreferences = ExperienceInput & { [key: string]: unknown } & Required<Pick<ExperienceInput & { [key: string]: unknown }, 'locale' | 'timeZone' | 'direction' | 'lowData' | 'textFirst' | 'offlineDrafts' | 'country'>>;
+
+export type ExperienceCatalogueLocalesItem = {
+  code: string;
+  label: string;
+  direction: string;
+  enabled: boolean;
+  /** @nullable */
+  reviewedAt: string | null;
+  reviewNote: string;
+  moderationCoverage: string;
+};
+
+export type ExperienceCatalogueCountriesItem = {
+  code: string;
+  name: string;
+};
+
+export interface ExperienceCatalogue {
+  locales: ExperienceCatalogueLocalesItem[];
+  countries: ExperienceCatalogueCountriesItem[];
+}
+
+export type ExperienceDraftInputAudience = typeof ExperienceDraftInputAudience[keyof typeof ExperienceDraftInputAudience];
+
+
+export const ExperienceDraftInputAudience = {
+  only_me: 'only_me',
+  friends: 'friends',
+  my_circle: 'my_circle',
+  this_group: 'this_group',
+  public: 'public',
+} as const;
+
+export interface ExperienceDraftInput {
+  /** @maxLength 10000 */
+  body: string;
+  audience: ExperienceDraftInputAudience;
+  /** @nullable */
+  circleId?: string | null;
+  /** @nullable */
+  groupId?: string | null;
+  updatedAt?: string;
+}
+
+export interface ExperienceDraftResponse {
+  draft: ExperienceDraftInput | null;
+}
+
+export type CountryDirectoryItemsItemKind = typeof CountryDirectoryItemsItemKind[keyof typeof CountryDirectoryItemsItemKind];
+
+
+export const CountryDirectoryItemsItemKind = {
+  emergency: 'emergency',
+  dementia: 'dementia',
+  crisis: 'crisis',
+} as const;
+
+export type CountryDirectoryItemsItem = {
+  id: string;
+  country: string;
+  name: string;
+  kind: CountryDirectoryItemsItemKind;
+  phone: string;
+  url: string;
+  sourceUrl: string;
+  hours: string;
+  hoursTimeZone: string;
+  checkedAt: string;
+  notes: string;
+};
+
+export interface CountryDirectory {
+  country: string;
+  disclaimer: string;
+  items: CountryDirectoryItemsItem[];
+}
+
+export type TranslationInputSourceType = typeof TranslationInputSourceType[keyof typeof TranslationInputSourceType];
+
+
+export const TranslationInputSourceType = {
+  post: 'post',
+  lesson: 'lesson',
+} as const;
+
+export type TranslationInputLocale = typeof TranslationInputLocale[keyof typeof TranslationInputLocale];
+
+
+export const TranslationInputLocale = {
+  'en-AU': 'en-AU',
+  'en-GB': 'en-GB',
+  'en-US': 'en-US',
+} as const;
+
+export interface TranslationInput {
+  sourceType: TranslationInputSourceType;
+  sourceId: string;
+  locale: TranslationInputLocale;
+  /**
+     * @minLength 1
+     * @maxLength 20000
+     */
+  text: string;
+  machineTranslated: boolean;
+  correctionOf?: string;
+  rightsConfirmed: boolean;
+}
+
+export type ContentTranslationSourceType = typeof ContentTranslationSourceType[keyof typeof ContentTranslationSourceType];
+
+
+export const ContentTranslationSourceType = {
+  post: 'post',
+  lesson: 'lesson',
+} as const;
+
+export type ContentTranslationStatus = typeof ContentTranslationStatus[keyof typeof ContentTranslationStatus];
+
+
+export const ContentTranslationStatus = {
+  pending: 'pending',
+  reviewed: 'reviewed',
+  published: 'published',
+  removed: 'removed',
+} as const;
+
+export type ContentTranslationReportsItem = {
+  reason: string;
+  createdAt: string;
+};
+
+export interface ContentTranslation {
+  id: string;
+  sourceType: ContentTranslationSourceType;
+  sourceId: string;
+  sourceHash: string;
+  locale: string;
+  text: string;
+  machineTranslated: boolean;
+  status: ContentTranslationStatus;
+  createdAt: string;
+  /** @nullable */
+  reviewedAt: string | null;
+  /** @nullable */
+  reviewedBy: string | null;
+  /** @nullable */
+  authorMemberId?: string | null;
+  /** @nullable */
+  reviewNote?: string | null;
+  reports?: ContentTranslationReportsItem[];
+}
+
+export interface TranslationPage {
+  providerEnabled?: boolean;
+  items: ContentTranslation[];
+}
+
+export interface TranslationReportInput {
+  /**
+     * @minLength 1
+     * @maxLength 1000
+     */
+  reason: string;
+}
+
+export type TranslationReviewInputAction = typeof TranslationReviewInputAction[keyof typeof TranslationReviewInputAction];
+
+
+export const TranslationReviewInputAction = {
+  review: 'review',
+  publish: 'publish',
+  remove: 'remove',
+} as const;
+
+export interface TranslationReviewInput {
+  action: TranslationReviewInputAction;
+  /**
+     * @minLength 10
+     * @maxLength 2000
+     */
+  note: string;
+}
+
 export type MemoryCollectionInputAudience = typeof MemoryCollectionInputAudience[keyof typeof MemoryCollectionInputAudience];
 
 
@@ -2679,6 +2900,32 @@ export interface EducationVisibleCompletionList {
   items: EducationVisibleCompletion[];
   completionDisclaimer: 'Educational activity only; not a clinical qualification.';
 }
+
+export type GetCountryResourcesParams = {
+country: GetCountryResourcesCountry;
+};
+
+export type GetCountryResourcesCountry = typeof GetCountryResourcesCountry[keyof typeof GetCountryResourcesCountry];
+
+
+export const GetCountryResourcesCountry = {
+  AU: 'AU',
+  GB: 'GB',
+  US: 'US',
+} as const;
+
+export type ListTranslationsParams = {
+sourceType: ListTranslationsSourceType;
+sourceId: string;
+};
+
+export type ListTranslationsSourceType = typeof ListTranslationsSourceType[keyof typeof ListTranslationsSourceType];
+
+
+export const ListTranslationsSourceType = {
+  post: 'post',
+  lesson: 'lesson',
+} as const;
 
 export type ListResourcesParams = {
 /**

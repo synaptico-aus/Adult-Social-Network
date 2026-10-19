@@ -48,7 +48,7 @@ export default function MessageSettings() {
     <div className="flex flex-col gap-6 md:gap-8 animate-in fade-in duration-500 min-h-full">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" onClick={() => setLocation('/messages')} className="rounded-xl" aria-label="Go back">
-          <ChevronLeft className="w-6 h-6" />
+          <ChevronLeft className="rtl:-scale-x-100 w-6 h-6" />
         </Button>
         <PageHeader title="Message Settings" description="Control who can send you direct messages." className="mb-0" />
       </div>
@@ -96,7 +96,7 @@ export default function MessageSettings() {
               onClick={handleSave}
               disabled={updateSettings.isPending || selected === settings?.setting}
             >
-              {updateSettings.isPending && <Loader2 className="w-5 h-5 mr-2 animate-spin" />}
+              {updateSettings.isPending && <Loader2 className="w-5 h-5 me-2 animate-spin" />}
               Save Changes
             </Button>
           </div>

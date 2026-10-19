@@ -105,7 +105,7 @@ function publicRevision(revision: any, sources: any[], status: string) {
   };
 }
 
-async function publicLesson(lesson: any) {
+export async function publicLesson(lesson: any) {
   if (!lesson.publishedRevisionId || lesson.status === "archived" || lesson.withdrawnAt) return null;
   const revision = (await db.select().from(educationRevisionsTable).where(and(
     eq(educationRevisionsTable.id, lesson.publishedRevisionId),

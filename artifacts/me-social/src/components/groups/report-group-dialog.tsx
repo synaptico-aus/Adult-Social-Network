@@ -143,7 +143,7 @@ export function ReportGroupDialog({ isOpen, onOpenChange, groupId }: { isOpen: b
                 Cancel
               </Button>
               <Button type="submit" variant="destructive" disabled={reportGroup.isPending}>
-                {reportGroup.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                {reportGroup.isPending && <Loader2 className="w-4 h-4 me-2 animate-spin" />}
                 Submit Report
               </Button>
             </DialogFooter>

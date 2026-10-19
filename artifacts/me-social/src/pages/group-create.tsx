@@ -77,9 +77,9 @@ export default function GroupCreatePage() {
   return (
     <div className="flex flex-col gap-8 md:gap-10 animate-in fade-in duration-500 max-w-2xl mx-auto">
       <div>
-        <Button variant="ghost" size="sm" asChild className="-ml-4 mb-4 text-muted-foreground hover:text-foreground">
+        <Button variant="ghost" size="sm" asChild className="-ms-4 mb-4 text-muted-foreground hover:text-foreground">
           <Link href="/groups">
-            <ChevronLeft className="w-4 h-4 mr-1" />
+            <ChevronLeft className="rtl:-scale-x-100 w-4 h-4 me-1" />
             Back to Groups
           </Link>
         </Button>
@@ -283,7 +283,7 @@ export default function GroupCreatePage() {
 
           <div className="pt-6 flex justify-end">
             <Button type="submit" size="lg" className="rounded-xl font-semibold w-full sm:w-auto" disabled={createGroup.isPending}>
-              {createGroup.isPending && <Loader2 className="w-5 h-5 mr-2 animate-spin" />}
+              {createGroup.isPending && <Loader2 className="w-5 h-5 me-2 animate-spin" />}
               Create Group
             </Button>
           </div>

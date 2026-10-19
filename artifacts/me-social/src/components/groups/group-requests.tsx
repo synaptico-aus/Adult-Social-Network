@@ -1,3 +1,4 @@
+import { formatDate } from "@/lib/locale-format";
 import { Check, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -58,7 +59,7 @@ export function GroupRequests({ groupId }: { groupId: string }) {
               {(req as any).requesterPreferredName || `Member ${req.memberId.slice(-6)}`}
             </p>
             <p className="text-sm text-muted-foreground">
-              Requested on {new Date(req.requestedAt).toLocaleDateString()}
+              Requested on {formatDate(req.requestedAt)}
             </p>
           </div>
           <div className="flex gap-2">
@@ -68,7 +69,7 @@ export function GroupRequests({ groupId }: { groupId: string }) {
               onClick={() => handleApprove(req.id)}
               disabled={approveReq.isPending || declineReq.isPending}
             >
-              <Check className="w-4 h-4 mr-1" />
+              <Check className="w-4 h-4 me-1" />
               Approve
             </Button>
             <Button 
@@ -78,7 +79,7 @@ export function GroupRequests({ groupId }: { groupId: string }) {
               onClick={() => handleDecline(req.id)}
               disabled={approveReq.isPending || declineReq.isPending}
             >
-              <X className="w-4 h-4 mr-1" />
+              <X className="w-4 h-4 me-1" />
               Decline
             </Button>
           </div>

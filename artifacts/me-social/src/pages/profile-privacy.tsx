@@ -1,3 +1,4 @@
+import { formatDate } from "@/lib/locale-format";
 import { useEffect, useState } from "react";
 import {
   useGetOwnProfile, getGetOwnProfileQueryKey,
@@ -197,7 +198,7 @@ export default function ProfilePrivacy() {
     <div className="flex flex-col gap-10 animate-in fade-in duration-500 max-w-3xl mx-auto">
       <div>
         <Link href="/me" className="inline-flex items-center text-primary font-semibold mb-6 hover:underline">
-          <ArrowLeft className="w-5 h-5 mr-2" /> Back to Me
+          <ArrowLeft className="rtl:-scale-x-100 w-5 h-5 me-2" /> Back to Me
         </Link>
         <PageHeader
           title="Privacy & Data"
@@ -413,7 +414,7 @@ export default function ProfilePrivacy() {
                 <div className="font-medium">{consent.purpose?.replaceAll("_", " ") || "Consent record"}</div>
                 <div className="text-sm text-muted-foreground mt-1">
                   {consent.granted ? "Granted" : "Revoked"} · Version {consent.version}
-                  {consent.recordedAt ? ` · ${new Date(consent.recordedAt).toLocaleDateString()}` : ""}
+                  {consent.recordedAt ? ` · ${formatDate(consent.recordedAt)}` : ""}
                 </div>
               </div>
             ))}
@@ -440,7 +441,7 @@ export default function ProfilePrivacy() {
           size="lg"
           className="rounded-xl px-8 whitespace-nowrap h-12"
         >
-          <Download className="w-4 h-4 mr-2" /> Download JSON
+          <Download className="w-4 h-4 me-2" /> Download JSON
         </Button>
       </section>
 

@@ -9,7 +9,7 @@ import {
   getGetConversationQueryKey, getListMessagesQueryKey, getListConversationsQueryKey, useGetAccountSummary, getGetAccountSummaryQueryKey
 } from "@workspace/api-client-react"
 import { ChevronLeft, MoreVertical, Send, ShieldAlert, LogOut, Loader2, Trash2, Users, AlertCircle, UserCircle } from "lucide-react"
-import { formatDistanceToNow } from "date-fns"
+import { formatRelative } from "@/lib/locale-format";
 import { useQueryClient } from "@tanstack/react-query"
 import { v4 as uuidv4 } from "uuid"
 import { toast } from "sonner"
@@ -111,7 +111,7 @@ export default function MessageDetail() {
       <div className="flex items-center justify-between gap-4 pb-4 border-b border-border shrink-0">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" onClick={() => setLocation('/messages')} className="rounded-xl shrink-0" aria-label="Go back">
-            <ChevronLeft className="w-6 h-6" />
+            <ChevronLeft className="rtl:-scale-x-100 w-6 h-6" />
           </Button>
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center shrink-0 border border-border/50">
@@ -136,7 +136,7 @@ export default function MessageDetail() {
              <Dialog>
                <DialogTrigger asChild>
                  <DropdownMenuItem className="py-3 cursor-pointer" onSelect={(e) => e.preventDefault()}>
-                    <Users className="w-4 h-4 mr-2" /> View Participants
+                    <Users className="w-4 h-4 me-2" /> View Participants
                  </DropdownMenuItem>
                </DialogTrigger>
                <DialogContent className="rounded-3xl max-w-md">
@@ -188,13 +188,13 @@ export default function MessageDetail() {
              {conversation.kind === 'group' && (
                <>
                  <DropdownMenuItem className="py-3 text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer" onClick={handleLeave}>
-                    <LogOut className="w-4 h-4 mr-2" /> Leave Conversation
+                    <LogOut className="w-4 h-4 me-2" /> Leave Conversation
                  </DropdownMenuItem>
                </>
              )}
              {(conversation.kind === 'direct' || canManage) && (
                <DropdownMenuItem className="py-3 text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer" onClick={handleClose}>
-                  <ShieldAlert className="w-4 h-4 mr-2" /> Close Conversation
+                  <ShieldAlert className="w-4 h-4 me-2" /> Close Conversation
                </DropdownMenuItem>
              )}
           </DropdownMenuContent>
@@ -281,23 +281,23 @@ function MessageBubble({ msg, isMe, conversationId }: { msg: any, isMe: boolean,
     <div className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} group`}>
       <div className={`flex items-baseline gap-2 mb-1 px-1 ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
         <span className="text-xs font-semibold text-foreground/80">{msg.senderDisplayName}</span>
-        <span className="text-[10px] text-muted-foreground">{formatDistanceToNow(new Date(msg.createdAt))} ago</span>
+        <span className="text-[10px] text-muted-foreground">{formatRelative(msg.createdAt)}</span>
       </div>
       
       <div className="flex items-start gap-2 max-w-[85%] relative">
         {isMe && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="w-8 h-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity absolute right-full mr-1 top-1">
+              <Button variant="ghost" size="icon" className="w-8 h-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity absolute right-full me-1 top-1">
                 <MoreVertical className="w-4 h-4 text-muted-foreground" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="rounded-xl">
               <DropdownMenuItem onClick={handleDeleteEveryone} className="text-destructive focus:bg-destructive/10">
-                <Trash2 className="w-4 h-4 mr-2" /> Delete for everyone
+                <Trash2 className="w-4 h-4 me-2" /> Delete for everyone
               </DropdownMenuItem>
               <DropdownMenuItem onClick={handleDeleteMe}>
-                <Trash2 className="w-4 h-4 mr-2" /> Remove for me
+                <Trash2 className="w-4 h-4 me-2" /> Remove for me
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -317,17 +317,17 @@ function MessageBubble({ msg, isMe, conversationId }: { msg: any, isMe: boolean,
         {!isMe && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="w-8 h-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity absolute left-full ml-1 top-1">
+              <Button variant="ghost" size="icon" className="w-8 h-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity absolute left-full ms-1 top-1">
                 <MoreVertical className="w-4 h-4 text-muted-foreground" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="rounded-xl">
               <DropdownMenuItem onClick={handleDeleteMe}>
-                <Trash2 className="w-4 h-4 mr-2" /> Remove for me
+                <Trash2 className="w-4 h-4 me-2" /> Remove for me
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleReport} className="text-destructive focus:bg-destructive/10">
-                <ShieldAlert className="w-4 h-4 mr-2" /> Report Message
+                <ShieldAlert className="w-4 h-4 me-2" /> Report Message
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { MediaAttachment } from '@workspace/api-client-react';
 import { VideoPlayer } from './video-player';
+import { ControlledAudio, ControlledImage } from './controlled-media';
 import { AlertCircle, Headphones } from 'lucide-react';
 
 export function MediaAttachmentRenderer({ asset, isDetail }: { asset: MediaAttachment, isDetail?: boolean }) {
@@ -18,15 +19,10 @@ export function MediaAttachmentRenderer({ asset, isDetail }: { asset: MediaAttac
   if (asset.kind === 'photo') {
     return (
       <div className="mt-3 mb-4 rounded-xl overflow-hidden border border-border bg-secondary/20">
-        <img 
-          src={url} 
-          alt={asset.altText || "Photo attachment"} 
-          className="w-full h-auto object-cover max-h-[500px]"
-          loading="lazy"
-        />
+        <ControlledImage src={url} alt={asset.altText || "Photo attachment"} className="w-full h-auto object-cover max-h-[500px]" testId={`img-media-${asset.id}`} />
         {isDetail && asset.altText && (
           <div className="p-3 text-sm text-muted-foreground bg-card border-t border-border">
-            <span className="font-semibold text-foreground mr-2">Description:</span>
+            <span className="font-semibold text-foreground me-2">Description:</span>
             {asset.altText}
           </div>
         )}
@@ -45,12 +41,7 @@ export function MediaAttachmentRenderer({ asset, isDetail }: { asset: MediaAttac
           <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
             <Headphones className="w-5 h-5 text-primary" />
           </div>
-          <audio 
-            controls 
-            src={url} 
-            className="w-full h-10"
-            aria-label="Audio attachment"
-          />
+          <div className="w-full"><ControlledAudio src={url} label="Audio attachment" className="w-full h-10" /></div>
         </div>
         {asset.transcript && (
           <div className="p-4 border-t border-border bg-card">

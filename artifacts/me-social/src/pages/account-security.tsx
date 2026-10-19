@@ -53,7 +53,7 @@ export default function AccountSecurity() {
         <h2 className="font-display text-2xl font-semibold">MFA and recovery</h2>
         <p className="mt-2 text-muted-foreground">Clerk issues recovery credentials and protects MFA. Me never stores recovery tokens.</p>
         <button onClick={() => openUserProfile()} className="mt-4 rounded-xl bg-primary px-4 py-3 font-semibold text-primary-foreground">Open Clerk security settings</button>
-        <a className="ml-3 inline-flex rounded-xl border border-border px-4 py-3 font-semibold" href={`${import.meta.env.BASE_URL.replace(/\/$/, "")}/sign-in`}>Open recovery sign-in</a>
+        <a className="ms-3 inline-flex rounded-xl border border-border px-4 py-3 font-semibold" href={`${import.meta.env.BASE_URL.replace(/\/$/, "")}/sign-in`}>Open recovery sign-in</a>
       </section>
       <section className="rounded-3xl border border-destructive/30 bg-card p-8">
         <h2 className="font-display text-2xl font-semibold">Account deletion</h2>

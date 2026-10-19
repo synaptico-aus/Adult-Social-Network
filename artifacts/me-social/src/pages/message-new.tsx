@@ -85,7 +85,7 @@ export default function MessageNew() {
       <div className="flex flex-col gap-6 md:gap-8 animate-in fade-in duration-500 min-h-full">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => setSelectedIds(new Set())} className="rounded-xl" aria-label="Go back">
-            <ChevronLeft className="w-6 h-6" />
+            <ChevronLeft className="rtl:-scale-x-100 w-6 h-6" />
           </Button>
           <PageHeader title={`Message ${friend?.preferredName}`} description="" className="mb-0" />
         </div>
@@ -98,7 +98,7 @@ export default function MessageNew() {
     <div className="flex flex-col gap-6 md:gap-8 animate-in fade-in duration-500 min-h-full">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" onClick={() => setLocation('/messages')} className="rounded-xl" aria-label="Go back">
-          <ChevronLeft className="w-6 h-6" />
+          <ChevronLeft className="rtl:-scale-x-100 w-6 h-6" />
         </Button>
         <PageHeader title="New Message" description="Select people to start a conversation" className="mb-0" />
       </div>
@@ -123,7 +123,7 @@ export default function MessageNew() {
               placeholder="Search connections..." 
               value={search} 
               onChange={e => setSearch(e.target.value)}
-              className="pl-10 rounded-xl bg-background"
+              className="ps-10 rounded-xl bg-background"
             />
           </div>
         </div>
@@ -166,7 +166,7 @@ export default function MessageNew() {
               onClick={handleStart}
               disabled={createGroup.isPending}
             >
-              {createGroup.isPending && <Loader2 className="w-5 h-5 mr-2 animate-spin" />}
+              {createGroup.isPending && <Loader2 className="w-5 h-5 me-2 animate-spin" />}
               Create Group Chat
             </Button>
           </div>
@@ -218,7 +218,7 @@ function DirectComposer({ recipientMemberId }: { recipientMemberId: string }) {
           onClick={handleSend}
           disabled={!body.trim() || createDirect.isPending}
         >
-          {createDirect.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+          {createDirect.isPending && <Loader2 className="w-4 h-4 me-2 animate-spin" />}
           Send Message
         </Button>
       </div>

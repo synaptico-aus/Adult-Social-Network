@@ -1,3 +1,4 @@
+import { formatDate } from "@/lib/locale-format";
 import { Shield, UserMinus, Crown, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -70,7 +71,7 @@ export function GroupRoster({ group, isOwner }: { group: Group, isOwner: boolean
                 {member.role === "moderator" && <Shield className="h-4 w-4 text-primary" aria-label="Moderator" />}
               </p>
               <p className="text-sm text-muted-foreground capitalize">
-                {member.role} · joined {new Date(member.joinedAt).toLocaleDateString()}
+                {member.role} · joined {formatDate(member.joinedAt)}
               </p>
             </div>
             
@@ -88,7 +89,7 @@ export function GroupRoster({ group, isOwner }: { group: Group, isOwner: boolean
                   variant="destructive" 
                   onClick={() => handleRemove(member.memberId)}
                 >
-                  <UserMinus className="mr-1 h-4 w-4" />
+                  <UserMinus className="me-1 h-4 w-4" />
                   Remove
                 </Button>
               </div>

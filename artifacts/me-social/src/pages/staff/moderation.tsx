@@ -83,12 +83,12 @@ function QueueItemCard({ item, caps }: { item: QueueItem; caps: StaffCapabilitie
     <div className="border border-border p-5 rounded-2xl bg-card shadow-sm" data-testid={`row-queue-${item.reportId}`}>
       <div className="flex justify-between items-start mb-4">
         <div>
-          <span className="font-semibold text-lg capitalize mr-3">{item.category.replace('_', ' ')}</span>
+          <span className="font-semibold text-lg capitalize me-3">{item.category.replace('_', ' ')}</span>
           <span className="text-xs px-2 py-1 rounded-md font-semibold tracking-wider uppercase bg-secondary text-secondary-foreground border border-secondary-border">
             {item.moderationState}
           </span>
         </div>
-        <div className="text-right text-sm text-muted-foreground">
+        <div className="text-end text-sm text-muted-foreground">
           <div className="font-mono">Report: {item.reportId}</div>
           <div className="font-mono">Record: {item.moderationRecordId}</div>
         </div>
@@ -107,7 +107,7 @@ function QueueItemCard({ item, caps }: { item: QueueItem; caps: StaffCapabilitie
               data-testid={`input-evidence-reason-${item.reportId}`}
             />
             <Button onClick={handleAccessEvidence} disabled={accessEvidence.isPending || !evidenceReason} data-testid={`button-access-evidence-${item.reportId}`}>
-              {accessEvidence.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Eye className="w-4 h-4 mr-2" />}
+              {accessEvidence.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Eye className="w-4 h-4 me-2" />}
               Access
             </Button>
           </div>
@@ -386,6 +386,9 @@ export default function StaffModerationPage() {
           </div>
         </div>
 
+        <Link href="/staff/translations">
+          <Button variant="outline" className="rounded-xl gap-2 hidden sm:flex bg-card">Translations</Button>
+        </Link>
         <Link href="/staff/video-review">
           <Button variant="outline" className="rounded-xl gap-2 hidden sm:flex bg-card">Video review</Button>
         </Link>

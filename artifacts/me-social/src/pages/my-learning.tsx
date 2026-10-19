@@ -1,3 +1,4 @@
+import { formatDate } from "@/lib/locale-format";
 import { Link } from "wouter"
 import { BookOpen, Bookmark, CheckCircle2, ChevronRight, Clock } from "lucide-react"
 import { useGetMyEducation, getGetMyEducationQueryKey } from "@workspace/api-client-react"
@@ -65,7 +66,7 @@ export default function MyLearningPage() {
               </div>
               <Button className="shrink-0 rounded-xl h-12 px-6 gap-2">
                 Resume
-                <ChevronRight className="w-5 h-5" />
+                <ChevronRight className="rtl:-scale-x-100 w-5 h-5" />
               </Button>
             </div>
           </Link>
@@ -99,7 +100,7 @@ export default function MyLearningPage() {
                           <p className="text-sm text-muted-foreground mt-1 line-clamp-1">{lesson.summary}</p>
                         )}
                       </div>
-                      <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:translate-x-1 transition-transform shrink-0" />
+                      <ChevronRight className="rtl:-scale-x-100 w-5 h-5 text-muted-foreground group-hover:translate-x-1 transition-transform shrink-0" />
                     </div>
                   </Link>
                 )
@@ -138,7 +139,7 @@ export default function MyLearningPage() {
                         {lesson.title}
                       </h4>
                       <p className="text-sm text-muted-foreground mt-1 mb-2">
-                        Finished on {new Date(p.completedAt!).toLocaleDateString()}
+                        Finished on {formatDate(p.completedAt!)}
                       </p>
                       <Link href={`/understanding-dementia/${lesson.slug}`} className="text-sm font-medium text-primary hover:underline">
                         Review lesson

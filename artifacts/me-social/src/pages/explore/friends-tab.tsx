@@ -1,3 +1,4 @@
+import { formatDate } from "@/lib/locale-format";
 import { Users, Loader2 } from "lucide-react";
 import { EmptyState } from "@/components/shared/empty-state";
 import { MemberCard } from "./member-card";
@@ -52,7 +53,7 @@ export function FriendsTab() {
             key={friend.memberId}
             memberId={friend.memberId}
             preferredName={friend.preferredName}
-            subtitle={`Friends since ${new Date(friend.createdAt).toLocaleDateString()}`}
+            subtitle={`Friends since ${formatDate(friend.createdAt)}`}
             isFriend={true}
             isFollowing={isFollowing(friend.memberId)}
             data-testid={`card-friend-${friend.memberId}`}
@@ -68,7 +69,7 @@ export function FriendsTab() {
               data-testid="button-load-more-friends"
             >
               {isFetchingNextPage ? (
-                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Loading...</>
+                <><Loader2 className="w-4 h-4 me-2 animate-spin" /> Loading...</>
               ) : (
                 "Load More"
               )}

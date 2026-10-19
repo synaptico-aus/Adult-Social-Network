@@ -70,7 +70,7 @@ export default function MessageRequestDetail() {
     <div className="flex flex-col gap-6 md:gap-8 animate-in fade-in duration-500 min-h-full">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" onClick={() => setLocation('/messages')} className="rounded-xl" aria-label="Go back">
-          <ChevronLeft className="w-6 h-6" />
+          <ChevronLeft className="rtl:-scale-x-100 w-6 h-6" />
         </Button>
         <PageHeader title="Message Request" description="" className="mb-0" />
       </div>
@@ -83,7 +83,7 @@ export default function MessageRequestDetail() {
         <p className="text-muted-foreground mb-6">Wants to send you a direct message.</p>
 
         {request.body && (
-          <div className="w-full bg-secondary/30 border border-border/50 rounded-2xl p-4 text-left mb-6 italic text-foreground/80">
+          <div className="w-full bg-secondary/30 border border-border/50 rounded-2xl p-4 text-start mb-6 italic text-foreground/80">
             "{request.body}"
           </div>
         )}
@@ -94,7 +94,7 @@ export default function MessageRequestDetail() {
             onClick={handleAccept}
             disabled={acceptMutation.isPending || declineMutation.isPending}
           >
-            {acceptMutation.isPending ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Check className="w-5 h-5 mr-2" />}
+            {acceptMutation.isPending ? <Loader2 className="w-5 h-5 animate-spin me-2" /> : <Check className="w-5 h-5 me-2" />}
             Accept
           </Button>
           <Button 
@@ -103,7 +103,7 @@ export default function MessageRequestDetail() {
             onClick={handleDecline}
             disabled={acceptMutation.isPending || declineMutation.isPending}
           >
-            {declineMutation.isPending ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <X className="w-5 h-5 mr-2" />}
+            {declineMutation.isPending ? <Loader2 className="w-5 h-5 animate-spin me-2" /> : <X className="w-5 h-5 me-2" />}
             Decline
           </Button>
         </div>

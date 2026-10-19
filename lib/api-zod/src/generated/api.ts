@@ -8,6 +8,265 @@
 import * as zod from 'zod';
 
 
+export const GetExperienceCatalogueResponse = zod.object({
+  "locales": zod.array(zod.object({
+  "code": zod.string(),
+  "label": zod.string(),
+  "direction": zod.string(),
+  "enabled": zod.boolean(),
+  "reviewedAt": zod.string().nullable(),
+  "reviewNote": zod.string(),
+  "moderationCoverage": zod.string()
+})),
+  "countries": zod.array(zod.object({
+  "code": zod.string(),
+  "name": zod.string()
+}))
+})
+
+
+export const GetExperiencePreferencesResponse = zod.object({
+  "locale": zod.enum(['en-AU', 'en-GB', 'en-US']),
+  "timeZone": zod.string(),
+  "direction": zod.enum(['auto', 'ltr', 'rtl']),
+  "lowData": zod.boolean(),
+  "textFirst": zod.boolean(),
+  "offlineDrafts": zod.boolean(),
+  "country": zod.enum(['AU', 'GB', 'US'])
+}).and(zod.object({
+
+}).passthrough())
+
+
+export const UpdateExperiencePreferencesBody = zod.object({
+  "locale": zod.enum(['en-AU', 'en-GB', 'en-US']).optional(),
+  "timeZone": zod.string().optional(),
+  "direction": zod.enum(['auto', 'ltr', 'rtl']).optional(),
+  "lowData": zod.boolean().optional(),
+  "textFirst": zod.boolean().optional(),
+  "offlineDrafts": zod.boolean().optional(),
+  "country": zod.enum(['AU', 'GB', 'US']).optional()
+})
+
+export const UpdateExperiencePreferencesResponse = zod.object({
+  "locale": zod.enum(['en-AU', 'en-GB', 'en-US']),
+  "timeZone": zod.string(),
+  "direction": zod.enum(['auto', 'ltr', 'rtl']),
+  "lowData": zod.boolean(),
+  "textFirst": zod.boolean(),
+  "offlineDrafts": zod.boolean(),
+  "country": zod.enum(['AU', 'GB', 'US'])
+}).and(zod.object({
+
+}).passthrough())
+
+
+export const getExperienceDraftResponseDraftOneBodyMax = 10000;
+
+
+
+export const GetExperienceDraftResponse = zod.object({
+  "draft": zod.union([zod.object({
+  "body": zod.string().max(getExperienceDraftResponseDraftOneBodyMax),
+  "audience": zod.enum(['only_me', 'friends', 'my_circle', 'this_group', 'public']),
+  "circleId": zod.string().nullish(),
+  "groupId": zod.string().nullish(),
+  "updatedAt": zod.string().optional()
+}),zod.null()])
+})
+
+
+export const saveExperienceDraftBodyBodyMax = 10000;
+
+
+
+export const SaveExperienceDraftBody = zod.object({
+  "body": zod.string().max(saveExperienceDraftBodyBodyMax),
+  "audience": zod.enum(['only_me', 'friends', 'my_circle', 'this_group', 'public']),
+  "circleId": zod.string().nullish(),
+  "groupId": zod.string().nullish(),
+  "updatedAt": zod.string().optional()
+})
+
+export const saveExperienceDraftResponseDraftOneBodyMax = 10000;
+
+
+
+export const SaveExperienceDraftResponse = zod.object({
+  "draft": zod.union([zod.object({
+  "body": zod.string().max(saveExperienceDraftResponseDraftOneBodyMax),
+  "audience": zod.enum(['only_me', 'friends', 'my_circle', 'this_group', 'public']),
+  "circleId": zod.string().nullish(),
+  "groupId": zod.string().nullish(),
+  "updatedAt": zod.string().optional()
+}),zod.null()])
+})
+
+
+export const DeleteExperienceDraftResponse = zod.void()
+
+
+export const GetCountryResourcesQueryParams = zod.object({
+  "country": zod.enum(['AU', 'GB', 'US'])
+})
+
+export const GetCountryResourcesResponse = zod.object({
+  "country": zod.string(),
+  "disclaimer": zod.string(),
+  "items": zod.array(zod.object({
+  "id": zod.string(),
+  "country": zod.string(),
+  "name": zod.string(),
+  "kind": zod.enum(['emergency', 'dementia', 'crisis']),
+  "phone": zod.string(),
+  "url": zod.string(),
+  "sourceUrl": zod.string(),
+  "hours": zod.string(),
+  "hoursTimeZone": zod.string(),
+  "checkedAt": zod.string(),
+  "notes": zod.string()
+}))
+})
+
+
+export const ListTranslationsQueryParams = zod.object({
+  "sourceType": zod.enum(['post', 'lesson']),
+  "sourceId": zod.coerce.string()
+})
+
+export const ListTranslationsResponse = zod.object({
+  "providerEnabled": zod.boolean().optional(),
+  "items": zod.array(zod.object({
+  "id": zod.string(),
+  "sourceType": zod.enum(['post', 'lesson']),
+  "sourceId": zod.string(),
+  "sourceHash": zod.string(),
+  "locale": zod.string(),
+  "text": zod.string(),
+  "machineTranslated": zod.boolean(),
+  "status": zod.enum(['pending', 'reviewed', 'published', 'removed']),
+  "createdAt": zod.string(),
+  "reviewedAt": zod.string().nullable(),
+  "reviewedBy": zod.string().nullable(),
+  "authorMemberId": zod.string().nullish(),
+  "reviewNote": zod.string().nullish(),
+  "reports": zod.array(zod.object({
+  "reason": zod.string(),
+  "createdAt": zod.string()
+})).optional()
+}))
+})
+
+
+export const submitTranslationBodyTextMax = 20000;
+
+
+
+export const SubmitTranslationBody = zod.object({
+  "sourceType": zod.enum(['post', 'lesson']),
+  "sourceId": zod.string(),
+  "locale": zod.enum(['en-AU', 'en-GB', 'en-US']),
+  "text": zod.string().min(1).max(submitTranslationBodyTextMax),
+  "machineTranslated": zod.boolean(),
+  "correctionOf": zod.string().optional(),
+  "rightsConfirmed": zod.boolean()
+})
+
+export const SubmitTranslationResponse = zod.object({
+  "id": zod.string(),
+  "sourceType": zod.enum(['post', 'lesson']),
+  "sourceId": zod.string(),
+  "sourceHash": zod.string(),
+  "locale": zod.string(),
+  "text": zod.string(),
+  "machineTranslated": zod.boolean(),
+  "status": zod.enum(['pending', 'reviewed', 'published', 'removed']),
+  "createdAt": zod.string(),
+  "reviewedAt": zod.string().nullable(),
+  "reviewedBy": zod.string().nullable(),
+  "authorMemberId": zod.string().nullish(),
+  "reviewNote": zod.string().nullish(),
+  "reports": zod.array(zod.object({
+  "reason": zod.string(),
+  "createdAt": zod.string()
+})).optional()
+})
+
+
+export const ReportTranslationParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const reportTranslationBodyReasonMax = 1000;
+
+
+
+export const ReportTranslationBody = zod.object({
+  "reason": zod.string().min(1).max(reportTranslationBodyReasonMax)
+})
+
+export const ReportTranslationResponse = zod.void()
+
+
+export const ListStaffTranslationsResponse = zod.object({
+  "providerEnabled": zod.boolean().optional(),
+  "items": zod.array(zod.object({
+  "id": zod.string(),
+  "sourceType": zod.enum(['post', 'lesson']),
+  "sourceId": zod.string(),
+  "sourceHash": zod.string(),
+  "locale": zod.string(),
+  "text": zod.string(),
+  "machineTranslated": zod.boolean(),
+  "status": zod.enum(['pending', 'reviewed', 'published', 'removed']),
+  "createdAt": zod.string(),
+  "reviewedAt": zod.string().nullable(),
+  "reviewedBy": zod.string().nullable(),
+  "authorMemberId": zod.string().nullish(),
+  "reviewNote": zod.string().nullish(),
+  "reports": zod.array(zod.object({
+  "reason": zod.string(),
+  "createdAt": zod.string()
+})).optional()
+}))
+})
+
+
+export const ReviewTranslationParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const reviewTranslationBodyNoteMin = 10;
+export const reviewTranslationBodyNoteMax = 2000;
+
+
+
+export const ReviewTranslationBody = zod.object({
+  "action": zod.enum(['review', 'publish', 'remove']),
+  "note": zod.string().min(reviewTranslationBodyNoteMin).max(reviewTranslationBodyNoteMax)
+})
+
+export const ReviewTranslationResponse = zod.object({
+  "id": zod.string(),
+  "sourceType": zod.enum(['post', 'lesson']),
+  "sourceId": zod.string(),
+  "sourceHash": zod.string(),
+  "locale": zod.string(),
+  "text": zod.string(),
+  "machineTranslated": zod.boolean(),
+  "status": zod.enum(['pending', 'reviewed', 'published', 'removed']),
+  "createdAt": zod.string(),
+  "reviewedAt": zod.string().nullable(),
+  "reviewedBy": zod.string().nullable(),
+  "authorMemberId": zod.string().nullish(),
+  "reviewNote": zod.string().nullish(),
+  "reports": zod.array(zod.object({
+  "reason": zod.string(),
+  "createdAt": zod.string()
+})).optional()
+})
+
+
 export const ListMemoryCollectionsResponseItem = zod.object({
   "id": zod.string(),
   "ownerMemberId": zod.string(),

@@ -69,7 +69,7 @@ export default function Memories() {
       <header>
         <h1 className="font-display text-3xl md:text-4xl font-bold flex items-center gap-3"><Album className="w-9 h-9" aria-hidden="true" />Memories</h1>
         <p className="mt-2 text-lg">Gather stories, photos, recordings and music links you already have into named collections. Collections are private unless you choose to share them.</p>
-        <ul className="mt-3 list-disc pl-6 space-y-1 text-base">
+        <ul className="mt-3 list-disc ps-6 space-y-1 text-base">
           <li>A collection cannot widen who can see an item. Anyone who is not allowed to see the original sees a plain placeholder.</li>
           <li>A source can become unavailable at any time, for example if it is deleted or its sharing changes.</li>
           <li>Collections are not a treatment, and contain no tests, scores or made-up events.</li>

@@ -4,13 +4,14 @@ import { ExternalLink, ShieldCheck, AlertTriangle } from "lucide-react"
 import type { Resource } from "@workspace/api-client-react"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@clerk/react"
+import { formatDate } from "@/lib/locale-format"
 
 export const CATEGORIES = ["article", "news", "podcast", "music", "video", "event", "helpline", "research", "organisation"] as const
 
 export function fmtDate(iso?: string | null) {
   if (!iso) return null
   const d = new Date(iso)
-  return isNaN(d.getTime()) ? null : d.toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" })
+  return isNaN(d.getTime()) ? null : formatDate(d, { year: "numeric", month: "long", day: "numeric" })
 }
 
 export function linkStateText(r: Resource) {

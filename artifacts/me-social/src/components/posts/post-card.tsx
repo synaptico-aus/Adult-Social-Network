@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "wouter";
-import { formatDistanceToNow } from "date-fns";
+import { TranslationPanel } from "@/components/translations/translation-panel";
+import { formatRelative } from "@/lib/locale-format";
 import {
   Heart,
   MessageCircle,
@@ -156,7 +157,7 @@ export function PostCard({ post, isDetail = false, onEdit, onDeleted, onHidden, 
               )}
             </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground mt-0.5">
-              <span>{formatDistanceToNow(new Date(post.createdAt))} ago</span>
+              <span>{formatRelative(post.createdAt)}</span>
               <span>&middot;</span>
               <AudienceIcon audience={post.audience} />
             </div>
@@ -174,28 +175,28 @@ export function PostCard({ post, isDetail = false, onEdit, onDeleted, onHidden, 
               <>
                 {onEdit && (
                   <DropdownMenuItem onClick={() => onEdit(post)} className="cursor-pointer py-3" data-testid="menu-edit-post">
-                    <Pencil className="w-4 h-4 mr-2" />
+                    <Pencil className="w-4 h-4 me-2" />
                     Edit
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuItem onClick={handleDelete} className="text-destructive focus:bg-destructive/10 cursor-pointer py-3" data-testid="menu-delete-post">
-                  <Trash2 className="w-4 h-4 mr-2" />
+                  <Trash2 className="w-4 h-4 me-2" />
                   Delete
                 </DropdownMenuItem>
               </>
             ) : (
               <>
                 <DropdownMenuItem onClick={handleToggleSave} className="cursor-pointer py-3" data-testid="menu-save-post">
-                  <Bookmark className={`w-4 h-4 mr-2 ${localSaved ? "fill-current" : ""}`} />
+                  <Bookmark className={`w-4 h-4 me-2 ${localSaved ? "fill-current" : ""}`} />
                   {localSaved ? "Unsave" : "Save"}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleHide} className="cursor-pointer py-3" data-testid="menu-hide-post">
-                  <EyeOff className="w-4 h-4 mr-2" />
+                  <EyeOff className="w-4 h-4 me-2" />
                   Hide
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => setReportOpen(true)} className="text-destructive focus:bg-destructive/10 cursor-pointer py-3" data-testid="menu-report-post">
-                  <Flag className="w-4 h-4 mr-2" />
+                  <Flag className="w-4 h-4 me-2" />
                   Report
                 </DropdownMenuItem>
               </>
@@ -212,7 +213,7 @@ export function PostCard({ post, isDetail = false, onEdit, onDeleted, onHidden, 
         )}
         {guidanceLabel && (
           <div className="inline-flex items-center px-3 py-1.5 rounded-full bg-secondary/60 text-secondary-foreground text-sm font-medium border border-secondary-border">
-            <MessageSquare className="w-4 h-4 mr-2 opacity-70" />
+            <MessageSquare className="w-4 h-4 me-2 opacity-70" />
             {guidanceLabel}
           </div>
         )}
@@ -227,6 +228,7 @@ export function PostCard({ post, isDetail = false, onEdit, onDeleted, onHidden, 
       <div className="text-foreground text-lg leading-relaxed whitespace-pre-wrap mb-6">
         {post.body}
       </div>
+      {!suppressMedia && <TranslationPanel sourceType="post" sourceId={post.id} />}
 
       {!suppressMedia && post.mediaAssets && post.mediaAssets.length > 0 && (
         <div className="space-y-4 mb-6">
@@ -244,8 +246,8 @@ export function PostCard({ post, isDetail = false, onEdit, onDeleted, onHidden, 
           onClick={() => handleToggleReaction('hear_you')}
           data-testid="button-react-hear"
         >
-          <Heart className={`w-4 h-4 mr-2 ${localReactions.includes('hear_you') ? 'fill-current' : ''}`} />
-          I hear you {(localCounts['hear_you'] || 0) > 0 && <span className="ml-1 opacity-70">({localCounts['hear_you']})</span>}
+          <Heart className={`w-4 h-4 me-2 ${localReactions.includes('hear_you') ? 'fill-current' : ''}`} />
+          I hear you {(localCounts['hear_you'] || 0) > 0 && <span className="ms-1 opacity-70">({localCounts['hear_you']})</span>}
         </Button>
         <Button
           variant="ghost"
@@ -254,21 +256,21 @@ export function PostCard({ post, isDetail = false, onEdit, onDeleted, onHidden, 
           onClick={() => handleToggleReaction('thank_you_for_sharing')}
           data-testid="button-react-thanks"
         >
-          <Heart className={`w-4 h-4 mr-2 ${localReactions.includes('thank_you_for_sharing') ? 'fill-current' : ''}`} />
-          Thank you {(localCounts['thank_you_for_sharing'] || 0) > 0 && <span className="ml-1 opacity-70">({localCounts['thank_you_for_sharing']})</span>}
+          <Heart className={`w-4 h-4 me-2 ${localReactions.includes('thank_you_for_sharing') ? 'fill-current' : ''}`} />
+          Thank you {(localCounts['thank_you_for_sharing'] || 0) > 0 && <span className="ms-1 opacity-70">({localCounts['thank_you_for_sharing']})</span>}
         </Button>
 
         {!isDetail && post.commentsOpen && (
           <Button variant="ghost" size="sm" asChild className="rounded-full px-4 h-10 text-muted-foreground hover:bg-secondary hover:text-foreground" data-testid="link-post-comments">
             <Link href={`/posts/${post.id}`}>
-              <MessageCircle className="w-4 h-4 mr-2" />
+              <MessageCircle className="w-4 h-4 me-2" />
               Reply
             </Link>
           </Button>
         )}
 
         {!post.commentsOpen && (
-          <div className="ml-auto text-sm text-muted-foreground italic flex items-center px-2">
+          <div className="ms-auto text-sm text-muted-foreground italic flex items-center px-2">
             Comments closed
           </div>
         )}
@@ -276,12 +278,12 @@ export function PostCard({ post, isDetail = false, onEdit, onDeleted, onHidden, 
         <Button
           variant="ghost"
           size="sm"
-          className="rounded-full px-4 h-10 ml-auto text-muted-foreground hover:bg-secondary hover:text-foreground"
+          className="rounded-full px-4 h-10 ms-auto text-muted-foreground hover:bg-secondary hover:text-foreground"
           aria-label="Share options"
           onClick={() => setShareOpen(true)}
           data-testid="button-share-post"
         >
-          <Share2 className="w-4 h-4 mr-2" />
+          <Share2 className="w-4 h-4 me-2" />
           Share
         </Button>
       </div>
