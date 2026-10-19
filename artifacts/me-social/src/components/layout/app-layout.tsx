@@ -48,7 +48,7 @@ function DesktopSidebar() {
           const active = location === item.href || (item.href !== "/" && location.startsWith(item.href + "/"))
           const unread = item.href === "/notifications" ? (unreadData?.count || 0) : 0
           return (
-            <Link key={item.href} href={item.href} className={`flex items-center gap-4 px-4 py-4 rounded-2xl transition-all font-medium text-xl min-w-0 relative ${active ? 'bg-secondary text-secondary-foreground font-bold shadow-sm' : 'text-foreground/80 hover:bg-secondary/50 hover:text-foreground'}`}>
+            <Link key={item.href} href={item.href} className={`flex items-center gap-4 px-4 py-4 rounded-2xl transition-all font-medium text-xl min-w-0 relative ${active ? 'bg-secondary text-secondary-foreground font-bold shadow-sm' : 'text-foreground hover:bg-secondary/50 hover:text-foreground'}`}>
               <div className="relative">
                 <item.icon className={`w-8 h-8 shrink-0 ${active ? 'fill-primary/10 text-primary' : ''}`} aria-hidden="true" />
                 {unread > 0 && (

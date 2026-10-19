@@ -50,7 +50,7 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
-/* Light lavender surfaces with readable golden-yellow writing. */
+/* Light lavender surfaces with the same bright yellow used by the logo M. */
 :root {
   --button-outline: rgba(32, 33, 36, 0.1);
   --badge-outline: rgba(32, 33, 36, 0.05);
@@ -61,22 +61,22 @@
   --elevate-2: rgba(32, 33, 36, 0.08);
 
   --background: 270 60% 94%;
-  --foreground: 46 100% 20%;
+  --foreground: 50 100% 68%;
   --border: 270 30% 65%;
   --card: 270 60% 90%;
-  --card-foreground: 46 100% 20%;
+  --card-foreground: 50 100% 68%;
   --card-border: 270 30% 65%;
   --popover: 270 60% 94%;
-  --popover-foreground: 46 100% 20%;
+  --popover-foreground: 50 100% 68%;
   --popover-border: 270 30% 65%;
   --primary: 270 60% 35%;
   --primary-foreground: 50 100% 68%;
   --secondary: 270 55% 87%;
-  --secondary-foreground: 46 100% 20%;
+  --secondary-foreground: 50 100% 68%;
   --muted: 270 45% 91%;
-  --muted-foreground: 46 80% 23%;
+  --muted-foreground: 50 100% 68%;
   --accent: 270 55% 85%;
-  --accent-foreground: 46 100% 20%;
+  --accent-foreground: 50 100% 68%;
   /* Warning text remains yellow; alerts retain their labels and icons. */
   --destructive: 285 65% 30%;
   --destructive-foreground: 50 100% 68%;
@@ -122,7 +122,13 @@
 }
 
 @layer utilities {
-  /* Golden-yellow text remains readable on light purple surfaces. */
+  /* Text uses the logo yellow; keep purple backgrounds and button fills. */
+  .text-foreground\/80,
+  .text-foreground\/70,
+  .text-foreground\/60,
+  .text-muted-foreground\/80,
+  .text-muted-foreground\/70,
+  .text-muted-foreground\/60,
   .text-primary,
   .text-destructive,
   .hover\:text-primary:hover,
