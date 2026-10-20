@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { useCreatePost, useUpdatePost, usePublishPost, Post, PostAudience, PostInputResponseLabel, MediaAttachment } from "@workspace/api-client-react";
+import { useCreatePost, useUpdatePost, usePublishPost, getPost, Post, PostAudience, PostInputResponseLabel, MediaAttachment } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { invalidatePhase6 } from "@/lib/invalidation";
 import { useMediaUploads } from "@/hooks/use-media-upload";
@@ -18,6 +18,7 @@ import { MediaUploader } from "@/components/media/media-uploader";
 import { v4 as uuidv4 } from "uuid";
 import { DraftRecovery } from "@/components/posts/draft-recovery";
 import { canRestoreDraftHere } from "@/lib/draft-scope";
+import { postOperationError } from "@/lib/post-errors";
 
 const formSchema = z.object({
   body: z.string().min(1, "Post cannot be empty").max(20000, "Post is too long"),
@@ -70,6 +71,9 @@ export function PostComposer({ post, onSuccess, isStandalone = false, circleId, 
   const [isPublishing, setIsPublishing] = useState(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [draftClearTick, setDraftClearTick] = useState(0);
+  // If creation succeeds but publishing fails, retry the same draft, not a duplicate.
+  const [savedDraftId, setSavedDraftId] = useState<string | null>(null);
+  const [publicationUncertain, setPublicationUncertain] = useState(false);
 
   const isPublished = post?.status === "published";
 
@@ -114,11 +118,14 @@ export function PostComposer({ post, onSuccess, isStandalone = false, circleId, 
         isIntroduction: values.audience === "this_group" ? values.isIntroduction : false,
       };
 
-      if (post) {
+      const existingId = post?.id ?? savedDraftId;
+      if (existingId) {
         // Edit existing post
-        await updatePost.mutateAsync({ id: post.id, data: payload });
-        if (!isPublished) {
-           await publishPost.mutateAsync({ id: post.id });
+        await updatePost.mutateAsync({ id: existingId, data: payload });
+        const updated = await getPost(existingId);
+        if (updated.status !== "published") {
+           setPublicationUncertain(true);
+           await publishPost.mutateAsync({ id: existingId });
            toast({ title: "Post submitted", description: "Your post will be published if it passes safety checks." });
         } else {
            toast({ title: "Post updated", description: "Your changes have been saved." });
@@ -126,19 +133,22 @@ export function PostComposer({ post, onSuccess, isStandalone = false, circleId, 
       } else {
         // Create new post
         const result = await createPost.mutateAsync({ data: payload });
-        if (result && result.id) {
-          await publishPost.mutateAsync({ id: result.id });
-          toast({ title: "Post submitted", description: "Your post will be published if it passes safety checks." });
-        }
+        if (!result?.id) throw new Error("No saved post was returned");
+        setSavedDraftId(result.id);
+        setPublicationUncertain(true);
+        await publishPost.mutateAsync({ id: result.id });
+        toast({ title: "Post submitted", description: "Your post will be published if it passes safety checks." });
       }
 
       form.reset();
+      setSavedDraftId(null);
+      setPublicationUncertain(false);
       setDraftClearTick(t => t + 1);
       setMediaItems([]);
       invalidatePhase6(queryClient, post?.id);
       if (onSuccess) onSuccess();
     } catch (error) {
-      toast({ title: "Error", description: "Could not save post.", variant: "destructive" });
+      toast({ title: "Could not confirm publication", description: postOperationError(error, "Could not confirm whether your post was published. Check your posts or retry Publish."), variant: "destructive" });
     } finally {
       setIsPublishing(false);
     }
@@ -168,19 +178,21 @@ export function PostComposer({ post, onSuccess, isStandalone = false, circleId, 
         isIntroduction: values.audience === "this_group" ? values.isIntroduction : false,
       };
 
-      if (post) {
-        await updatePost.mutateAsync({ id: post.id, data: payload });
+      const existingId = post?.id ?? savedDraftId;
+      if (existingId) {
+        await updatePost.mutateAsync({ id: existingId, data: payload });
       } else {
         await createPost.mutateAsync({ data: payload });
       }
       toast({ title: "Draft saved" });
       form.reset();
+      setSavedDraftId(null);
       setDraftClearTick(t => t + 1);
       setMediaItems([]);
       invalidatePhase6(queryClient, post?.id);
       if (onSuccess) onSuccess();
     } catch (e) {
-      toast({ title: "Error", description: "Could not save draft.", variant: "destructive" });
+      toast({ title: "Draft not saved", description: postOperationError(e, "Could not save your draft."), variant: "destructive" });
     } finally {
       setIsSavingDraft(false);
     }
@@ -361,7 +373,7 @@ export function PostComposer({ post, onSuccess, isStandalone = false, circleId, 
                   variant="outline" 
                   className="rounded-xl font-semibold flex-1 sm:flex-none" 
                   onClick={handleSaveDraft}
-                  disabled={isSaving || (!form.watch("body").trim() && mediaItems.length === 0) || mediaItems.some(i => i.status !== 'ready')}
+                  disabled={isSaving || publicationUncertain || (!form.watch("body").trim() && mediaItems.length === 0) || mediaItems.some(i => i.status !== 'ready')}
                   data-testid="button-save-draft"
                 >
                   {isSavingDraft ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Save Draft'}

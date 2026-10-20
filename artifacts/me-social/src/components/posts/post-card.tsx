@@ -1,3 +1,4 @@
+import { PostText } from "@/components/posts/post-text";
 import { useState } from "react";
 import { Link } from "wouter";
 import { TranslationPanel } from "@/components/translations/translation-panel";
@@ -226,7 +227,7 @@ export function PostCard({ post, isDetail = false, onEdit, onDeleted, onHidden, 
       )}
 
       <div className="text-foreground text-lg leading-relaxed whitespace-pre-wrap mb-6">
-        {post.body}
+        <PostText body={post.body ?? ""} />
       </div>
       {!suppressMedia && <TranslationPanel sourceType="post" sourceId={post.id} />}
 

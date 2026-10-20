@@ -150,8 +150,6 @@ function SignUpPage() {
 }
 
 function HomeRoute() {
-  const { isLoaded, isSignedIn } = useAuth();
-  if (!isLoaded || !isSignedIn) return <HomeFeed />;
   return <RequireMember><HomeFeed /></RequireMember>;
 }
 
