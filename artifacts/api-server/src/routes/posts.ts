@@ -10,6 +10,8 @@ import "../lib/posts-deletion-hook";
 import { activeGroupMembership as liveActiveGroupMembership, canUseGroup as liveCanUseGroup, canViewGroupPost as liveCanViewGroupPost } from "../lib/group-access";
 import { videoPublicFields } from "../lib/media-response";
 import { cleanupDetachedVideoAssets } from "../lib/media-deletion-hook";
+import { friendPermissionSchema, lockAuthorPrivacy, permissionsFor } from "../lib/friend-permissions";
+import { visibleProfile } from "../lib/profile-policy";
 
 const router = Router();
 router.use(["/posts", "/feed", "/reels"], requireAuth);
@@ -20,7 +22,7 @@ router.use("/posts/:id", (_req, res, next) => {
   res.set("X-Robots-Tag", "noindex, noarchive");
   next();
 });
-const postInput = z.object({ body: z.string().max(20000), audience: z.enum(["only_me", "friends", "my_circle", "this_group", "public"]).optional(), circleId: z.string().min(1).max(200).nullable().optional(), groupId: z.string().min(1).max(200).nullable().optional(), isIntroduction: z.boolean().optional(), responseLabel: z.enum(["someone_to_listen", "shared_experiences", "practical_ideas", "something_uplifting"]).nullable().optional(), commentsOpen: z.boolean().optional(), visibleReactionCounts: z.boolean().optional(), originalPostId: z.string().optional(), commentary: z.string().max(10000).optional(), mediaAssetIds: z.array(z.string()).max(10).optional() }).strict();
+const postInput = z.object({ body: z.string().max(20000), audience: z.enum(["only_me", "friends", "my_circle", "this_group", "public"]).optional(), circleId: z.string().min(1).max(200).nullable().optional(), groupId: z.string().min(1).max(200).nullable().optional(), isIntroduction: z.boolean().optional(), responseLabel: z.enum(["someone_to_listen", "shared_experiences", "practical_ideas", "something_uplifting"]).nullable().optional(), commentsOpen: z.boolean().optional(), visibleReactionCounts: z.boolean().optional(), originalPostId: z.string().optional(), commentary: z.string().max(10000).optional(), mediaAssetIds: z.array(z.string()).max(10).optional(), friendRestrictions: friendPermissionSchema.optional() }).strict();
 async function ownedReadyMedia(memberId: string, ids: string[] | undefined, source: QuerySource = db) {
   if (!ids?.length) return true;
   const assets = await source.select().from(mediaAssetsTable).where(and(eq(mediaAssetsTable.ownerMemberId, memberId), inArray(mediaAssetsTable.id, ids)));
@@ -94,12 +96,14 @@ export async function visiblePost(post: typeof postsTable.$inferSelect, viewer: 
   if (post.status !== "published") return post.authorMemberId === viewer && post.status !== "deleted";
   if (post.originalPostId) {
     const original = (await source.select().from(postsTable).where(eq(postsTable.id, post.originalPostId)).limit(1))[0];
-    if (!original || original.status === "deleted" || !(await visiblePost(original, viewer, source))) return false;
+    if (!original || original.status === "deleted" || !(await visiblePost(original, viewer, source)) ||
+      !(await permissionsFor(original, post.authorMemberId, source)).share) return false;
   }
   const moderation = (await source.select({ state: moderationRecordsTable.state }).from(moderationRecordsTable)
     .where(and(eq(moderationRecordsTable.contentId, post.id), ne(moderationRecordsTable.state, "pending"))).orderBy(desc(moderationRecordsTable.createdAt)).limit(1))[0];
   if (moderation && ["held", "removed", "appealed"].includes(moderation.state) && post.authorMemberId !== viewer) return false;
   if (await blocked(post.authorMemberId, viewer, source)) return false;
+  if (!(await permissionsFor(post, viewer, source)).view) return false;
   if (post.audience === "my_circle") return canViewCirclePost(post, viewer, source);
   if (post.audience === "this_group") return canViewGroupPost(post, viewer, source);
   if (post.authorMemberId === viewer || post.audience === "public") return true;
@@ -126,8 +130,9 @@ export async function response(post: typeof postsTable.$inferSelect, viewer: str
   const rows = counts ? await db.select({ kind: postReactionsTable.kind, count: sql<number>`count(*)` }).from(postReactionsTable).where(eq(postReactionsTable.postId, post.id)).groupBy(postReactionsTable.kind) : [];
   const mine = await db.select({ kind: postReactionsTable.kind }).from(postReactionsTable).where(and(eq(postReactionsTable.postId, post.id), eq(postReactionsTable.memberId, viewer)));
   const saved = !!(await db.select({ id: postSavesTable.id }).from(postSavesTable).where(and(eq(postSavesTable.postId, post.id), eq(postSavesTable.memberId, viewer))).limit(1))[0];
-  const profile = (await db.select({ preferredName: profilesTable.preferredName }).from(profilesTable).where(eq(profilesTable.memberId, post.authorMemberId)).limit(1))[0];
-  return { ...post, body: post.status === "deleted" ? null : post.body, authorId: post.authorMemberId, authorDisplayName: profile?.preferredName ?? "Member", myReactions: mine.map((x) => x.kind), saved, reactionCounts: counts ? Object.fromEntries(rows.map((r) => [r.kind, Number(r.count)])) : null, originalAvailable: !post.originalPostId || true, mediaAssets: await mediaAttachments(post, viewer) };
+  const authorProfile = (await db.select().from(profilesTable).where(eq(profilesTable.memberId, post.authorMemberId)).limit(1))[0];
+  const profile = authorProfile && visibleProfile(authorProfile, viewer === post.authorMemberId ? "owner" : await friendship(post.authorMemberId, viewer) ? "connection" : "member", viewer);
+  return { ...post, friendRestrictions: post.authorMemberId === viewer ? post.friendRestrictions : undefined, permissions: await permissionsFor(post, viewer), body: post.status === "deleted" ? null : post.body, authorId: post.authorMemberId, authorDisplayName: profile?.preferredName ?? "Member", myReactions: mine.map((x) => x.kind), saved, reactionCounts: counts ? Object.fromEntries(rows.map((r) => [r.kind, Number(r.count)])) : null, originalAvailable: !post.originalPostId || true, mediaAssets: await mediaAttachments(post, viewer) };
 }
 router.post("/posts", memberRateLimit(30, 60_000, "post-mutation"), async (req, res): Promise<void> => {
   const m = await member(req); const p = postInput.safeParse(req.body);
@@ -140,7 +145,7 @@ router.post("/posts", memberRateLimit(30, 60_000, "post-mutation"), async (req, 
   let original: typeof postsTable.$inferSelect | undefined;
   if (p.data.originalPostId) {
     original = (await db.select().from(postsTable).where(eq(postsTable.id, p.data.originalPostId)).limit(1))[0];
-    if (!original || !(await visiblePost(original, m.id))) { res.status(404).json({ error: "Original post is unavailable" }); return; }
+    if (!original || !(await visiblePost(original, m.id)) || !(await permissionsFor(original, m.id)).share) { res.status(404).json({ error: "Original post is unavailable or sharing is not permitted" }); return; }
     if (original.audience === "my_circle" || p.data.audience === "my_circle" || original.audience === "this_group" || p.data.audience === "this_group") { res.status(400).json({ error: "Group and circle posts cannot be reshared outside their space" }); return; }
     const rank = { only_me: 0, friends: 1, public: 2 } as const;
     if (rank[p.data.audience ?? "only_me"] > rank[original.audience as keyof typeof rank]) { res.status(400).json({ error: "Share audience cannot widen the original audience" }); return; }
@@ -149,8 +154,9 @@ router.post("/posts", memberRateLimit(30, 60_000, "post-mutation"), async (req, 
      if (!(await ownedReadyMedia(m.id, p.data.mediaAssetIds, tx))) return [];
     if (original && original.authorMemberId !== m.id) await lockPair(tx, m.id, original.authorMemberId);
     if (original) {
+      await lockAuthorPrivacy(tx, original.authorMemberId);
       const [live] = await tx.select().from(postsTable).where(eq(postsTable.id, original.id)).for("update");
-      if (!live || !(await visiblePost(live, m.id, tx))) throw new Error("Original post is unavailable");
+      if (!live || !(await visiblePost(live, m.id, tx)) || !(await permissionsFor(live, m.id, tx)).share) throw new Error("Original post is unavailable");
       const seen = new Set<string>(); let cursorId: string | null = live.id;
       for (let depth = 0; cursorId && depth < 100; depth++) {
         if (seen.has(cursorId)) throw new Error("Original post chain is cyclic");
@@ -165,7 +171,7 @@ router.post("/posts", memberRateLimit(30, 60_000, "post-mutation"), async (req, 
     }
     if (p.data.audience === "my_circle" && !(await canUseCircle(p.data.circleId, m.id, tx))) return [];
     if (p.data.audience === "this_group" && !(await canUseGroup(p.data.groupId, m.id, tx))) return [];
-     return tx.insert(postsTable).values({ id: randomUUID(), authorMemberId: m.id, body: p.data.body, audience: p.data.audience ?? "only_me", circleId: p.data.circleId ?? null, groupId: p.data.groupId ?? null, isIntroduction: p.data.isIntroduction ?? false, responseLabel: p.data.responseLabel, commentsOpen: p.data.commentsOpen ?? true, visibleReactionCounts: p.data.visibleReactionCounts ?? true, originalPostId: p.data.originalPostId, commentary: p.data.commentary, mediaAssetIds: p.data.mediaAssetIds ?? [] }).returning();
+     return tx.insert(postsTable).values({ id: randomUUID(), authorMemberId: m.id, body: p.data.body, audience: p.data.audience ?? "only_me", circleId: p.data.circleId ?? null, groupId: p.data.groupId ?? null, isIntroduction: p.data.isIntroduction ?? false, responseLabel: p.data.responseLabel, commentsOpen: p.data.commentsOpen ?? true, visibleReactionCounts: p.data.visibleReactionCounts ?? true, originalPostId: p.data.originalPostId, commentary: p.data.commentary, mediaAssetIds: p.data.mediaAssetIds ?? [], friendRestrictions: p.data.friendRestrictions ?? {} }).returning();
   }).catch((error: unknown) => {
     if (error instanceof Error && /unavailable|cyclic|too deep/.test(error.message)) return [] as typeof postsTable.$inferSelect[];
     throw error;
@@ -320,8 +326,9 @@ router.post("/posts/:id/reactions", async (req, res): Promise<void> => {
   if (!m || !p.success || !post || !(await visiblePost(post, m.id))) { res.status(404).json({ error: "Post not found" }); return; }
   const result = await db.transaction(async (tx) => {
     await lockPair(tx, m.id, post.authorMemberId);
+    await lockAuthorPrivacy(tx, post.authorMemberId);
     const [locked] = await tx.select().from(postsTable).where(eq(postsTable.id, id)).for("update");
-    if (!locked || !(await visiblePost(locked, m.id, tx))) return { authorized: false, active: false };
+    if (!locked || !(await visiblePost(locked, m.id, tx)) || !(await permissionsFor(locked, m.id, tx)).react) return { authorized: false, active: false };
     const [found] = await tx.select().from(postReactionsTable).where(and(eq(postReactionsTable.postId, id), eq(postReactionsTable.memberId, m.id), eq(postReactionsTable.kind, p.data.kind))).limit(1);
     if (found) await tx.delete(postReactionsTable).where(eq(postReactionsTable.id, found.id)); else await tx.insert(postReactionsTable).values({ id: randomUUID(), postId: id, memberId: m.id, kind: p.data.kind });
     const active = !found;
@@ -391,9 +398,11 @@ router.post("/posts/:id/comments", memberRateLimit(30, 60_000, "comment-mutation
     const [p] = await tx.select().from(postsTable).where(eq(postsTable.id, String(req.params.id)));
     if (!p || !(await visiblePost(p, m.id, tx))) return { error: "Post not found" as const };
     await lockPair(tx, m.id, p.authorMemberId);
+    await lockAuthorPrivacy(tx, p.authorMemberId);
     const [locked] = await tx.select().from(postsTable).where(eq(postsTable.id, p.id)).for("update");
     if (!locked || !(await visiblePost(locked, m.id, tx))) return { error: "Post not found" as const };
     if (!locked.commentsOpen) return { error: "Comments are closed" as const };
+    if (!(await permissionsFor(locked, m.id, tx)).comment) return { error: "Post not found" as const };
     if (body.data.parentCommentId) {
       const [parent] = await tx.select().from(commentsTable).where(and(eq(commentsTable.id, body.data.parentCommentId), eq(commentsTable.postId, p.id), eq(commentsTable.status, "active"))).for("update");
       if (!parent || parent.parentCommentId) return { error: "Only one level of replies is supported" as const };
@@ -417,6 +426,9 @@ router.patch("/comments/:id", async (req, res): Promise<void> => {
     const [post] = await tx.select().from(postsTable).where(eq(postsTable.id, old.postId));
     if (!post || !(await visiblePost(post, m.id, tx))) return undefined;
     await lockPair(tx, m.id, post.authorMemberId);
+    await lockAuthorPrivacy(tx, post.authorMemberId);
+    const [livePost] = await tx.select().from(postsTable).where(eq(postsTable.id, post.id)).for("share");
+    if (!livePost || !(await visiblePost(livePost, m.id, tx)) || !(await permissionsFor(livePost, m.id, tx)).comment) return undefined;
     const [locked] = await tx.select().from(commentsTable).where(eq(commentsTable.id, old.id)).for("update");
     if (!locked || locked.status !== "active") return undefined;
     const mod = await intakeForModeration({ contentId: old.id, subjectMemberId: m.id, text: body.data.body });

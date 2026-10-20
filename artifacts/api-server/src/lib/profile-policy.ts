@@ -11,12 +11,15 @@ export function defaultVisibility(): Record<ProfileField, Audience> {
   };
 }
 
-export function visibleProfile(profile: Profile, viewer: "owner" | "member" | "connection" | "anonymous"): Record<string, unknown> {
+export function visibleProfile(profile: Profile, viewer: "owner" | "member" | "connection" | "anonymous", viewerId?: string): Record<string, unknown> {
   const result: Record<string, unknown> = {};
   for (const field of PROFILE_FIELDS) {
     const audience = (profile.visibility?.[field] ?? "private") as Audience;
-    const allowed = viewer === "owner" || (viewer === "connection" && audience !== "private") ||
-      (viewer === "member" && audience === "members");
+    const selected = profile.selectedFriends?.[field];
+    const restricted = profile.friendPermissions?.[viewerId ?? ""]?.view === false;
+    const inSelection = selected == null || (viewer === "connection" && !!viewerId && selected.includes(viewerId));
+    const allowed = viewer === "owner" || (!restricted && inSelection &&
+      ((viewer === "connection" && audience !== "private") || (viewer === "member" && audience === "members")));
     if (allowed) result[field] = profile[field as keyof Profile];
   }
   return {
@@ -24,6 +27,8 @@ export function visibleProfile(profile: Profile, viewer: "owner" | "member" | "c
     memberId: viewer === "owner" ? profile.memberId : undefined,
     discoverable: viewer === "owner" ? profile.discoverable : undefined,
     visibility: viewer === "owner" ? profile.visibility : undefined,
+    friendPermissions: viewer === "owner" ? profile.friendPermissions : undefined,
+    selectedFriends: viewer === "owner" ? profile.selectedFriends : undefined,
     ...result,
   };
 }

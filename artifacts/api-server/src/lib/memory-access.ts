@@ -10,7 +10,7 @@ export function collectionPost(collection: MemoryCollection): typeof postsTable.
     audience: collection.audience, circleId: collection.circleId, groupId: collection.groupId,
     status: "published", publishedAt: collection.sharedAt, createdAt: collection.createdAt, updatedAt: collection.updatedAt,
     isIntroduction: false, responseLabel: null, commentsOpen: false, visibleReactionCounts: false,
-    originalPostId: null, commentary: null, mediaAssetIds: [], deletedAt: null };
+    originalPostId: null, commentary: null, mediaAssetIds: [], friendRestrictions: {}, deletedAt: null };
 }
 export async function canViewCollection(collection: MemoryCollection, viewer: string) {
   // The owner can manage their own metadata after a circle closes; source access is

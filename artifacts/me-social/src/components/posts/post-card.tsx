@@ -139,6 +139,9 @@ export function PostCard({ post, isDetail = false, onEdit, onDeleted, onHidden, 
     }
   };
 
+  const canReact = post.permissions?.react !== false;
+  const canComment = post.permissions?.comment !== false;
+  const canShare = post.permissions?.share !== false;
   const guidanceLabel = formatGuidanceLabel(post.responseLabel);
 
   return (
@@ -245,6 +248,7 @@ export function PostCard({ post, isDetail = false, onEdit, onDeleted, onHidden, 
           size="sm"
           className={`rounded-full px-4 h-10 ${localReactions.includes('hear_you') ? 'bg-primary/10 text-primary hover:bg-primary/20' : 'text-muted-foreground hover:bg-secondary hover:text-foreground'}`}
           onClick={() => handleToggleReaction('hear_you')}
+          disabled={!canReact}
           data-testid="button-react-hear"
         >
           <Heart className={`w-4 h-4 me-2 ${localReactions.includes('hear_you') ? 'fill-current' : ''}`} />
@@ -255,13 +259,14 @@ export function PostCard({ post, isDetail = false, onEdit, onDeleted, onHidden, 
           size="sm"
           className={`rounded-full px-4 h-10 ${localReactions.includes('thank_you_for_sharing') ? 'bg-primary/10 text-primary hover:bg-primary/20' : 'text-muted-foreground hover:bg-secondary hover:text-foreground'}`}
           onClick={() => handleToggleReaction('thank_you_for_sharing')}
+          disabled={!canReact}
           data-testid="button-react-thanks"
         >
           <Heart className={`w-4 h-4 me-2 ${localReactions.includes('thank_you_for_sharing') ? 'fill-current' : ''}`} />
           Thank you {(localCounts['thank_you_for_sharing'] || 0) > 0 && <span className="ms-1 opacity-70">({localCounts['thank_you_for_sharing']})</span>}
         </Button>
 
-        {!isDetail && post.commentsOpen && (
+        {!isDetail && post.commentsOpen && canComment && (
           <Button variant="ghost" size="sm" asChild className="rounded-full px-4 h-10 text-muted-foreground hover:bg-secondary hover:text-foreground" data-testid="link-post-comments">
             <Link href={`/posts/${post.id}`}>
               <MessageCircle className="w-4 h-4 me-2" />
@@ -270,7 +275,7 @@ export function PostCard({ post, isDetail = false, onEdit, onDeleted, onHidden, 
           </Button>
         )}
 
-        {!post.commentsOpen && (
+        {(!post.commentsOpen || !canComment) && (
           <div className="ms-auto text-sm text-muted-foreground italic flex items-center px-2">
             Comments closed
           </div>
@@ -282,6 +287,7 @@ export function PostCard({ post, isDetail = false, onEdit, onDeleted, onHidden, 
           className="rounded-full px-4 h-10 ms-auto text-muted-foreground hover:bg-secondary hover:text-foreground"
           aria-label="Share options"
           onClick={() => setShareOpen(true)}
+          disabled={!canShare}
           data-testid="button-share-post"
         >
           <Share2 className="w-4 h-4 me-2" />

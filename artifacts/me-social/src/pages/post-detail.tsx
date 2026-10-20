@@ -54,7 +54,7 @@ export default function PostDetail() {
       />
 
       <div className="border-t border-border/50 pt-2">
-        <CommentList postId={post.id} commentsOpen={post.commentsOpen} groupId={post.groupId} />
+        <CommentList postId={post.id} commentsOpen={post.commentsOpen && post.permissions?.comment !== false} groupId={post.groupId} />
       </div>
     </div>
   );

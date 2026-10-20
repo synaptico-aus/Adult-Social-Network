@@ -22,6 +22,8 @@ export const profilesTable = pgTable("profiles", {
   dementiaConnection: text("dementia_connection"),
   roles: jsonb("roles").$type<string[]>().notNull().default([]),
   discoverable: boolean("discoverable").notNull().default(false),
+  friendPermissions: jsonb("friend_permissions").$type<Record<string, { view: boolean; react: boolean; comment: boolean; share: boolean }>>().notNull().default({}),
+  selectedFriends: jsonb("selected_friends").$type<Record<string, string[] | null>>().notNull().default({}),
   visibility: jsonb("visibility").$type<Record<string, typeof profileVisibility[number]>>().notNull().default({
     preferredName: "members", photoPath: "private", biography: "private", language: "private",
     broadRegion: "private", interests: "private", dementiaConnection: "private", roles: "private",

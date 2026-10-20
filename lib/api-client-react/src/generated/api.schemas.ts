@@ -1441,6 +1441,17 @@ export interface CircleHistoryInput {
   memberId: string;
 }
 
+export interface InteractionPermissions {
+  view: boolean;
+  react: boolean;
+  comment: boolean;
+  share: boolean;
+}
+
+export interface FriendPermissionMap {[key: string]: InteractionPermissions}
+
+export interface SelectedProfileFriends {[key: string]: string[] | null}
+
 export type PostInputAudience = typeof PostInputAudience[keyof typeof PostInputAudience];
 
 
@@ -1478,6 +1489,7 @@ export interface PostInput {
   responseLabel?: PostInputResponseLabel;
   commentsOpen?: boolean;
   visibleReactionCounts?: boolean;
+  friendRestrictions?: FriendPermissionMap;
   originalPostId?: string;
   /** @maxLength 10000 */
   commentary?: string;
@@ -1534,6 +1546,8 @@ export interface Post {
   status: PostStatus;
   commentsOpen: boolean;
   visibleReactionCounts: boolean;
+  friendRestrictions?: FriendPermissionMap;
+  permissions?: InteractionPermissions;
   createdAt: string;
   updatedAt: string;
   authorId?: string;
@@ -1788,6 +1802,8 @@ export interface Profile {
   id: string;
   /** @nullable */
   memberId?: string | null;
+  friendPermissions?: FriendPermissionMap;
+  selectedFriends?: SelectedProfileFriends;
   preferredName: string;
   /** @nullable */
   photoPath?: string | null;
@@ -2136,6 +2152,8 @@ export interface ProfileInput {
 export type PrivacySettingsVisibility = {[key: string]: 'private' | 'connections' | 'members'};
 
 export interface PrivacySettings {
+  friendPermissions?: FriendPermissionMap;
+  selectedFriends?: SelectedProfileFriends;
   discoverable?: boolean;
   visibility?: PrivacySettingsVisibility;
 }

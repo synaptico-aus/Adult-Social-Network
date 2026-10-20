@@ -1185,9 +1185,20 @@ export const InitiateDeletionResponse = zod.object({
 export const CancelDeletionResponse = zod.void()
 
 
+export const getOwnProfileResponseSelectedFriendsMaxOne = 500;
+
+
+
 export const GetOwnProfileResponse = zod.object({
   "id": zod.string(),
   "memberId": zod.string().nullish(),
+  "friendPermissions": zod.record(zod.string(), zod.object({
+  "view": zod.boolean(),
+  "react": zod.boolean(),
+  "comment": zod.boolean(),
+  "share": zod.boolean()
+})).optional(),
+  "selectedFriends": zod.record(zod.string(), zod.array(zod.string()).max(getOwnProfileResponseSelectedFriendsMaxOne).nullable()).optional(),
   "preferredName": zod.string(),
   "photoPath": zod.string().nullish(),
   "biography": zod.string().nullish(),
@@ -1217,9 +1228,20 @@ export const UpdateOwnProfileBody = zod.object({
   "visibility": zod.record(zod.string(), zod.enum(['private', 'connections', 'members'])).optional()
 })
 
+export const updateOwnProfileResponseSelectedFriendsMaxOne = 500;
+
+
+
 export const UpdateOwnProfileResponse = zod.object({
   "id": zod.string(),
   "memberId": zod.string().nullish(),
+  "friendPermissions": zod.record(zod.string(), zod.object({
+  "view": zod.boolean(),
+  "react": zod.boolean(),
+  "comment": zod.boolean(),
+  "share": zod.boolean()
+})).optional(),
+  "selectedFriends": zod.record(zod.string(), zod.array(zod.string()).max(updateOwnProfileResponseSelectedFriendsMaxOne).nullable()).optional(),
   "preferredName": zod.string(),
   "photoPath": zod.string().nullish(),
   "biography": zod.string().nullish(),
@@ -1231,11 +1253,22 @@ export const UpdateOwnProfileResponse = zod.object({
   "discoverable": zod.boolean().nullish(),
   "visibility": zod.record(zod.string(), zod.enum(['private', 'connections', 'members'])).optional()
 })
+
+
+export const previewProfileAsMemberResponseSelectedFriendsMaxOne = 500;
+
 
 
 export const PreviewProfileAsMemberResponse = zod.object({
   "id": zod.string(),
   "memberId": zod.string().nullish(),
+  "friendPermissions": zod.record(zod.string(), zod.object({
+  "view": zod.boolean(),
+  "react": zod.boolean(),
+  "comment": zod.boolean(),
+  "share": zod.boolean()
+})).optional(),
+  "selectedFriends": zod.record(zod.string(), zod.array(zod.string()).max(previewProfileAsMemberResponseSelectedFriendsMaxOne).nullable()).optional(),
   "preferredName": zod.string(),
   "photoPath": zod.string().nullish(),
   "biography": zod.string().nullish(),
@@ -1249,7 +1282,18 @@ export const PreviewProfileAsMemberResponse = zod.object({
 })
 
 
+export const updatePrivacySettingsBodySelectedFriendsMaxOne = 500;
+
+
+
 export const UpdatePrivacySettingsBody = zod.object({
+  "friendPermissions": zod.record(zod.string(), zod.object({
+  "view": zod.boolean(),
+  "react": zod.boolean(),
+  "comment": zod.boolean(),
+  "share": zod.boolean()
+})).optional(),
+  "selectedFriends": zod.record(zod.string(), zod.array(zod.string()).max(updatePrivacySettingsBodySelectedFriendsMaxOne).nullable()).optional(),
   "discoverable": zod.boolean().optional(),
   "visibility": zod.record(zod.string(), zod.enum(['private', 'connections', 'members'])).optional()
 })
@@ -1881,12 +1925,23 @@ export const SearchProfilesQueryParams = zod.object({
   "limit": zod.coerce.number().int().min(1).max(searchProfilesQueryLimitMax).optional()
 })
 
+export const searchProfilesResponseItemsItemProfileSelectedFriendsMaxOne = 500;
+
+
+
 export const SearchProfilesResponse = zod.object({
   "items": zod.array(zod.object({
   "memberId": zod.string(),
   "profile": zod.object({
   "id": zod.string(),
   "memberId": zod.string().nullish(),
+  "friendPermissions": zod.record(zod.string(), zod.object({
+  "view": zod.boolean(),
+  "react": zod.boolean(),
+  "comment": zod.boolean(),
+  "share": zod.boolean()
+})).optional(),
+  "selectedFriends": zod.record(zod.string(), zod.array(zod.string()).max(searchProfilesResponseItemsItemProfileSelectedFriendsMaxOne).nullable()).optional(),
   "preferredName": zod.string(),
   "photoPath": zod.string().nullish(),
   "biography": zod.string().nullish(),
@@ -1976,6 +2031,18 @@ export const ListOwnPostsResponse = zod.object({
   "status": zod.enum(['draft', 'published', 'deleted']),
   "commentsOpen": zod.boolean(),
   "visibleReactionCounts": zod.boolean(),
+  "friendRestrictions": zod.record(zod.string(), zod.object({
+  "view": zod.boolean(),
+  "react": zod.boolean(),
+  "comment": zod.boolean(),
+  "share": zod.boolean()
+})).optional(),
+  "permissions": zod.object({
+  "view": zod.boolean(),
+  "react": zod.boolean(),
+  "comment": zod.boolean(),
+  "share": zod.boolean()
+}).optional(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
   "authorId": zod.string().optional(),
@@ -2032,6 +2099,12 @@ export const CreatePostBody = zod.object({
   "responseLabel": zod.union([zod.literal('someone_to_listen'),zod.literal('shared_experiences'),zod.literal('practical_ideas'),zod.literal('something_uplifting'),zod.literal(null)]).nullish(),
   "commentsOpen": zod.boolean().optional(),
   "visibleReactionCounts": zod.boolean().optional(),
+  "friendRestrictions": zod.record(zod.string(), zod.object({
+  "view": zod.boolean(),
+  "react": zod.boolean(),
+  "comment": zod.boolean(),
+  "share": zod.boolean()
+})).optional(),
   "originalPostId": zod.string().optional(),
   "commentary": zod.string().max(createPostBodyCommentaryMax).optional(),
   "mediaAssetIds": zod.array(zod.string()).max(createPostBodyMediaAssetIdsMax).optional()
@@ -2057,6 +2130,18 @@ export const CreatePostResponse = zod.object({
   "status": zod.enum(['draft', 'published', 'deleted']),
   "commentsOpen": zod.boolean(),
   "visibleReactionCounts": zod.boolean(),
+  "friendRestrictions": zod.record(zod.string(), zod.object({
+  "view": zod.boolean(),
+  "react": zod.boolean(),
+  "comment": zod.boolean(),
+  "share": zod.boolean()
+})).optional(),
+  "permissions": zod.object({
+  "view": zod.boolean(),
+  "react": zod.boolean(),
+  "comment": zod.boolean(),
+  "share": zod.boolean()
+}).optional(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
   "authorId": zod.string().optional(),
@@ -2118,6 +2203,18 @@ export const GetPostResponse = zod.object({
   "status": zod.enum(['draft', 'published', 'deleted']),
   "commentsOpen": zod.boolean(),
   "visibleReactionCounts": zod.boolean(),
+  "friendRestrictions": zod.record(zod.string(), zod.object({
+  "view": zod.boolean(),
+  "react": zod.boolean(),
+  "comment": zod.boolean(),
+  "share": zod.boolean()
+})).optional(),
+  "permissions": zod.object({
+  "view": zod.boolean(),
+  "react": zod.boolean(),
+  "comment": zod.boolean(),
+  "share": zod.boolean()
+}).optional(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
   "authorId": zod.string().optional(),
@@ -2176,6 +2273,12 @@ export const UpdatePostBody = zod.object({
   "responseLabel": zod.union([zod.literal('someone_to_listen'),zod.literal('shared_experiences'),zod.literal('practical_ideas'),zod.literal('something_uplifting'),zod.literal(null)]).nullish(),
   "commentsOpen": zod.boolean().optional(),
   "visibleReactionCounts": zod.boolean().optional(),
+  "friendRestrictions": zod.record(zod.string(), zod.object({
+  "view": zod.boolean(),
+  "react": zod.boolean(),
+  "comment": zod.boolean(),
+  "share": zod.boolean()
+})).optional(),
   "originalPostId": zod.string().optional(),
   "commentary": zod.string().max(updatePostBodyCommentaryMax).optional(),
   "mediaAssetIds": zod.array(zod.string()).max(updatePostBodyMediaAssetIdsMax).optional()
@@ -2231,6 +2334,18 @@ export const GetFeedResponse = zod.object({
   "status": zod.enum(['draft', 'published', 'deleted']),
   "commentsOpen": zod.boolean(),
   "visibleReactionCounts": zod.boolean(),
+  "friendRestrictions": zod.record(zod.string(), zod.object({
+  "view": zod.boolean(),
+  "react": zod.boolean(),
+  "comment": zod.boolean(),
+  "share": zod.boolean()
+})).optional(),
+  "permissions": zod.object({
+  "view": zod.boolean(),
+  "react": zod.boolean(),
+  "comment": zod.boolean(),
+  "share": zod.boolean()
+}).optional(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
   "authorId": zod.string().optional(),
@@ -2404,6 +2519,18 @@ export const ListSavedPostsResponse = zod.object({
   "status": zod.enum(['draft', 'published', 'deleted']),
   "commentsOpen": zod.boolean(),
   "visibleReactionCounts": zod.boolean(),
+  "friendRestrictions": zod.record(zod.string(), zod.object({
+  "view": zod.boolean(),
+  "react": zod.boolean(),
+  "comment": zod.boolean(),
+  "share": zod.boolean()
+})).optional(),
+  "permissions": zod.object({
+  "view": zod.boolean(),
+  "react": zod.boolean(),
+  "comment": zod.boolean(),
+  "share": zod.boolean()
+}).optional(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
   "authorId": zod.string().optional(),
@@ -2670,6 +2797,18 @@ export const ListCirclePostsResponse = zod.object({
   "status": zod.enum(['draft', 'published', 'deleted']),
   "commentsOpen": zod.boolean(),
   "visibleReactionCounts": zod.boolean(),
+  "friendRestrictions": zod.record(zod.string(), zod.object({
+  "view": zod.boolean(),
+  "react": zod.boolean(),
+  "comment": zod.boolean(),
+  "share": zod.boolean()
+})).optional(),
+  "permissions": zod.object({
+  "view": zod.boolean(),
+  "react": zod.boolean(),
+  "comment": zod.boolean(),
+  "share": zod.boolean()
+}).optional(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
   "authorId": zod.string().optional(),
@@ -3266,6 +3405,18 @@ export const ListGroupPostsResponse = zod.object({
   "status": zod.enum(['draft', 'published', 'deleted']),
   "commentsOpen": zod.boolean(),
   "visibleReactionCounts": zod.boolean(),
+  "friendRestrictions": zod.record(zod.string(), zod.object({
+  "view": zod.boolean(),
+  "react": zod.boolean(),
+  "comment": zod.boolean(),
+  "share": zod.boolean()
+})).optional(),
+  "permissions": zod.object({
+  "view": zod.boolean(),
+  "react": zod.boolean(),
+  "comment": zod.boolean(),
+  "share": zod.boolean()
+}).optional(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
   "authorId": zod.string().optional(),
@@ -3675,6 +3826,18 @@ export const ListReelsResponse = zod.object({
   "status": zod.enum(['draft', 'published', 'deleted']),
   "commentsOpen": zod.boolean(),
   "visibleReactionCounts": zod.boolean(),
+  "friendRestrictions": zod.record(zod.string(), zod.object({
+  "view": zod.boolean(),
+  "react": zod.boolean(),
+  "comment": zod.boolean(),
+  "share": zod.boolean()
+})).optional(),
+  "permissions": zod.object({
+  "view": zod.boolean(),
+  "react": zod.boolean(),
+  "comment": zod.boolean(),
+  "share": zod.boolean()
+}).optional(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date(),
   "authorId": zod.string().optional(),

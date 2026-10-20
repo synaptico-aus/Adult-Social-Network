@@ -5,12 +5,16 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { FriendPermissionMap } from './friendPermissionMap';
 import type { ProfileVisibility } from './profileVisibility';
+import type { SelectedProfileFriends } from './selectedProfileFriends';
 
 export interface Profile {
   id: string;
   /** @nullable */
   memberId?: string | null;
+  friendPermissions?: FriendPermissionMap;
+  selectedFriends?: SelectedProfileFriends;
   preferredName: string;
   /** @nullable */
   photoPath?: string | null;

@@ -5,9 +5,13 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { FriendPermissionMap } from './friendPermissionMap';
 import type { PrivacySettingsVisibility } from './privacySettingsVisibility';
+import type { SelectedProfileFriends } from './selectedProfileFriends';
 
 export interface PrivacySettings {
+  friendPermissions?: FriendPermissionMap;
+  selectedFriends?: SelectedProfileFriends;
   discoverable?: boolean;
   visibility?: PrivacySettingsVisibility;
 }

@@ -5,6 +5,8 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { FriendPermissionMap } from './friendPermissionMap';
+import type { InteractionPermissions } from './interactionPermissions';
 import type { MediaAttachment } from './mediaAttachment';
 import type { PostAudience } from './postAudience';
 import type { PostMyReactionsItem } from './postMyReactionsItem';
@@ -27,6 +29,8 @@ export interface Post {
   status: PostStatus;
   commentsOpen: boolean;
   visibleReactionCounts: boolean;
+  friendRestrictions?: FriendPermissionMap;
+  permissions?: InteractionPermissions;
   createdAt: Date;
   updatedAt: Date;
   authorId?: string;

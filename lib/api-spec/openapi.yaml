@@ -2442,6 +2442,25 @@ components:
       type: object
       required: [memberId]
       properties: { memberId: { type: string } }
+    InteractionPermissions:
+      type: object
+      required: [view, react, comment, share]
+      additionalProperties: false
+      properties:
+        view: { type: boolean }
+        react: { type: boolean }
+        comment: { type: boolean }
+        share: { type: boolean }
+    FriendPermissionMap:
+      type: object
+      maxProperties: 500
+      additionalProperties: { $ref: "#/components/schemas/InteractionPermissions" }
+    SelectedProfileFriends:
+      type: object
+      additionalProperties:
+        type: [array, "null"]
+        maxItems: 500
+        items: { type: string }
     PostInput:
       type: object
       required: [body]
@@ -2454,6 +2473,7 @@ components:
         responseLabel: { type: ["string", "null"], enum: [someone_to_listen, shared_experiences, practical_ideas, something_uplifting, null] }
         commentsOpen: { type: boolean }
         visibleReactionCounts: { type: boolean }
+        friendRestrictions: { $ref: "#/components/schemas/FriendPermissionMap" }
         originalPostId: { type: string }
         commentary: { type: string, maxLength: 10000 }
         mediaAssetIds: { type: array, maxItems: 10, items: { type: string } }
@@ -2472,6 +2492,8 @@ components:
         status: { type: string, enum: [draft, published, deleted] }
         commentsOpen: { type: boolean }
         visibleReactionCounts: { type: boolean }
+        friendRestrictions: { $ref: "#/components/schemas/FriendPermissionMap" }
+        permissions: { $ref: "#/components/schemas/InteractionPermissions" }
         createdAt: { type: string, format: date-time }
         updatedAt: { type: string, format: date-time }
         authorId: { type: string }
@@ -2873,6 +2895,8 @@ components:
       properties:
         id: { type: string }
         memberId: { type: ["string", "null"] }
+        friendPermissions: { $ref: "#/components/schemas/FriendPermissionMap" }
+        selectedFriends: { $ref: "#/components/schemas/SelectedProfileFriends" }
         preferredName: { type: string }
         photoPath: { type: ["string", "null"] }
         biography: { type: ["string", "null"] }
@@ -2900,6 +2924,8 @@ components:
     PrivacySettings:
       type: object
       properties:
+        friendPermissions: { $ref: "#/components/schemas/FriendPermissionMap" }
+        selectedFriends: { $ref: "#/components/schemas/SelectedProfileFriends" }
         discoverable: { type: boolean }
         visibility: { type: object, additionalProperties: { type: string, enum: [private, connections, members] } }
     ThisIsMeCard:

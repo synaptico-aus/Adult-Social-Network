@@ -19,6 +19,7 @@ export const postsTable = pgTable("posts", {
   isIntroduction: boolean("is_introduction").notNull().default(false),
   responseLabel: text("response_label", { enum: responseLabels }),
   commentsOpen: boolean("comments_open").notNull().default(true),
+  friendRestrictions: jsonb("friend_restrictions").$type<Record<string, { view: boolean; react: boolean; comment: boolean; share: boolean }>>().notNull().default({}),
   visibleReactionCounts: boolean("visible_reaction_counts").notNull().default(true),
   status: text("status", { enum: postStatuses }).notNull().default("draft"),
   originalPostId: text("original_post_id"),

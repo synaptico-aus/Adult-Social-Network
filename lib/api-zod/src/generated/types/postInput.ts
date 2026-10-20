@@ -5,6 +5,7 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { FriendPermissionMap } from './friendPermissionMap';
 import type { PostInputAudience } from './postInputAudience';
 import type { PostInputResponseLabel } from './postInputResponseLabel';
 
@@ -21,6 +22,7 @@ export interface PostInput {
   responseLabel?: PostInputResponseLabel;
   commentsOpen?: boolean;
   visibleReactionCounts?: boolean;
+  friendRestrictions?: FriendPermissionMap;
   originalPostId?: string;
   /** @maxLength 10000 */
   commentary?: string;

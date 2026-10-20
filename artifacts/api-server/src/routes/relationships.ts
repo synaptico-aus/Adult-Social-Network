@@ -107,8 +107,8 @@ router.get("/friends/requests", async (req, res): Promise<void> => {
     decodeCursor(query.data.cursor) ? sql`${friendRequestsTable.id} > ${decodeCursor(query.data.cursor)}` : undefined,
   )).orderBy(asc(friendRequestsTable.id)).limit(query.data.limit + 1);
   const otherIds = rows.map((r) => r.requesterMemberId === member.id ? r.recipientMemberId : r.requesterMemberId);
-  const profiles = otherIds.length ? await db.select({ memberId: profilesTable.memberId, preferredName: profilesTable.preferredName }).from(profilesTable).where(inArray(profilesTable.memberId, otherIds)) : [];
-  const byId = new Map(profiles.map((p) => [p.memberId, p]));
+  const profiles = otherIds.length ? await db.select().from(profilesTable).where(inArray(profilesTable.memberId, otherIds)) : [];
+  const byId = new Map(profiles.map((p) => [p.memberId, { memberId: p.memberId, preferredName: visibleProfile(p, "member", member.id).preferredName ?? "Member" }]));
   const safeProfile = (memberId: string) => byId.get(memberId) ?? { memberId, preferredName: "Member" };
   const incoming = rows.slice(0, query.data.limit).filter((r) => r.recipientMemberId === member.id).map((r) => ({ ...r, profile: safeProfile(r.requesterMemberId) }));
   const outgoing = rows.slice(0, query.data.limit).filter((r) => r.requesterMemberId === member.id).map((r) => ({ ...r, profile: safeProfile(r.recipientMemberId) }));
@@ -123,8 +123,8 @@ router.get("/friends", async (req, res): Promise<void> => {
   const cursor = decodeCursor(query.data.cursor); if (query.data.cursor && !cursor) { res.status(400).json({ error: "Invalid cursor" }); return; }
   const rows = await db.select().from(friendshipsTable).where(and(or(eq(friendshipsTable.memberAId, member.id), eq(friendshipsTable.memberBId, member.id)), cursor ? sql`${friendshipsTable.id} > ${cursor}` : undefined)).orderBy(asc(friendshipsTable.id)).limit(query.data.limit + 1);
   const ids = rows.map((r) => r.memberAId === member.id ? r.memberBId : r.memberAId);
-  const profiles = ids.length ? await db.select({ memberId: profilesTable.memberId, preferredName: profilesTable.preferredName }).from(profilesTable).where(inArray(profilesTable.memberId, ids)) : [];
-  const names = new Map(profiles.map((p) => [p.memberId, p.preferredName]));
+  const profiles = ids.length ? await db.select().from(profilesTable).where(inArray(profilesTable.memberId, ids)) : [];
+  const names = new Map(profiles.map((p) => [p.memberId, visibleProfile(p, "connection", member.id).preferredName ?? "Member"]));
   const items = rows.slice(0, query.data.limit).map((r) => ({ id: r.id, memberId: r.memberAId === member.id ? r.memberBId : r.memberAId, preferredName: names.get(r.memberAId === member.id ? r.memberBId : r.memberAId) ?? "Member", direction: "mutual", status: "friends", createdAt: r.createdAt }));
   res.json({ items, nextCursor: rows.length > query.data.limit ? encodeCursor(items[items.length - 1].id) : null });
 });
@@ -144,7 +144,24 @@ router.post("/follows/:memberId", memberRateLimit(30, 60_000, "follow-mutation")
   if (!row) { res.status(409).json({ error: "Already following" }); return; } res.status(201).json(row);
 });
 router.delete("/follows/:memberId", async (req, res): Promise<void> => { const m = await own(req); if (!m) { res.status(401).end(); return; } await db.transaction(async (tx) => { await lockPair(tx, m.id, String(req.params.memberId)); await tx.delete(followsTable).where(and(eq(followsTable.followerMemberId, m.id), eq(followsTable.followedMemberId, String(req.params.memberId)))); }); res.sendStatus(204); });
-router.get("/follows", async (req, res): Promise<void> => { const m = await own(req); if (!m) { res.status(404).json({ error: "Onboarding required" }); return; } const query = z.object({ limit: z.coerce.number().int().min(1).max(50).default(50), cursor: z.string().max(200).optional() }).strict().safeParse(req.query); if (!query.success) { res.status(400).json({ error: "Invalid pagination" }); return; } const cursor = decodeCursor(query.data.cursor); if (query.data.cursor && !cursor) { res.status(400).json({ error: "Invalid cursor" }); return; } const rows = await db.select().from(followsTable).where(and(or(eq(followsTable.followerMemberId, m.id), eq(followsTable.followedMemberId, m.id)), cursor ? sql`${followsTable.id} > ${cursor}` : undefined)).orderBy(asc(followsTable.id)).limit(query.data.limit + 1); const ids = rows.map((r) => r.followerMemberId === m.id ? r.followedMemberId : r.followerMemberId); const profiles = ids.length ? await db.select({ memberId: profilesTable.memberId, preferredName: profilesTable.preferredName }).from(profilesTable).where(inArray(profilesTable.memberId, ids)) : []; const names = new Map(profiles.map((p) => [p.memberId, p.preferredName])); const items = rows.slice(0, query.data.limit).map((r) => { const outgoing = r.followerMemberId === m.id; const id = outgoing ? r.followedMemberId : r.followerMemberId; return { id: r.id, memberId: id, preferredName: names.get(id) ?? "Member", direction: outgoing ? "outgoing" : "incoming", status: "following", createdAt: r.createdAt }; }); res.json({ items, nextCursor: rows.length > query.data.limit ? encodeCursor(items[items.length - 1].id) : null }); });
+router.get("/follows", async (req, res): Promise<void> => {
+  const m = await own(req); if (!m) { res.status(404).json({ error: "Onboarding required" }); return; }
+  const query = z.object({ limit: z.coerce.number().int().min(1).max(50).default(50), cursor: z.string().max(200).optional() }).strict().safeParse(req.query);
+  if (!query.success) { res.status(400).json({ error: "Invalid pagination" }); return; }
+  const cursor = decodeCursor(query.data.cursor);
+  if (query.data.cursor && !cursor) { res.status(400).json({ error: "Invalid cursor" }); return; }
+  const rows = await db.select().from(followsTable).where(and(or(eq(followsTable.followerMemberId, m.id), eq(followsTable.followedMemberId, m.id)), cursor ? sql`${followsTable.id} > ${cursor}` : undefined)).orderBy(asc(followsTable.id)).limit(query.data.limit + 1);
+  const ids = rows.map((r) => r.followerMemberId === m.id ? r.followedMemberId : r.followerMemberId);
+  const profiles = ids.length ? await db.select().from(profilesTable).where(inArray(profilesTable.memberId, ids)) : [];
+  const connections = await db.select().from(friendshipsTable).where(or(eq(friendshipsTable.memberAId, m.id), eq(friendshipsTable.memberBId, m.id)));
+  const friends = new Set(connections.map((r) => r.memberAId === m.id ? r.memberBId : r.memberAId));
+  const names = new Map(profiles.map((p) => [p.memberId, visibleProfile(p, friends.has(p.memberId) ? "connection" : "member", m.id).preferredName ?? "Member"]));
+  const items = rows.slice(0, query.data.limit).map((r) => {
+    const outgoing = r.followerMemberId === m.id; const id = outgoing ? r.followedMemberId : r.followerMemberId;
+    return { id: r.id, memberId: id, preferredName: names.get(id) ?? "Member", direction: outgoing ? "outgoing" : "incoming", status: "following", createdAt: r.createdAt };
+  });
+  res.json({ items, nextCursor: rows.length > query.data.limit ? encodeCursor(items[items.length - 1].id) : null });
+});
 
 router.patch("/account/settings", async (req, res): Promise<void> => {
   const m = await own(req); if (!m) { res.status(404).json({ error: "Onboarding required" }); return; }
@@ -168,8 +185,8 @@ router.get("/search", async (req, res): Promise<void> => {
   const friends = new Set(friendshipRows.map((r) => r.memberAId === m.id ? r.memberBId : r.memberAId));
   const requestRows = await db.select().from(friendRequestsTable).where(and(eq(friendRequestsTable.status, "pending"), or(eq(friendRequestsTable.requesterMemberId, m.id), eq(friendRequestsTable.recipientMemberId, m.id))));
   const followRows = await db.select().from(followsTable).where(or(eq(followsTable.followerMemberId, m.id), eq(followsTable.followedMemberId, m.id)));
-  const items = rows.slice(0, limit).map((profile) => {
-    const safe = visibleProfile(profile, friends.has(profile.memberId) ? "connection" : "member");
+  const items = rows.slice(0, limit).filter((profile) => visibleProfile(profile, friends.has(profile.memberId) ? "connection" : "member", m.id).preferredName !== undefined).map((profile) => {
+    const safe = visibleProfile(profile, friends.has(profile.memberId) ? "connection" : "member", m.id);
     delete safe.photoPath;
     const request = requestRows.find((r) => r.requesterMemberId === profile.memberId || r.recipientMemberId === profile.memberId);
     return {
@@ -200,10 +217,11 @@ router.get("/discovery/suggestions", async (req, res): Promise<void> => {
   const followRows = await db.select().from(followsTable).where(or(eq(followsTable.followerMemberId, m.id), eq(followsTable.followedMemberId, m.id)));
   followRows.forEach((r) => excluded.add(r.followerMemberId === m.id ? r.followedMemberId : r.followerMemberId));
   const rows = await db.select().from(profilesTable).where(and(eq(profilesTable.discoverable, true), sql`${profilesTable.visibility}->>'preferredName' = 'members'`)).limit(200);
-  const ranked = rows.filter((r) => !excluded.has(r.memberId)).map((r) => {
-    const targetInterestsVisible = r.visibility?.interests === "members";
-    const targetLanguageVisible = r.visibility?.language === "members";
-    const targetRegionVisible = r.visibility?.broadRegion === "members";
+  const ranked = rows.filter((r) => !excluded.has(r.memberId) && visibleProfile(r, "member", m.id).preferredName !== undefined).map((r) => {
+    const visible = visibleProfile(r, "member", m.id);
+    const targetInterestsVisible = visible.interests !== undefined;
+    const targetLanguageVisible = visible.language !== undefined;
+    const targetRegionVisible = visible.broadRegion !== undefined;
     const shared = targetInterestsVisible ? (me.interests ?? []).filter((interest) => (r.interests ?? []).includes(interest)) : [];
     const sameLanguage = targetLanguageVisible && !!me.language && me.language === r.language;
     const sameRegion = targetRegionVisible && !!me.broadRegion && me.broadRegion === r.broadRegion;

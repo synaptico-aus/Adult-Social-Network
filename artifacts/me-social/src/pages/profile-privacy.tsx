@@ -20,6 +20,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { FriendSettingsSection } from "@/components/friends/friend-settings-section";
 
 export default function ProfilePrivacy() {
   const queryClient = useQueryClient();
@@ -103,6 +104,7 @@ export default function ProfilePrivacy() {
           visibility: visibility as any
         }
       });
+      queryClient.invalidateQueries({ queryKey: getGetOwnProfileQueryKey() });
       toast({ title: "Visibility settings saved" });
     } catch (e) {
       toast({ title: "Error saving visibility", variant: "destructive" });
@@ -333,6 +335,8 @@ export default function ProfilePrivacy() {
           </div>
         </div>
       </section>
+
+      <FriendSettingsSection profile={profile} />
 
       {/* Verification Section */}
       <section className="bg-card border border-border p-8 md:p-10 rounded-[2rem] shadow-sm">

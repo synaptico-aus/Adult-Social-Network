@@ -18,6 +18,9 @@ import { MediaUploader } from "@/components/media/media-uploader";
 import { v4 as uuidv4 } from "uuid";
 import { DraftRecovery } from "@/components/posts/draft-recovery";
 import { canRestoreDraftHere } from "@/lib/draft-scope";
+import { useAllFriends } from "@/hooks/use-all-friends";
+import { FriendPermissionRows } from "@/components/friends/friend-permission-rows";
+import { useGetOwnProfile, getGetOwnProfileQueryKey, type FriendPermissionMap } from "@workspace/api-client-react";
 import { postOperationError } from "@/lib/post-errors";
 
 const formSchema = z.object({
@@ -65,6 +68,10 @@ export function PostComposer({ post, onSuccess, isStandalone = false, circleId, 
     },
   });
 
+  const [friendRestrictions, setFriendRestrictions] = useState<FriendPermissionMap>(() => ({ ...(post?.friendRestrictions ?? {}) }));
+  const { data: allFriends, isError: friendsError, refetch: refetchFriends } = useAllFriends();
+  const { data: ownProfile } = useGetOwnProfile({ query: { queryKey: getGetOwnProfileQueryKey() } });
+  const defaultPerms = ownProfile?.friendPermissions ?? {};
   const createPost = useCreatePost();
   const updatePost = useUpdatePost();
   const publishPost = usePublishPost();
@@ -116,6 +123,7 @@ export function PostComposer({ post, onSuccess, isStandalone = false, circleId, 
         circleId: values.audience === "my_circle" ? values.circleId : null,
         groupId: values.audience === "this_group" ? values.groupId : null,
         isIntroduction: values.audience === "this_group" ? values.isIntroduction : false,
+        friendRestrictions,
       };
 
       const existingId = post?.id ?? savedDraftId;
@@ -141,6 +149,7 @@ export function PostComposer({ post, onSuccess, isStandalone = false, circleId, 
       }
 
       form.reset();
+      setFriendRestrictions({});
       setSavedDraftId(null);
       setPublicationUncertain(false);
       setDraftClearTick(t => t + 1);
@@ -176,6 +185,7 @@ export function PostComposer({ post, onSuccess, isStandalone = false, circleId, 
         circleId: values.audience === "my_circle" ? values.circleId : null,
         groupId: values.audience === "this_group" ? values.groupId : null,
         isIntroduction: values.audience === "this_group" ? values.isIntroduction : false,
+        friendRestrictions,
       };
 
       const existingId = post?.id ?? savedDraftId;
@@ -310,6 +320,18 @@ export function PostComposer({ post, onSuccess, isStandalone = false, circleId, 
               />
             )}
           </div>
+
+          <details className="rounded-2xl bg-secondary/30 p-4" data-testid="details-friend-restrictions">
+            <summary className="cursor-pointer font-medium">Restrict for specific friends</summary>
+            <p className="text-sm text-muted-foreground my-3">
+              Unchecking only removes an ability for this post. It never grants anything your friend defaults deny, and your audience choice still applies.
+            </p>
+            {friendsError ? (
+              <p role="alert" className="text-sm text-destructive">Could not load friends. <button type="button" className="underline" onClick={() => refetchFriends()}>Retry</button></p>
+            ) : (
+              <FriendPermissionRows friends={allFriends ?? []} value={friendRestrictions} onChange={setFriendRestrictions} caps={defaultPerms} idPrefix="post" disabled={isSaving} />
+            )}
+          </details>
 
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-border/50">
             <div className="flex flex-wrap items-center gap-3">
