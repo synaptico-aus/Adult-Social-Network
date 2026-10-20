@@ -33,6 +33,7 @@ export default function UnderstandingDementiaPage() {
   return (
     <div className="flex flex-col gap-8 md:gap-10 animate-in fade-in duration-500">
       <PageHeader
+        className="education-light-header"
         title="Understanding Dementia"
         description="Clear, vetted, and dignified information to help you and your family navigate the realities of dementia. These materials are for educational purposes and are not medical advice."
       />

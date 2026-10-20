@@ -110,6 +110,12 @@
 }
 
 @layer base {
+  /* Yellow remains on purple cards; use dark text on the white education page. */
+  .education-light-header {
+    --foreground: 270 60% 24%;
+    --muted-foreground: 270 30% 30%;
+  }
+
   * {
     @apply border-border;
   }

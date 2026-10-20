@@ -20,3 +20,15 @@ be white; keep dark backgrounds limited to text-bearing surfaces.
 **How to apply:** Preserve this palette across Me's pages, controls and branding
 when making future visual changes. Keep yellow on dark surfaces rather than
 returning it to low-contrast white/light purple or substituting dark gold.
+
+The user subsequently asked to replace the black Understanding Dementia page
+background with white. This is an exception to the earlier dark text-bearing
+page treatment: keep its purple cards/yellow writing, but use readable dark
+purple for the heading and introductory text on white.
+
+**Why:** The user said they did not like the black background and supplied the
+education-library screenshot. Dark purple on white avoids yellow-on-white
+contrast problems.
+
+**How to apply:** Do not restore the black education-page background when
+applying the earlier yellow-font guidance.

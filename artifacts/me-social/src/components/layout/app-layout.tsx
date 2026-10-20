@@ -173,6 +173,8 @@ function RightPanel() {
 
 export function AppLayout({ children }: { children: ReactNode }) {
   const { isSimpleView } = useSimpleView();
+  const [location] = useLocation();
+  const isEducationLibrary = location === "/understanding-dementia";
   
   return (
     <div className="min-h-[100dvh] flex bg-white w-full">
@@ -180,7 +182,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
       <div className="flex-1 flex flex-col min-w-0">
         <MobileHeader />
         <main className="flex-1 overflow-y-auto overflow-x-hidden pb-48 md:pb-8">
-           <div className="max-w-3xl mx-auto w-full p-4 md:p-8 lg:p-10 xl:p-12 min-w-0 bg-background rounded-b-2xl">
+           <div className={`max-w-3xl mx-auto w-full p-4 md:p-8 lg:p-10 xl:p-12 min-w-0 rounded-b-2xl ${isEducationLibrary ? "bg-white" : "bg-background"}`}>
              {children}
            </div>
         </main>
