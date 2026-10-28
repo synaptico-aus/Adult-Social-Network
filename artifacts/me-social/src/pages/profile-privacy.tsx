@@ -106,6 +106,7 @@ export default function ProfilePrivacy() {
       });
       queryClient.invalidateQueries({ queryKey: getGetOwnProfileQueryKey() });
       toast({ title: "Visibility settings saved" });
+      queryClient.invalidateQueries({ predicate: (q) => String(q.queryKey[0]).startsWith("/api/profile/view-as-friend/") });
     } catch (e) {
       toast({ title: "Error saving visibility", variant: "destructive" });
     }

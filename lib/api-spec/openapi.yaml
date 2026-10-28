@@ -563,6 +563,16 @@ paths:
       tags: [profile]
       responses:
         "200": { description: Visibility-filtered preview, content: { application/json: { schema: { $ref: "#/components/schemas/Profile" } } } }
+  /profile/view-as-friend/{friendId}:
+    get:
+      operationId: previewProfileAsFriend
+      tags: [profile]
+      parameters:
+        - { name: friendId, in: path, required: true, schema: { type: string } }
+        - { name: offset, in: query, schema: { type: integer, minimum: 0, maximum: 1000000, default: 0 } }
+      responses:
+        "200": { description: Owner-only live policy preview, content: { application/json: { schema: { $ref: "#/components/schemas/FriendPrivacyPreview" } } } }
+        "404": { description: No current unblocked connection or owner profile }
   /privacy:
     patch:
       operationId: updatePrivacySettings
@@ -2447,6 +2457,37 @@ components:
       type: object
       required: [memberId]
       properties: { memberId: { type: string } }
+    FriendPrivacyPreview:
+      type: object
+      required: [friendId, fields, posts, nextOffset, checkedAt]
+      properties:
+        friendId: { type: string }
+        checkedAt: { type: string, format: date-time }
+        nextOffset: { type: [integer, "null"] }
+        fields:
+          type: array
+          items: { $ref: "#/components/schemas/FriendPreviewField" }
+        posts:
+          type: array
+          items: { $ref: "#/components/schemas/FriendPreviewPost" }
+    FriendPreviewField:
+      type: object
+      required: [field, visible]
+      properties:
+        field: { type: string }
+        visible: { type: boolean }
+        value: {}
+    FriendPreviewPost:
+      type: object
+      required: [id, body, audience, status, visible, permissions, mediaCount]
+      properties:
+        id: { type: string }
+        body: { type: [string, "null"] }
+        audience: { type: string }
+        status: { type: string }
+        visible: { type: boolean }
+        mediaCount: { type: integer }
+        permissions: { $ref: "#/components/schemas/InteractionPermissions" }
     InteractionPermissions:
       type: object
       required: [view, react, comment, share]

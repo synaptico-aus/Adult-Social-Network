@@ -47,7 +47,7 @@ function cursor(v: unknown): { at: Date; id: string } | undefined {
   return undefined;
 }
 function encodeCursor(row: { createdAt: Date; id: string }) { return Buffer.from(JSON.stringify({ at: row.createdAt.toISOString(), id: row.id }), "utf8").toString("base64url"); }
-async function blocked(a: string, b: string, source: QuerySource = db) {
+export async function blocked(a: string, b: string, source: QuerySource = db) {
   return !!(await source.select({ id: safetyRelationshipsTable.id }).from(safetyRelationshipsTable).where(and(
     eq(safetyRelationshipsTable.kind, "block"),
     or(
@@ -56,7 +56,7 @@ async function blocked(a: string, b: string, source: QuerySource = db) {
     ),
   )).limit(1))[0];
 }
-async function friendship(a: string, b: string, source: QuerySource = db) {
+export async function friendship(a: string, b: string, source: QuerySource = db) {
   const [x, y] = pair(a, b);
   return !!(await source.select({ id: friendshipsTable.id }).from(friendshipsTable).where(and(eq(friendshipsTable.memberAId, x), eq(friendshipsTable.memberBId, y))).limit(1))[0];
 }

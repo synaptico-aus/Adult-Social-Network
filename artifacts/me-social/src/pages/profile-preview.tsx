@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/shared/page-header";
 import { ArrowLeft, Loader2, MapPin, Globe, Activity, Heart, ShieldAlert } from "lucide-react";
 import { Link } from "wouter";
 import { getPhotoUrl } from "@/hooks/use-profile-photo";
+import { FriendPrivacyPreview } from "@/components/friends/friend-privacy-preview";
 
 export default function ProfilePreview() {
   const { data: profile, isLoading, error } = usePreviewProfileAsMember({
@@ -44,6 +45,7 @@ export default function ProfilePreview() {
         />
       </div>
 
+      <FriendPrivacyPreview />
       <div className="bg-card border border-border rounded-[2rem] overflow-hidden shadow-sm">
         {/* Banner area */}
         <div className="h-32 bg-primary/10 w-full" />

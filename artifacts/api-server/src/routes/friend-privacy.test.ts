@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { and, eq, inArray, or } from "drizzle-orm";
 import { db, pool, membersTable, profilesTable, postsTable, friendshipsTable,
-  moderationRecordsTable, notificationEventsTable, mediaAssetsTable, consentHistoryTable, friendRequestsTable } from "@workspace/db";
+  moderationRecordsTable, notificationEventsTable, mediaAssetsTable, consentHistoryTable, friendRequestsTable, safetyRelationshipsTable } from "@workspace/db";
 import { createApp } from "../app";
 import { canReadMedia } from "../lib/media-authority";
 import { visibleProfile, defaultVisibility } from "../lib/profile-policy";
@@ -53,6 +53,7 @@ before(async () => {
   base = `http://127.0.0.1:${(server.address() as { port: number }).port}`;
 });
 beforeEach(async () => {
+  await db.delete(safetyRelationshipsTable).where(inArray(safetyRelationshipsTable.actorMemberId, people));
   await db.delete(notificationEventsTable).where(or(inArray(notificationEventsTable.actorMemberId, people), inArray(notificationEventsTable.recipientMemberId, people)));
   await db.delete(moderationRecordsTable).where(inArray(moderationRecordsTable.subjectMemberId, people));
   await db.delete(postsTable).where(inArray(postsTable.authorMemberId, people));
@@ -62,6 +63,7 @@ beforeEach(async () => {
 });
 after(async () => {
   try {
+  await db.delete(safetyRelationshipsTable).where(inArray(safetyRelationshipsTable.actorMemberId, people));
   await db.delete(notificationEventsTable).where(or(inArray(notificationEventsTable.actorMemberId, people), inArray(notificationEventsTable.recipientMemberId, people)));
   await db.delete(moderationRecordsTable).where(inArray(moderationRecordsTable.subjectMemberId, people));
   await db.delete(friendshipsTable).where(or(inArray(friendshipsTable.memberAId, people), inArray(friendshipsTable.memberBId, people)));
@@ -187,6 +189,82 @@ async function stillPending(id: string) {
     eq(friendshipsTable.memberBId, [alice, bob].sort()[1]),
   ))).length, 0);
 }
+
+test("friend preview is owner-scoped and matches live profile, audiences and effective actions", async () => {
+  await connect();
+  await db.update(profilesTable).set({ biography: "Owner biography", interests: ["Test interest"] }).where(eq(profilesTable.memberId, alice));
+  await call("/privacy", alice, "PATCH", {
+    visibility: { ...defaultVisibility(), biography: "connections", interests: "members" },
+    selectedFriends: { biography: [bob], interests: [carol] },
+  });
+  const shown = await makePost(alice, { audience: "friends", commentsOpen: false });
+  const privatePost = await makePost(alice, { audience: "only_me" });
+  const restricted = await makePost(alice, { friendRestrictions: { [bob]: { ...allPermissions, react: false } } });
+  const draft = await call("/posts", alice, "POST", { body: "Owner draft", audience: "friends" });
+  await makePost(bob, { body: "Friend content must never be returned" });
+  await defaults({ ...allPermissions, share: false });
+  const preview = await call(`/profile/view-as-friend/${bob}`, alice);
+  assert.equal(preview.status, 200);
+  assert.equal(preview.body.friendId, bob);
+  assert.equal(preview.body.fields.find((f: any) => f.field === "biography").value, "Owner biography");
+  assert.deepEqual(preview.body.fields.find((f: any) => f.field === "interests"), { field: "interests", visible: false, value: null });
+  const post = preview.body.posts.find((p: any) => p.id === shown);
+  assert.equal(post.visible, true);
+  assert.deepEqual(post.permissions, (await call(`/posts/${shown}`, bob)).body.permissions);
+  assert.deepEqual(post.permissions, { view: true, react: true, comment: false, share: false });
+  assert.equal(preview.body.posts.find((p: any) => p.id === restricted).permissions.react, false);
+  for (const id of [privatePost, draft.body.id]) {
+    const hidden = preview.body.posts.find((p: any) => p.id === id);
+    assert.equal(hidden.visible, false);
+    assert.deepEqual(hidden.permissions, { view: false, react: false, comment: false, share: false });
+  }
+  assert.equal(preview.body.posts.length, 4, "only signed-in owner's posts are enumerated");
+  assert.equal((await call(`/profile/view-as-friend/${bob}`, "")).status, 401);
+  assert.equal((await call(`/profile/view-as-friend/${alice}`, alice)).status, 404);
+  assert.equal((await call(`/profile/view-as-friend/${carol}`, alice)).status, 404);
+  assert.equal((await call(`/profile/view-as-friend/${bob}?ownerId=${carol}`, alice)).status, 400);
+  assert.equal((await call(`/profile/view-as-friend/${bob}?offset=-1`, alice)).status, 400);
+  assert.equal((await call(`/profile/view-as-friend/${bob}?offset=20`, alice)).body.posts.length, 0);
+});
+
+test("preview rechecks changed defaults, removed connections and blocks in either direction", async () => {
+  await connect();
+  const id = await makePost(alice);
+  assert.equal((await call(`/profile/view-as-friend/${bob}`, alice)).body.posts[0].visible, true);
+  await defaults({ ...allPermissions, view: false });
+  let preview = await call(`/profile/view-as-friend/${bob}`, alice);
+  assert.equal(preview.body.posts.find((p: any) => p.id === id).visible, false);
+  assert.ok(preview.body.fields.every((f: any) => !f.visible));
+  await defaults(allPermissions);
+  preview = await call(`/profile/view-as-friend/${bob}`, alice);
+  assert.equal(preview.body.posts[0].visible, true);
+  await db.delete(friendshipsTable).where(inArray(friendshipsTable.memberAId, people));
+  assert.equal((await call(`/profile/view-as-friend/${bob}`, alice)).status, 404);
+  await connect();
+  for (const [actorMemberId, targetMemberId] of [[alice, bob], [bob, alice]]) {
+    const blockId = randomUUID();
+    await db.insert(safetyRelationshipsTable).values({ id: blockId, actorMemberId, targetMemberId, kind: "block" });
+    assert.equal((await call(`/profile/view-as-friend/${bob}`, alice)).status, 404);
+    await db.delete(safetyRelationshipsTable).where(eq(safetyRelationshipsTable.id, blockId));
+  }
+  assert.equal((await call(`/profile/view-as-friend/${bob}`, alice)).status, 200);
+});
+
+test("preview pages cover all owned posts without exposing friend's bodies or media URLs", async () => {
+  await connect();
+  await db.insert(postsTable).values(Array.from({ length: 23 }, (_, i) => ({
+    id: randomUUID(), authorMemberId: alice, body: `Preview pagination ${i}`, audience: "friends" as const,
+    status: "draft" as const,
+  })));
+  const first = await call(`/profile/view-as-friend/${bob}`, alice);
+  assert.equal(first.body.posts.length, 20);
+  assert.equal(first.body.nextOffset, 20);
+  const second = await call(`/profile/view-as-friend/${bob}?offset=${first.body.nextOffset}`, alice);
+  assert.equal(second.body.posts.length, 3);
+  assert.equal(second.body.nextOffset, null);
+  assert.equal(new Set([...first.body.posts, ...second.body.posts].map((p: any) => p.id)).size, 23);
+  assert.ok(first.body.posts.every((p: any) => !("mediaAssets" in p) && !("originalPost" in p)));
+});
 const restricted = { view: true, react: false, comment: false, share: false };
 
 test("acceptance atomically saves reviewed caps, preserves other friends and applies to older posts", async () => {

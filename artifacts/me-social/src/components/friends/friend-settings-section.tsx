@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useAllFriends } from "@/hooks/use-all-friends";
 import { FriendPermissionRows } from "./friend-permission-rows";
+import { FriendPrivacyPreview } from "./friend-privacy-preview";
 
 const FIELDS: Record<string, string> = {
   preferredName: "Preferred Name", photoPath: "Profile Photo", biography: "Biography", language: "Language",
@@ -70,6 +71,7 @@ export function FriendSettingsSection({ profile }: { profile?: Profile }) {
         queryClient.invalidateQueries({ queryKey: getGetFeedQueryKey() }),
         queryClient.invalidateQueries({ queryKey: getListOwnPostsQueryKey() }),
         queryClient.invalidateQueries({ queryKey: getListSavedPostsQueryKey() }),
+        queryClient.invalidateQueries({ predicate: (q) => String(q.queryKey[0]).startsWith("/api/profile/view-as-friend/") }),
       ]);
       toast({ title: "Friend settings saved" });
     } catch {
@@ -90,6 +92,7 @@ export function FriendSettingsSection({ profile }: { profile?: Profile }) {
         </p>
       </div>
 
+      <FriendPrivacyPreview key={accountId} unsaved={permsDirty || selDirty} />
       {isLoading && <div className="flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-primary" aria-label="Loading friends" /></div>}
       {isError && (
         <div role="alert" className="p-4 rounded-xl border border-destructive/40 text-sm flex items-center justify-between gap-4">

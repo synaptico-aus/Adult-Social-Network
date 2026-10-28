@@ -81,6 +81,7 @@ import type {
   ExperienceInput,
   ExperiencePreferences,
   FriendAcceptancePrivacy,
+  FriendPrivacyPreview,
   FriendRequestLists,
   FriendRequestMutationResponse,
   GetCountryResourcesParams,
@@ -163,6 +164,7 @@ import type {
   PaginatedPosts,
   Post,
   PostInput,
+  PreviewProfileAsFriendParams,
   PrivacySettings,
   Profile,
   ProfileInput,
@@ -4273,6 +4275,89 @@ export function usePreviewProfileAsMember<TData = Awaited<ReturnType<typeof prev
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getPreviewProfileAsMemberQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getPreviewProfileAsFriendUrl = (friendId: string,
+    params?: PreviewProfileAsFriendParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/profile/view-as-friend/${friendId}?${stringifiedParams}` : `/api/profile/view-as-friend/${friendId}`
+}
+
+export const previewProfileAsFriend = async (friendId: string,
+    params?: PreviewProfileAsFriendParams, options?: Parameters<typeof customFetch>[1]): Promise<FriendPrivacyPreview> => {
+
+  return customFetch<FriendPrivacyPreview>(getPreviewProfileAsFriendUrl(friendId,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getPreviewProfileAsFriendQueryKey = (friendId: string,
+    params?: PreviewProfileAsFriendParams,) => {
+    return [
+    `/api/profile/view-as-friend/${friendId}`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getPreviewProfileAsFriendQueryOptions = <TData = Awaited<ReturnType<typeof previewProfileAsFriend>>, TError = ErrorType<void>>(friendId: string,
+    params?: PreviewProfileAsFriendParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof previewProfileAsFriend>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getPreviewProfileAsFriendQueryKey(friendId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof previewProfileAsFriend>>> = ({ signal }) => previewProfileAsFriend(friendId,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: friendId !== null && friendId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof previewProfileAsFriend>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type PreviewProfileAsFriendQueryResult = NonNullable<Awaited<ReturnType<typeof previewProfileAsFriend>>>
+export type PreviewProfileAsFriendQueryError = ErrorType<void>
+
+
+
+export function usePreviewProfileAsFriend<TData = Awaited<ReturnType<typeof previewProfileAsFriend>>, TError = ErrorType<void>>(
+ friendId: string,
+    params?: PreviewProfileAsFriendParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof previewProfileAsFriend>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getPreviewProfileAsFriendQueryOptions(friendId,params,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

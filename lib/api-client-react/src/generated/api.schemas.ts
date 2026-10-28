@@ -1441,6 +1441,12 @@ export interface CircleHistoryInput {
   memberId: string;
 }
 
+export interface FriendPreviewField {
+  field: string;
+  visible: boolean;
+  value?: unknown;
+}
+
 export interface InteractionPermissions {
   view: boolean;
   react: boolean;
@@ -1454,6 +1460,26 @@ export interface InteractionPermissions {
 export interface FriendAcceptancePrivacy {
   permissions: InteractionPermissions;
   expectedPermissions: InteractionPermissions;
+}
+
+export interface FriendPreviewPost {
+  id: string;
+  /** @nullable */
+  body: string | null;
+  audience: string;
+  status: string;
+  visible: boolean;
+  mediaCount: number;
+  permissions: InteractionPermissions;
+}
+
+export interface FriendPrivacyPreview {
+  friendId: string;
+  checkedAt: string;
+  /** @nullable */
+  nextOffset: number | null;
+  fields: FriendPreviewField[];
+  posts: FriendPreviewPost[];
 }
 
 export interface FriendPermissionMap {[key: string]: InteractionPermissions}
@@ -3182,6 +3208,14 @@ export type ListResourcesParams = {
 q?: string;
 category?: string;
 region?: string;
+};
+
+export type PreviewProfileAsFriendParams = {
+/**
+ * @minimum 0
+ * @maximum 1000000
+ */
+offset?: number;
 };
 
 export type ListFriendRequestsParams = {

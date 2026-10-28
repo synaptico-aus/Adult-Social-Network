@@ -13,10 +13,10 @@ import { Readable } from "node:stream";
 import { exportOperations } from "../lib/operations-data";
 import { moduleExportManifest } from "../lib/module-export";
 import "../lib/profile-deletion-hook";
-import { visiblePost } from "./posts";
+import { blocked, friendship, visiblePost } from "./posts";
 import { exportMemberMemories } from "../lib/memory-access";
 import { exportExperience } from "../lib/experience-data";
-import { friendPermissionSchema, selectedFriendsSchema, lockPrivacyUpdate, samePermissionMap } from "../lib/friend-permissions";
+import { friendPermissionSchema, selectedFriendsSchema, lockPrivacyUpdate, intersectPermissions, permissionsFor, samePermissionMap } from "../lib/friend-permissions";
 
 const router: IRouter = Router();
 router.use("/profile", requireAuth);
@@ -123,6 +123,46 @@ router.get("/profile/view-as-member", async (req, res): Promise<void> => {
   const profile = (await db.select().from(profilesTable).where(eq(profilesTable.memberId, member.id)).limit(1))[0];
   if (!profile) { res.json({}); return; }
   res.json(visibleProfile(profile, "member"));
+});
+
+// The authenticated owner is always the subject. The selected ID is only an
+// input to existing policy checks, never an acting identity or a content owner.
+router.get("/profile/view-as-friend/:friendId", async (req, res): Promise<void> => {
+  res.set("Cache-Control", "private, no-store");
+  const member = await ownMember(req);
+  if (!member) { res.status(404).json({ error: "Onboarding required" }); return; }
+  const parsed = z.object({ offset: z.coerce.number().int().min(0).max(1000000).default(0) }).strict().safeParse(req.query);
+  if (!parsed.success) { res.status(400).json({ error: "Invalid preview page" }); return; }
+  const friendId = String(req.params.friendId);
+  const result = await db.transaction(async (tx) => {
+    if (friendId === member.id || await blocked(member.id, friendId, tx) ||
+      !await friendship(member.id, friendId, tx)) return null;
+    const [profile] = await tx.select().from(profilesTable).where(eq(profilesTable.memberId, member.id)).limit(1);
+    if (!profile) return null;
+    const filtered = visibleProfile(profile, "connection", friendId);
+    const fields = PROFILE_FIELDS.map((field) => ({
+      field, visible: Object.hasOwn(filtered, field),
+      value: Object.hasOwn(filtered, field) ? filtered[field] : null,
+    }));
+    const rows = await tx.select().from(postsTable).where(eq(postsTable.authorMemberId, member.id))
+      .orderBy(desc(postsTable.createdAt), desc(postsTable.id)).limit(21).offset(parsed.data.offset);
+    const posts = await Promise.all(rows.slice(0, 20).map(async (post) => {
+      const visible = await visiblePost(post, friendId, tx);
+      // Authorship must not bypass a circle/group access revocation for the
+      // owner either. Never restore inaccessible source text via a preview.
+      const ownerCanRead = await visiblePost(post, member.id, tx);
+      const permissions = visible ? await permissionsFor(post, friendId, tx) : intersectPermissions({ view: false, react: false, comment: false, share: false });
+      return {
+        id: post.id, body: ownerCanRead ? post.body : null,
+        audience: post.audience, status: post.status, visible, permissions,
+        mediaCount: ownerCanRead ? post.mediaAssetIds?.length ?? 0 : 0,
+      };
+    }));
+    return { friendId, fields, posts, nextOffset: rows.length > 20 ? parsed.data.offset + 20 : null,
+      checkedAt: new Date().toISOString() };
+  }, { isolationLevel: "repeatable read", accessMode: "read only" });
+  if (!result) { res.status(404).json({ error: "Preview unavailable. Choose a current connected friend with no block in either direction." }); return; }
+  res.json(result);
 });
 
 router.patch("/privacy", async (req, res): Promise<void> => {

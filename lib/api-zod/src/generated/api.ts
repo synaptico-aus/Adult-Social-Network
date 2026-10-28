@@ -1282,6 +1282,46 @@ export const PreviewProfileAsMemberResponse = zod.object({
 })
 
 
+export const PreviewProfileAsFriendParams = zod.object({
+  "friendId": zod.coerce.string()
+})
+
+export const previewProfileAsFriendQueryOffsetDefault = 0;
+export const previewProfileAsFriendQueryOffsetMin = 0;
+export const previewProfileAsFriendQueryOffsetMax = 1000000;
+
+
+
+export const PreviewProfileAsFriendQueryParams = zod.object({
+  "offset": zod.coerce.number().int().min(previewProfileAsFriendQueryOffsetMin).max(previewProfileAsFriendQueryOffsetMax).default(previewProfileAsFriendQueryOffsetDefault)
+})
+
+export const PreviewProfileAsFriendResponse = zod.object({
+  "friendId": zod.string(),
+  "checkedAt": zod.coerce.date(),
+  "nextOffset": zod.number().int().nullable(),
+  "fields": zod.array(zod.object({
+  "field": zod.string(),
+  "visible": zod.boolean(),
+  "value": zod.unknown().optional()
+})),
+  "posts": zod.array(zod.object({
+  "id": zod.string(),
+  "body": zod.string().nullable(),
+  "audience": zod.string(),
+  "status": zod.string(),
+  "visible": zod.boolean(),
+  "mediaCount": zod.number().int(),
+  "permissions": zod.object({
+  "view": zod.boolean(),
+  "react": zod.boolean(),
+  "comment": zod.boolean(),
+  "share": zod.boolean()
+})
+}))
+})
+
+
 export const updatePrivacySettingsBodySelectedFriendsMaxOne = 500;
 
 
