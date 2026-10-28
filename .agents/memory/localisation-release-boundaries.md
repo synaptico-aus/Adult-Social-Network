@@ -11,6 +11,14 @@ Me's initial launch country is Australia.
 This is a launch intention, not evidence of legal approval or permission to
 enable a region, and does not determine any individual member's location.
 
+The user identifies Salveo Care PTY Ltd, based in Victoria, as Me's legal operator.
+
+**Why:** These are the operator details the user supplied for the policy pack.
+
+**How to apply:** Use these details in policy planning, without implying company
+registration has been independently verified. Include Victorian health-privacy
+requirements in qualified review; do not assume only federal rules apply.
+
 Enable an interface language only after reviewed strings and documented
 operational moderation coverage exist. Regional English formats are the same
 English-language release, not evidence of coverage for another language.
