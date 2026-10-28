@@ -27,3 +27,13 @@ SDK/processor disclosures, rather than an automatic submission or approval claim
 **How to apply:** Keep missing signing, account, real-device, review and operating
 dependencies visible. Prepare drafts without treating them as approved policies;
 recheck official current store requirements before upload.
+
+The user is handling the technical iOS and Android builds separately. Keep the
+current store-readiness assistance focused on policy, security and non-technical
+requirements rather than building or signing the mobile apps.
+
+**Why:** The user explicitly asked to exclude technical builds from this work.
+
+**How to apply:** Identify public policy URLs, operator/contact information,
+declarations, legal review and actual safety operations. Do not treat this scope
+change as approval to submit or release.
