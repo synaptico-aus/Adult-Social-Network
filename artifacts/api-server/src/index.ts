@@ -7,6 +7,8 @@ import { startMalwareScanner } from "./lib/scanner-runtime";
 import { startNonVideoScreeningRetries } from "./lib/non-video-screening";
 import { startDeletionWorker } from "./lib/deletion-workflow";
 import { startOperationalMonitor } from "./lib/operational-monitor";
+import { runSafetyRetentionJob } from "./lib/safety-deletion-hook";
+import { SAFETY_OPERATIONS_POLICY } from "./lib/safety-operations-policy";
 
 const rawPort = process.env["PORT"];
 
@@ -29,6 +31,12 @@ app.listen(port, (err) => {
   }
 
   logger.info({ port }, "Server listening");
+
+  const runRetention = (): void => {
+    void runSafetyRetentionJob().catch((retentionError: unknown) => {
+      logger.error({ err: retentionError }, "Safety retention job failed");
+    });
+  };
   startMalwareScanner();
   startNonVideoScreeningRetries();
   startResourceStaleChecks();
@@ -36,4 +44,9 @@ app.listen(port, (err) => {
   startMediaCleanup();
   startDeletionWorker();
   startOperationalMonitor();
+  runRetention();
+  setInterval(
+    runRetention,
+    SAFETY_OPERATIONS_POLICY.retention.jobFrequencyHours * 60 * 60 * 1000,
+  ).unref();
 });

@@ -276,8 +276,8 @@ router.post("/appeals", async (req, res): Promise<void> => {
     if (!record || !["held", "removed"].includes(record.state)) return null;
     const [created] = await tx.insert(appealsTable).values({ id: randomUUID(), appellantMemberId: member.id, ...parsed.data }).onConflictDoNothing().returning();
     if (!created) return null;
-    await tx.update(moderationRecordsTable).set({ state: "appealed" }).where(and(eq(moderationRecordsTable.id, record.id), eq(moderationRecordsTable.state, record.state)));
-    await tx.update(reportsTable).set({ status: "appealed" }).where(eq(reportsTable.id, record.reportId!));
+    await tx.update(moderationRecordsTable).set({ state: "appealed", resolvedAt: null }).where(and(eq(moderationRecordsTable.id, record.id), eq(moderationRecordsTable.state, record.state)));
+    await tx.update(reportsTable).set({ status: "appealed", resolvedAt: null }).where(eq(reportsTable.id, record.reportId!));
     return created;
   });
   if (!appeal) { res.status(409).json({ error: "Appeal is not eligible or already exists" }); return; }

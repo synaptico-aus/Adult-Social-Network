@@ -194,6 +194,13 @@ interfaces. Member publishing remains disabled.
   separately authorised, reason-audited evidence request succeeds.
 - The published support contact is runtime-configured for development and
   production through the shared SUPPORT_CONTACT_EMAIL environment setting.
+- Safety operations are approved with named role owners, 15-minute threat and
+  distress targets, a 30-minute exploitation target, independent appeal review,
+  and published sanction definitions in the server-authorized staff tools.
+- Resolved evidence is retained 365 days, screening results 90 days, and evidence
+  access and sensitive-action audits 730 days. Staff access is reviewed every 90
+  days; account deletion immediately pseudonymises retained safety records and a
+  callable retention job enforces expiry at least every 24 hours.
 
 ### Checks
 
@@ -232,8 +239,9 @@ Private messaging, notification preferences, abuse controls, and privacy-safe de
 
 **Status: Not started**
 
-Operational staffing, escalation targets, approved retention procedures, external
-screening providers, and measurable safety checks.
+Production rota staffing, external screening providers, and measurable safety
+checks. Operational ownership, escalation targets, and retention procedures were
+approved in Phase 4.
 
 ## Phase 9 — Exports and shared links
 

@@ -9,6 +9,7 @@ const ids = {
   alice: `route-test-alice-${randomUUID()}`,
   bob: `route-test-bob-${randomUUID()}`,
   moderator: `route-test-moderator-${randomUUID()}`,
+  reviewer: `route-test-reviewer-${randomUUID()}`,
   editor: `route-test-editor-${randomUUID()}`,
 };
 const reportId = `route-test-report-${randomUUID()}`;
@@ -22,7 +23,7 @@ const app = createApp({
     const auth = Object.assign(() => ({
         userId,
         tokenType: "session_token",
-        sessionClaims: userId === ids.moderator ? { fva: [null, stale ? 6 : 1] } : undefined,
+        sessionClaims: [ids.moderator, ids.reviewer].includes(userId ?? "") ? { fva: [null, stale ? 6 : 1] } : undefined,
       }), { [Symbol.for("@clerk/express.auth")]: true });
     Object.assign(req, { auth });
     next();
@@ -52,6 +53,7 @@ before(async () => {
   ]);
   await db.insert(staffRoleAssignmentsTable).values([
     { id: randomUUID(), clerkUserId: ids.moderator, role: "moderator", capabilities: [], active: true },
+    { id: randomUUID(), clerkUserId: ids.reviewer, role: "moderator", capabilities: [], active: true },
     { id: randomUUID(), clerkUserId: ids.editor, role: "education_editor", capabilities: [], active: true },
   ]);
   await db.insert(reportsTable).values({
@@ -69,7 +71,7 @@ after(async () => {
   await db.delete(appealsTable).where(inArray(appealsTable.moderationRecordId, [recordId]));
   await db.delete(moderationRecordsTable).where(eq(moderationRecordsTable.id, recordId));
   await db.delete(reportsTable).where(eq(reportsTable.id, reportId));
-  await db.delete(staffRoleAssignmentsTable).where(inArray(staffRoleAssignmentsTable.clerkUserId, [ids.moderator, ids.editor]));
+  await db.delete(staffRoleAssignmentsTable).where(inArray(staffRoleAssignmentsTable.clerkUserId, [ids.moderator, ids.reviewer, ids.editor]));
   await db.delete(membersTable).where(inArray(membersTable.id, [ids.alice, ids.bob]));
   await pool.end();
 });
@@ -122,4 +124,16 @@ test("evidence requires a reason, rejects unknown IDs, and audits scoped access"
 test("a member cannot appeal another member's moderation record", async () => {
   const response = await call("/api/appeals", { method: "POST", user: ids.alice, body: { moderationRecordId: recordId, statement: "not mine" } });
   assert.equal(response.status, 409);
+});
+
+test("an appeal must be decided by a different staff member", async () => {
+  await db.update(moderationRecordsTable).set({ state: "removed", decidedBy: ids.moderator, resolvedAt: new Date() }).where(eq(moderationRecordsTable.id, recordId));
+  await db.update(reportsTable).set({ status: "removed", resolvedAt: new Date() }).where(eq(reportsTable.id, reportId));
+  const created = await call("/api/appeals", { method: "POST", user: ids.bob, body: { moderationRecordId: recordId, statement: "Please review independently" } });
+  assert.equal(created.status, 201);
+  const appealId = created.body.id as string;
+  assert.equal((await call(`/api/staff/appeals/${appealId}`, { method: "PATCH", user: ids.moderator, body: { status: "allowed", reason: "self review" } })).status, 409);
+  assert.equal((await call(`/api/staff/appeals/${appealId}`, { method: "PATCH", user: ids.reviewer, body: { status: "allowed", reason: "independent review" } })).status, 200);
+  const [record] = await db.select().from(moderationRecordsTable).where(eq(moderationRecordsTable.id, recordId));
+  assert.ok(record.resolvedAt);
 });

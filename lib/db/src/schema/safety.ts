@@ -18,14 +18,18 @@ export const reportsTable = pgTable("reports", {
   contentTargetType: text("content_target_type"),
   groupId: text("group_id"),
   contentId: text("content_id"), category: text("category", { enum: reportCategories }).notNull(), details: text("details"),
-  status: text("status", { enum: moderationStates }).notNull().default("pending"), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  status: text("status", { enum: moderationStates }).notNull().default("pending"),
+  resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [index("reports_reporter_idx").on(t.reporterMemberId, t.createdAt), index("reports_queue_idx").on(t.status, t.createdAt)]);
 
 export const moderationRecordsTable = pgTable("moderation_records", {
   id: text("id").primaryKey(), reportId: text("report_id").references(() => reportsTable.id, { onDelete: "set null" }),
   contentId: text("content_id"), subjectMemberId: text("subject_member_id").references(() => membersTable.id, { onDelete: "set null" }),
   state: text("state", { enum: moderationStates }).notNull().default("pending"), decision: text("decision"), sanction: text("sanction"),
-  decidedBy: text("decided_by"), reason: text("reason"), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  decidedBy: text("decided_by"), reason: text("reason"),
+  resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [index("moderation_records_state_idx").on(t.state, t.createdAt)]);
 
 export const appealsTable = pgTable("appeals", {

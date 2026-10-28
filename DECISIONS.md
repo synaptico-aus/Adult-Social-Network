@@ -267,3 +267,35 @@ education seed therefore contains taxonomy categories only and zero lessons.
 No paper-derived claim is published, and this phase does not make a
 production-ready claim. Public education is restricted to approved current
 revisions; private learning state is owner-bound and retractable.
+## D-019: Safety operations and evidence retention are approved
+
+**Decision:** The Safety Operations Lead is accountable for moderation operations;
+an On-call Moderator owns urgent review, the Head of Support owns appeals, and the
+Privacy Lead owns retention and quarterly access review. Threat and distress
+disclosure reports have a 15-minute initial-review target; exploitation reports
+have a 30-minute target.
+
+Warnings formally notify without changing access. Content removal affects the
+reported content only. Temporary restrictions disable specified capabilities for
+a stated period; suspensions disable account access for a stated period; permanent
+removal disables it permanently after the highest-severity review. Appeals are
+acknowledged within two business days and decided within ten by a reviewer who did
+not make the original decision.
+
+Resolved report evidence is retained for 365 days, screening results for 90 days,
+and evidence-access and sensitive-action audits for 730 days. Staff access is
+reviewed every 90 days and retention deletion runs at least every 24 hours. Open,
+held, and appealed cases remain until resolution. Account deletion immediately
+pseudonymises retained member links and removes free text.
+
+For resolved records created before resolution timestamps were introduced, the
+retention clock uses the record creation timestamp. New resolutions always store
+the actual resolution timestamp.
+
+**Reason:** Staff need measurable ownership and response expectations, while
+private evidence must remain available only as long as safeguarding, appeal, and
+accountability needs justify it.
+
+**Consequence:** Server configuration is the staff-facing source of these targets
+and definitions. Urgent queues show deadlines, account deletion pseudonymises
+safety data, and the safety retention job enforces the approved expiry periods.

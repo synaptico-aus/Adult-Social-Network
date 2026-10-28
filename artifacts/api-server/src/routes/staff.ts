@@ -8,6 +8,7 @@ import { getAuth } from "@clerk/express";
 import { randomUUID } from "node:crypto";
 import { canTransitionModeration, MODERATION_SANCTIONS, urgentCategory } from "../lib/moderation-policy";
 import { recordHumanResponse } from "../lib/operations-data";
+import { SAFETY_OPERATIONS_POLICY, urgentReviewTargetMinutes } from "../lib/safety-operations-policy";
 
 const router: IRouter = Router();
 router.get("/staff/capabilities", requireStaffMfa, async (req: Request, res: Response): Promise<void> => {
@@ -17,7 +18,13 @@ router.get("/staff/capabilities", requireStaffMfa, async (req: Request, res: Res
   const capabilities = (assignment.capabilities.length ? assignment.capabilities : STAFF_ROLE_CAPABILITIES[assignment.role] ?? []).filter(c => roleHasCapability(assignment.role, c, assignment.capabilities));
   res.json({ role: assignment.role, capabilities, tools: capabilities.map((capability) => ({ capability, enabled: roleHasCapability(assignment.role, capability, assignment.capabilities) })) });
 });
-router.get("/staff/tools", requireStaffCapability("moderation.queue"), (_req: Request, res: Response): void => { res.json({ enabled: true, message: "Staff tools are server-authorized." }); });
+router.get("/staff/tools", requireStaffCapability("moderation.queue"), (_req: Request, res: Response): void => {
+  res.json({
+    enabled: true,
+    message: "Staff tools are server-authorized.",
+    safetyOperationsPolicy: SAFETY_OPERATIONS_POLICY,
+  });
+});
 router.get("/staff/verification-requests", requireStaffCapability("verification.review"), async (_req: Request, res: Response): Promise<void> => {
   res.json(await db.select().from(verificationRequestsTable).orderBy(desc(verificationRequestsTable.createdAt)));
 });
@@ -40,7 +47,13 @@ router.get("/staff/moderation/queue", requireStaffCapability("moderation.queue")
   res.json(await db.select({ reportId: reportsTable.id, category: reportsTable.category, reportStatus: reportsTable.status, reportCreatedAt: reportsTable.createdAt, moderationRecordId: moderationRecordsTable.id, moderationState: moderationRecordsTable.state }).from(reportsTable).innerJoin(moderationRecordsTable, eq(moderationRecordsTable.reportId, reportsTable.id)).where(eq(moderationRecordsTable.state, "pending")).orderBy(desc(reportsTable.createdAt)));
 });
 router.get("/staff/moderation/urgent", requireStaffCapability("moderation.urgent"), async (_req: Request, res: Response): Promise<void> => {
-  res.json(await db.select({ reportId: reportsTable.id, category: reportsTable.category, reportStatus: reportsTable.status, reportCreatedAt: reportsTable.createdAt, moderationRecordId: moderationRecordsTable.id, moderationState: moderationRecordsTable.state }).from(reportsTable).innerJoin(moderationRecordsTable, eq(moderationRecordsTable.reportId, reportsTable.id)).where(and(eq(moderationRecordsTable.state, "pending"), inArray(reportsTable.category, ["threats", "exploitation", "distress_disclosure"]))).orderBy(desc(reportsTable.createdAt)));
+  const rows = await db.select({ reportId: reportsTable.id, category: reportsTable.category, reportStatus: reportsTable.status, reportCreatedAt: reportsTable.createdAt, moderationRecordId: moderationRecordsTable.id, moderationState: moderationRecordsTable.state }).from(reportsTable).innerJoin(moderationRecordsTable, eq(moderationRecordsTable.reportId, reportsTable.id)).where(and(eq(moderationRecordsTable.state, "pending"), inArray(reportsTable.category, ["threats", "exploitation", "distress_disclosure"]))).orderBy(desc(reportsTable.createdAt));
+  res.json(rows.map((row) => ({
+    ...row,
+    owner: SAFETY_OPERATIONS_POLICY.owners.urgentReview,
+    responseTargetMinutes: urgentReviewTargetMinutes(row.category),
+    responseDueAt: new Date(row.reportCreatedAt.getTime() + (urgentReviewTargetMinutes(row.category) ?? 0) * 60_000),
+  })));
 });
 router.post("/staff/evidence/:evidenceId/access", requireStaffCapability("evidence.read"), async (req: Request, res: Response): Promise<void> => {
   const parsed = z.object({ reason: z.string().trim().min(1).max(1000) }).strict().safeParse(req.body);
@@ -97,8 +110,9 @@ router.post("/staff/moderation/:id/decision", requireStaffCapability("moderation
       if (otherStaff.length && assignment?.role !== "administrator") return null;
       await tx.insert(operationsRecordsTable).values({ id: randomUUID(), kind: "sanctions", targetId: before.id, title: parsed.data.sanction, note: parsed.data.reason, status: "active", actorClerkUserId: actor, validUntil: parsed.data.sanction === "temporary_restriction" ? new Date(Date.now() + 86400000) : null });
     }
-    const [record] = await tx.update(moderationRecordsTable).set({ ...parsed.data, decidedBy: actor }).where(eq(moderationRecordsTable.id, before.id)).returning();
-    await tx.update(reportsTable).set({ status: parsed.data.state }).where(eq(reportsTable.id, before.reportId!));
+    const resolvedAt = ["allowed", "removed"].includes(parsed.data.state) ? new Date() : null;
+    const [record] = await tx.update(moderationRecordsTable).set({ ...parsed.data, decidedBy: actor, resolvedAt }).where(eq(moderationRecordsTable.id, before.id)).returning();
+    await tx.update(reportsTable).set({ status: parsed.data.state, resolvedAt }).where(eq(reportsTable.id, before.reportId!));
     await tx.insert(sensitiveActionAuditTable).values({ id: randomUUID(), actorClerkUserId: actor, action: "moderation.decision", subjectId: record.id, metadata: { priorState: before.state, newState: record.state, reason: parsed.data.reason, outcome: "updated" } });
     return record;
   });
@@ -115,15 +129,18 @@ router.patch("/staff/appeals/:id", requireStaffCapability("appeals.review"), asy
   const appeal = await db.transaction(async (tx) => {
     const [before] = await tx.select().from(appealsTable).where(eq(appealsTable.id, String(req.params.id))).limit(1);
     if (!before || before.status !== "pending") return null;
+    const [original] = await tx.select({ decidedBy: moderationRecordsTable.decidedBy }).from(moderationRecordsTable).where(eq(moderationRecordsTable.id, before.moderationRecordId)).limit(1);
+    if (!original || original.decidedBy === actor) return null;
     const [updated] = await tx.update(appealsTable).set({ status: parsed.data.status, reviewedBy: actor, reviewedAt: new Date() }).where(and(eq(appealsTable.id, before.id), eq(appealsTable.status, "pending"))).returning();
     if (!updated) return null;
-    await tx.update(moderationRecordsTable).set({ state: parsed.data.status }).where(and(eq(moderationRecordsTable.id, before.moderationRecordId), eq(moderationRecordsTable.state, "appealed")));
+    const resolvedAt = new Date();
+    await tx.update(moderationRecordsTable).set({ state: parsed.data.status, resolvedAt }).where(and(eq(moderationRecordsTable.id, before.moderationRecordId), eq(moderationRecordsTable.state, "appealed")));
     const [record] = await tx.select({ reportId: moderationRecordsTable.reportId }).from(moderationRecordsTable).where(eq(moderationRecordsTable.id, before.moderationRecordId)).limit(1);
-    if (record?.reportId) await tx.update(reportsTable).set({ status: parsed.data.status }).where(eq(reportsTable.id, record.reportId));
+    if (record?.reportId) await tx.update(reportsTable).set({ status: parsed.data.status, resolvedAt }).where(eq(reportsTable.id, record.reportId));
     await tx.insert(sensitiveActionAuditTable).values({ id: randomUUID(), actorClerkUserId: actor, action: "appeal.review", subjectId: updated.id, metadata: { priorState: before.status, newState: updated.status, reason: parsed.data.reason, outcome: "updated" } });
     return updated;
   });
-  if (!appeal) { res.status(409).json({ error: "Appeal was already reviewed or unavailable" }); return; }
+  if (!appeal) { res.status(409).json({ error: "Appeal was already reviewed, unavailable, or requires an independent reviewer" }); return; }
   res.json(appeal);
 });
 export default router;
