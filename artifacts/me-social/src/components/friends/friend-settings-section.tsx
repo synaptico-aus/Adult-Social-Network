@@ -23,6 +23,7 @@ export function FriendSettingsSection({ profile }: { profile?: Profile }) {
   const { data: friends, isLoading, isError, refetch } = useAllFriends();
   const update = useUpdatePrivacySettings();
   const [perms, setPerms] = useState<FriendPermissionMap>({});
+  const [permsBase, setPermsBase] = useState<FriendPermissionMap>({});
   const [selected, setSelected] = useState<Record<string, string[] | null>>({});
   const [saveError, setSaveError] = useState(false);
   const [permsDirty, setPermsDirty] = useState(false);
@@ -32,7 +33,7 @@ export function FriendSettingsSection({ profile }: { profile?: Profile }) {
   const savedPerms = profile?.friendPermissions;
   const savedSel = profile?.selectedFriends;
   useEffect(() => { setPermsDirty(false); setSelDirty(false); }, [accountId]);
-  useEffect(() => { if (!permsDirty) setPerms({ ...(savedPerms ?? {}) }); }, [savedPerms, permsDirty, accountId]);
+  useEffect(() => { if (!permsDirty) { setPerms({ ...(savedPerms ?? {}) }); setPermsBase({ ...(savedPerms ?? {}) }); } }, [savedPerms, permsDirty, accountId]);
   useEffect(() => { if (!selDirty) setSelected({ ...(savedSel ?? {}) }); }, [savedSel, selDirty, accountId]);
 
   const list = friends ?? [];
@@ -51,7 +52,7 @@ export function FriendSettingsSection({ profile }: { profile?: Profile }) {
     try {
       // Full maps are sent so saved entries for friends not shown (e.g. disconnected) are preserved.
       const data: PrivacySettings = {};
-      if (permsDirty) data.friendPermissions = perms;
+      if (permsDirty) { data.friendPermissions = perms; data.expectedFriendPermissions = permsBase; }
       if (selDirty) {
         data.selectedFriends = selected;
         // Newly enabled selections need connections visibility; send it in the same request.
@@ -73,7 +74,7 @@ export function FriendSettingsSection({ profile }: { profile?: Profile }) {
       toast({ title: "Friend settings saved" });
     } catch {
       setSaveError(true);
-      toast({ title: "Friend settings not saved", description: "Nothing was changed. Please try again.", variant: "destructive" });
+      toast({ title: "Could not confirm saving friend settings", description: "Settings may have changed elsewhere. Reload saved choices before trying again.", variant: "destructive" });
     }
   };
 
@@ -154,7 +155,15 @@ export function FriendSettingsSection({ profile }: { profile?: Profile }) {
             })}
           </div>
 
-          {saveError && <p role="alert" className="text-sm text-destructive">Could not save friend settings. Please try again.</p>}
+          {saveError && (
+            <div role="alert" className="space-y-2">
+              <p className="text-sm text-destructive">Could not confirm saving. Reload saved choices to avoid overwriting newer privacy settings. This replaces your unsaved edits.</p>
+              <Button variant="outline" data-testid="button-reload-friend-settings" onClick={async () => {
+                await queryClient.invalidateQueries({ queryKey: getGetOwnProfileQueryKey() });
+                setPermsDirty(false); setSelDirty(false); setSaveError(false);
+              }}>Reload saved choices</Button>
+            </div>
+          )}
           <div className="pt-4 border-t border-border flex justify-end">
             <Button onClick={save} disabled={update.isPending} size="lg" className="rounded-xl px-8" data-testid="button-save-friend-settings">
               {update.isPending ? "Saving..." : "Save Friend Settings"}

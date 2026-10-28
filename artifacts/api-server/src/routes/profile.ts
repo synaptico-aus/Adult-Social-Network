@@ -16,7 +16,7 @@ import "../lib/profile-deletion-hook";
 import { visiblePost } from "./posts";
 import { exportMemberMemories } from "../lib/memory-access";
 import { exportExperience } from "../lib/experience-data";
-import { friendPermissionSchema, selectedFriendsSchema, lockPrivacyUpdate } from "../lib/friend-permissions";
+import { friendPermissionSchema, selectedFriendsSchema, lockPrivacyUpdate, samePermissionMap } from "../lib/friend-permissions";
 
 const router: IRouter = Router();
 router.use("/profile", requireAuth);
@@ -128,7 +128,9 @@ router.get("/profile/view-as-member", async (req, res): Promise<void> => {
 router.patch("/privacy", async (req, res): Promise<void> => {
   const member = await ownMember(req);
   if (!member) { res.status(404).json({ error: "Onboarding required" }); return; }
-  const parsed = z.object({ discoverable: z.boolean().optional(), visibility: z.record(z.enum(["private", "connections", "members"])).optional(), friendPermissions: friendPermissionSchema.optional(), selectedFriends: selectedFriendsSchema.optional() }).strict().safeParse(req.body);
+  const parsed = z.object({ discoverable: z.boolean().optional(), visibility: z.record(z.enum(["private", "connections", "members"])).optional(), friendPermissions: friendPermissionSchema.optional(), expectedFriendPermissions: friendPermissionSchema.optional(), selectedFriends: selectedFriendsSchema.optional() }).strict()
+    .refine((body) => (body.friendPermissions === undefined) === (body.expectedFriendPermissions === undefined), "Friend defaults require the originally reviewed defaults")
+    .safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
   if (parsed.data.visibility && Object.keys(parsed.data.visibility).some((field) => !PROFILE_FIELDS.includes(field as typeof PROFILE_FIELDS[number]))) {
     res.status(400).json({ error: "Unknown profile field in visibility settings" });
@@ -142,10 +144,13 @@ router.patch("/privacy", async (req, res): Promise<void> => {
   const updated = await db.transaction(async (tx) => {
     await lockPrivacyUpdate(tx, member.id);
     const [live] = await tx.select().from(profilesTable).where(eq(profilesTable.memberId, member.id)).for("update");
-    const [result] = await tx.update(profilesTable).set(parsed.data).where(eq(profilesTable.memberId, member.id)).returning();
+    if (parsed.data.expectedFriendPermissions && !samePermissionMap(live.friendPermissions, parsed.data.expectedFriendPermissions)) return null;
+    const { expectedFriendPermissions: _expected, ...changes } = parsed.data;
+    const [result] = await tx.update(profilesTable).set(changes).where(eq(profilesTable.memberId, member.id)).returning();
     await tx.insert(consentHistoryTable).values({ id: randomUUID(), memberId: member.id, purpose: "profile_sharing", version: "friend-permissions", granted: parsed.data.discoverable ?? live.discoverable, scope: [...Object.keys(parsed.data.visibility ?? {}), ...Object.keys(parsed.data.selectedFriends ?? {}), ...(parsed.data.friendPermissions ? ["friend_permissions"] : [])] });
     return result;
   });
+  if (!updated) { res.status(409).json({ error: "Friend settings changed elsewhere. Reload saved choices before saving again." }); return; }
   res.json(updated);
 });
 

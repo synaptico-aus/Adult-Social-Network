@@ -10,7 +10,7 @@ export const ABILITIES: { key: keyof InteractionPermissions; label: string }[] =
 export const ALL_ALLOWED: InteractionPermissions = { view: true, react: true, comment: true, share: true };
 
 interface Props {
-  friends: FriendListItem[];
+  friends: Pick<FriendListItem, "memberId" | "preferredName">[];
   value: FriendPermissionMap;
   onChange: (next: FriendPermissionMap) => void;
   /** Restrict-only mode: abilities denied here cannot be enabled. */
@@ -41,6 +41,7 @@ export function FriendPermissionRows({ friends, value, onChange, caps, idPrefix,
                     <label key={a.key} htmlFor={id} className={`flex items-center gap-2 text-sm ${capped ? "opacity-60" : ""}`}>
                       <input
                         id={id}
+                        data-testid={`checkbox-${id}`}
                         type="checkbox"
                         className="h-4 w-4 accent-[hsl(var(--primary))]"
                         checked={current[a.key] && !capped && (a.key === "view" || !viewDenied)}

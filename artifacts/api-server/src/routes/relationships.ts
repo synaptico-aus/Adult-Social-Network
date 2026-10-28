@@ -2,10 +2,11 @@ import { Router, type Request, type Response } from "express";
 import { and, asc, desc, eq, ilike, inArray, or, sql } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import { getAuth } from "@clerk/express";
-import { db, membersTable, profilesTable, safetyRelationshipsTable, friendRequestsTable, friendshipsTable, followsTable, discoverySettingsTable, suggestionHidesTable } from "@workspace/db";
+import { db, membersTable, profilesTable, safetyRelationshipsTable, friendRequestsTable, friendshipsTable, followsTable, discoverySettingsTable, suggestionHidesTable, consentHistoryTable } from "@workspace/db";
 import { requireAuth, memberRateLimit } from "../middlewares/account-auth";
 import { visibleProfile } from "../lib/profile-policy";
 import { z } from "zod";
+import { allPermissions, interactionSchema, friendPermissionSchema, lockPrivacyUpdate, samePermissions } from "../lib/friend-permissions";
 import "../lib/relationships-deletion-hook";
 
 const router = Router();
@@ -80,16 +81,38 @@ async function requestAction(req: Request, res: Response, action: "accept" | "de
   const request = (await db.select().from(friendRequestsTable).where(eq(friendRequestsTable.id, id)).limit(1))[0];
   if (!member || !request || (action === "cancel" ? request.requesterMemberId !== member.id : request.recipientMemberId !== member.id) || request.status !== "pending") { res.status(404).json({ error: "Friend request not found" }); return; }
   if (action === "cancel" || action === "decline") { await db.delete(friendRequestsTable).where(eq(friendRequestsTable.id, id)); res.sendStatus(204); return; }
+  const review = z.object({ permissions: interactionSchema, expectedPermissions: interactionSchema }).strict().optional().safeParse(req.body);
+  if (!review.success) { res.status(400).json({ error: "Invalid friend privacy choices" }); return; }
   const [a, b] = pair(request.requesterMemberId, request.recipientMemberId);
   const friendship = await db.transaction(async (tx) => {
     await lockPair(tx, a, b);
     if (await blockedIn(tx, a, b)) return null;
+    // Always pair before privacy. Merge only this friend under the same lock
+    // used by settings; never replace a stale, whole permission map.
+    await lockPrivacyUpdate(tx, member.id);
+    // Keep cancellation/decline from removing the request between this check
+    // and the defaults write, even though those actions do not use pair locks.
+    const [pending] = await tx.select().from(friendRequestsTable).where(and(eq(friendRequestsTable.id, id), eq(friendRequestsTable.status, "pending"))).limit(1).for("update");
+    if (!pending) return null;
+    if (review.data) {
+      const [profile] = await tx.select().from(profilesTable).where(eq(profilesTable.memberId, member.id)).for("update");
+      if (!profile) return { error: "Profile not found; request not accepted" };
+      const current = profile.friendPermissions[request.requesterMemberId] ?? allPermissions;
+      if (!samePermissions(current, review.data.expectedPermissions)) {
+        return { error: "Friend settings changed elsewhere. Review the current choices before accepting." };
+      }
+      const merged = { ...profile.friendPermissions, [request.requesterMemberId]: review.data.permissions };
+      if (!friendPermissionSchema.safeParse(merged).success) return { error: "Too many saved friend settings. Request not accepted." };
+      await tx.update(profilesTable).set({ friendPermissions: merged }).where(eq(profilesTable.memberId, member.id));
+      await tx.insert(consentHistoryTable).values({ id: randomUUID(), memberId: member.id, purpose: "profile_sharing", version: "friend-permissions", granted: profile.discoverable, scope: ["friend_permissions"] });
+    }
     const [claimed] = await tx.delete(friendRequestsTable).where(and(eq(friendRequestsTable.id, id), eq(friendRequestsTable.recipientMemberId, member.id), eq(friendRequestsTable.status, "pending"))).returning();
     if (!claimed) return (await tx.select().from(friendshipsTable).where(and(eq(friendshipsTable.memberAId, a), eq(friendshipsTable.memberBId, b))).limit(1))[0] ?? null;
     const [created] = await tx.insert(friendshipsTable).values({ id: randomUUID(), memberAId: a, memberBId: b }).onConflictDoNothing().returning();
     return created ?? (await tx.select().from(friendshipsTable).where(and(eq(friendshipsTable.memberAId, a), eq(friendshipsTable.memberBId, b))).limit(1))[0];
   });
   if (!friendship) { res.status(409).json({ error: "Relationship is no longer available" }); return; }
+  if ("error" in friendship) { res.status(409).json(friendship); return; }
   res.json(friendship);
 }
 router.post("/friends/requests/:requestId/accept", (req, res) => requestAction(req, res, "accept"));

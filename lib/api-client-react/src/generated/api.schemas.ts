@@ -1448,6 +1448,14 @@ export interface InteractionPermissions {
   share: boolean;
 }
 
+/**
+ * Saves only this friend's defaults atomically with acceptance. A mismatch with the reviewed defaults returns 409 without accepting. Omit the body to preserve current defaults.
+ */
+export interface FriendAcceptancePrivacy {
+  permissions: InteractionPermissions;
+  expectedPermissions: InteractionPermissions;
+}
+
 export interface FriendPermissionMap {[key: string]: InteractionPermissions}
 
 export interface SelectedProfileFriends {[key: string]: string[] | null}
@@ -2153,6 +2161,8 @@ export type PrivacySettingsVisibility = {[key: string]: 'private' | 'connections
 
 export interface PrivacySettings {
   friendPermissions?: FriendPermissionMap;
+  /** Required when saving friendPermissions. The map originally reviewed; mismatches return 409 without changing settings. */
+  expectedFriendPermissions?: FriendPermissionMap;
   selectedFriends?: SelectedProfileFriends;
   discoverable?: boolean;
   visibility?: PrivacySettingsVisibility;

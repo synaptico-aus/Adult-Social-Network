@@ -123,6 +123,7 @@ export * from './experiencePreferences';
 export * from './followListItem';
 export * from './followListItemDirection';
 export * from './followListItemStatus';
+export * from './friendAcceptancePrivacy';
 export * from './friendListItem';
 export * from './friendListItemDirection';
 export * from './friendListItemStatus';

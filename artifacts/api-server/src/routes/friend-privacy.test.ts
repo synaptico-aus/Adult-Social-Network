@@ -1,9 +1,9 @@
 import { before, beforeEach, after, test } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
-import { eq, inArray, or } from "drizzle-orm";
+import { and, eq, inArray, or } from "drizzle-orm";
 import { db, pool, membersTable, profilesTable, postsTable, friendshipsTable,
-  moderationRecordsTable, notificationEventsTable, mediaAssetsTable, consentHistoryTable } from "@workspace/db";
+  moderationRecordsTable, notificationEventsTable, mediaAssetsTable, consentHistoryTable, friendRequestsTable } from "@workspace/db";
 import { createApp } from "../app";
 import { canReadMedia } from "../lib/media-authority";
 import { visibleProfile, defaultVisibility } from "../lib/profile-policy";
@@ -38,7 +38,8 @@ async function makePost(user: string, input: Record<string, unknown> = {}) {
   return draft.body.id as string;
 }
 async function defaults(permissions: typeof allPermissions) {
-  assert.equal((await call("/privacy", alice, "PATCH", { friendPermissions: { [bob]: permissions } })).status, 200);
+  const expectedFriendPermissions = (await call("/profile", alice)).body.friendPermissions;
+  assert.equal((await call("/privacy", alice, "PATCH", { friendPermissions: { [bob]: permissions }, expectedFriendPermissions })).status, 200);
 }
 async function connect() {
   const [a, b] = [alice, bob].sort();
@@ -56,6 +57,7 @@ beforeEach(async () => {
   await db.delete(moderationRecordsTable).where(inArray(moderationRecordsTable.subjectMemberId, people));
   await db.delete(postsTable).where(inArray(postsTable.authorMemberId, people));
   await db.delete(friendshipsTable).where(inArray(friendshipsTable.memberAId, people));
+  await db.delete(friendRequestsTable).where(or(inArray(friendRequestsTable.requesterMemberId, people), inArray(friendRequestsTable.recipientMemberId, people)));
   await db.update(profilesTable).set({ friendPermissions: {}, selectedFriends: {}, visibility: defaultVisibility() }).where(eq(profilesTable.memberId, alice));
 });
 after(async () => {
@@ -168,4 +170,160 @@ test("in-flight reactions wait for privacy revocation and recheck the committed 
   });
   assert.equal((await action!).status, 404);
   assert.deepEqual((await call(`/posts/${id}`, bob)).body.myReactions, []);
+});
+
+async function incomingRequest() {
+  const [a, b] = [alice, bob].sort();
+  const id = randomUUID();
+  await db.insert(friendRequestsTable).values({
+    id, requesterMemberId: bob, recipientMemberId: alice, memberAId: a, memberBId: b,
+  });
+  return id;
+}
+async function stillPending(id: string) {
+  assert.equal((await db.select().from(friendRequestsTable).where(eq(friendRequestsTable.id, id))).length, 1);
+  assert.equal((await db.select().from(friendshipsTable).where(and(
+    eq(friendshipsTable.memberAId, [alice, bob].sort()[0]),
+    eq(friendshipsTable.memberBId, [alice, bob].sort()[1]),
+  ))).length, 0);
+}
+const restricted = { view: true, react: false, comment: false, share: false };
+
+test("acceptance atomically saves reviewed caps, preserves other friends and applies to older posts", async () => {
+  const older = await makePost(alice, { audience: "friends", friendRestrictions: { [bob]: allPermissions } });
+  assert.equal((await call(`/posts/${older}`, bob)).status, 404);
+  await call("/privacy", alice, "PATCH", { friendPermissions: { [carol]: { ...allPermissions, view: false } }, expectedFriendPermissions: {} });
+  const id = await incomingRequest();
+  assert.equal((await call(`/friends/requests/${id}/accept`, alice, "POST", {
+    permissions: restricted, expectedPermissions: allPermissions,
+  })).status, 200);
+  const viewed = await call(`/posts/${older}`, bob);
+  assert.equal(viewed.status, 200);
+  assert.deepEqual(viewed.body.permissions, restricted, "older per-post grants cannot override the saved cap");
+  const saved = (await call("/profile", alice)).body.friendPermissions;
+  assert.deepEqual(saved[bob], restricted);
+  assert.equal(saved[carol].view, false);
+  assert.equal((await call(`/posts/${older}/reactions`, bob, "POST", { kind: "hear_you" })).status, 404);
+});
+
+test("acceptance with View off never exposes older friends posts; omitted review preserves defaults", async () => {
+  const older = await makePost(alice, { audience: "friends" });
+  await defaults({ ...allPermissions, view: false });
+  const id = await incomingRequest();
+  assert.equal((await call(`/friends/requests/${id}/accept`, alice, "POST")).status, 200);
+  assert.equal((await call(`/posts/${older}`, bob)).status, 404);
+  assert.equal((await call("/profile", alice)).body.friendPermissions[bob].view, false);
+});
+
+test("bad, unauthorized and stale acceptance choices leave the request pending", async () => {
+  const id = await incomingRequest();
+  assert.equal((await call(`/friends/requests/${id}/accept`, bob, "POST", {
+    permissions: restricted, expectedPermissions: allPermissions,
+  })).status, 404);
+  assert.equal((await call(`/friends/requests/${id}/accept`, alice, "POST", {
+    permissions: { view: false },
+  })).status, 400);
+  await defaults(restricted);
+  assert.equal((await call(`/friends/requests/${id}/accept`, alice, "POST", {
+    permissions: allPermissions, expectedPermissions: allPermissions,
+  })).status, 409);
+  await stillPending(id);
+  assert.deepEqual((await call("/profile", alice)).body.friendPermissions[bob], restricted);
+});
+
+test("acceptance waits for a settings write, then rejects stale choices without widening access", async () => {
+  const id = await incomingRequest();
+  let accepting: ReturnType<typeof call>;
+  let settled = false;
+  await db.transaction(async (tx) => {
+    await lockPrivacyUpdate(tx, alice);
+    accepting = call(`/friends/requests/${id}/accept`, alice, "POST", {
+      permissions: allPermissions, expectedPermissions: allPermissions,
+    }).then((result) => { settled = true; return result; });
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    assert.equal(settled, false, "acceptance cannot bypass the held privacy lock");
+    await tx.update(profilesTable).set({ friendPermissions: { [bob]: restricted, [carol]: restricted } })
+      .where(eq(profilesTable.memberId, alice));
+  });
+  assert.equal((await accepting!).status, 409);
+  await stillPending(id);
+  assert.deepEqual((await call("/profile", alice)).body.friendPermissions, { [bob]: restricted, [carol]: restricted });
+});
+
+test("acceptance and the settings endpoint serialize without deadlocking or losing unrelated choices", async () => {
+  const id = await incomingRequest();
+  let accepting: ReturnType<typeof call>;
+  let updating: ReturnType<typeof call>;
+  await db.transaction(async (tx) => {
+    await lockPrivacyUpdate(tx, alice);
+    accepting = call(`/friends/requests/${id}/accept`, alice, "POST", {
+      permissions: restricted, expectedPermissions: allPermissions,
+    });
+    // Let acceptance wait on privacy while holding the member-pair lock.
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    updating = call("/privacy", alice, "PATCH", { friendPermissions: { [bob]: restricted, [carol]: restricted }, expectedFriendPermissions: {} });
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  });
+  const [accepted, updated] = await Promise.all([accepting!, updating!]);
+  assert.ok([200, 409].includes(accepted.status));
+  assert.ok([200, 409].includes(updated.status));
+  assert.ok(accepted.status === 200 || updated.status === 200);
+  const saved = (await call("/profile", alice)).body.friendPermissions;
+  assert.deepEqual(saved[bob], restricted);
+  if (updated.status === 200) assert.deepEqual(saved[carol], restricted);
+  if (accepted.status === 409) await stillPending(id);
+});
+
+test("a stale settings save after acceptance cannot erase or widen the new friend's restrictions", async () => {
+  const id = await incomingRequest();
+  assert.equal((await call(`/friends/requests/${id}/accept`, alice, "POST", {
+    permissions: restricted, expectedPermissions: allPermissions,
+  })).status, 200);
+  assert.equal((await call("/privacy", alice, "PATCH", {
+    expectedFriendPermissions: {}, friendPermissions: { [carol]: allPermissions },
+  })).status, 409);
+  assert.deepEqual((await call("/profile", alice)).body.friendPermissions, { [bob]: restricted });
+  assert.equal((await call("/privacy", alice, "PATCH", {
+    friendPermissions: { [bob]: allPermissions },
+  })).status, 400, "old clients must not overwrite defaults without a reviewed snapshot");
+});
+
+test("a cancelled request waiting on privacy cannot save defaults or create a friendship", async () => {
+  const id = await incomingRequest();
+  let accepting: ReturnType<typeof call>;
+  await db.transaction(async (tx) => {
+    await lockPrivacyUpdate(tx, alice);
+    accepting = call(`/friends/requests/${id}/accept`, alice, "POST", {
+      permissions: restricted, expectedPermissions: allPermissions,
+    });
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    assert.equal((await call(`/friends/requests/${id}`, bob, "DELETE")).status, 204);
+  });
+  assert.equal((await accepting!).status, 409);
+  assert.equal((await call("/profile", alice)).body.friendPermissions[bob], undefined);
+  assert.equal((await db.select().from(friendshipsTable).where(or(
+    eq(friendshipsTable.memberAId, alice), eq(friendshipsTable.memberBId, alice),
+  ))).length, 0);
+});
+
+test("a failed privacy save rolls back both acceptance and its chosen defaults", async () => {
+  const id = await incomingRequest();
+  // Fail only this synthetic member's consent insert, after its defaults update.
+  // The real route transaction must undo the defaults and leave the request.
+  const name = `privacy_accept_failure_${randomUUID().replaceAll("-", "")}`;
+  await pool.query(`CREATE FUNCTION ${name}() RETURNS trigger LANGUAGE plpgsql AS $$
+    BEGIN IF NEW.member_id = '${alice}' THEN RAISE EXCEPTION 'synthetic consent write failure'; END IF;
+    RETURN NEW; END $$`);
+  try {
+    await pool.query(`CREATE TRIGGER ${name} BEFORE INSERT ON consent_history FOR EACH ROW EXECUTE FUNCTION ${name}()`);
+    const result = await call(`/friends/requests/${id}/accept`, alice, "POST", {
+      permissions: restricted, expectedPermissions: allPermissions,
+    });
+    assert.equal(result.status, 500);
+    await stillPending(id);
+    assert.equal((await call("/profile", alice)).body.friendPermissions[bob], undefined);
+  } finally {
+    await pool.query(`DROP TRIGGER IF EXISTS ${name} ON consent_history`);
+    await pool.query(`DROP FUNCTION IF EXISTS ${name}()`);
+  }
 });

@@ -12,6 +12,13 @@ export const selectedFriendsSchema = z.record(z.array(z.string().min(1).max(200)
 export type Permissions = z.infer<typeof interactionSchema>;
 export type PermissionMap = Record<string, Permissions>;
 export const allPermissions: Permissions = { view: true, react: true, comment: true, share: true };
+export function samePermissions(left: Permissions, right: Permissions): boolean {
+  return (Object.keys(allPermissions) as (keyof Permissions)[]).every((key) => left[key] === right[key]);
+}
+export function samePermissionMap(left: PermissionMap, right: PermissionMap): boolean {
+  return Object.keys(left).length === Object.keys(right).length
+    && Object.keys(left).every((id) => !!right[id] && samePermissions(left[id], right[id]));
+}
 type Source = { select: (...args: any[]) => any };
 
 // Both layers only restrict the existing audience. Neither is an access grant.

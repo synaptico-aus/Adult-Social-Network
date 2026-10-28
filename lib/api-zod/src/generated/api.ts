@@ -1293,6 +1293,12 @@ export const UpdatePrivacySettingsBody = zod.object({
   "comment": zod.boolean(),
   "share": zod.boolean()
 })).optional(),
+  "expectedFriendPermissions": zod.record(zod.string(), zod.object({
+  "view": zod.boolean(),
+  "react": zod.boolean(),
+  "comment": zod.boolean(),
+  "share": zod.boolean()
+})).optional().describe('Required when saving friendPermissions. The map originally reviewed; mismatches return 409 without changing settings.'),
   "selectedFriends": zod.record(zod.string(), zod.array(zod.string()).max(updatePrivacySettingsBodySelectedFriendsMaxOne).nullable()).optional(),
   "discoverable": zod.boolean().optional(),
   "visibility": zod.record(zod.string(), zod.enum(['private', 'connections', 'members'])).optional()
@@ -1821,6 +1827,21 @@ export const SendFriendRequestResponse = zod.object({
 export const AcceptFriendRequestParams = zod.object({
   "requestId": zod.coerce.string()
 })
+
+export const AcceptFriendRequestBody = zod.object({
+  "permissions": zod.object({
+  "view": zod.boolean(),
+  "react": zod.boolean(),
+  "comment": zod.boolean(),
+  "share": zod.boolean()
+}),
+  "expectedPermissions": zod.object({
+  "view": zod.boolean(),
+  "react": zod.boolean(),
+  "comment": zod.boolean(),
+  "share": zod.boolean()
+})
+}).describe('Saves only this friend\'s defaults atomically with acceptance. A mismatch with the reviewed defaults returns 409 without accepting. Omit the body to preserve current defaults.')
 
 export const AcceptFriendRequestResponse = zod.unknown()
 

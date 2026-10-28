@@ -11,6 +11,8 @@ import type { SelectedProfileFriends } from './selectedProfileFriends';
 
 export interface PrivacySettings {
   friendPermissions?: FriendPermissionMap;
+  /** Required when saving friendPermissions. The map originally reviewed; mismatches return 409 without changing settings. */
+  expectedFriendPermissions?: FriendPermissionMap;
   selectedFriends?: SelectedProfileFriends;
   discoverable?: boolean;
   visibility?: PrivacySettingsVisibility;

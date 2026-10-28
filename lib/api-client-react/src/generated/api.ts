@@ -80,6 +80,7 @@ import type {
   ExperienceDraftResponse,
   ExperienceInput,
   ExperiencePreferences,
+  FriendAcceptancePrivacy,
   FriendRequestLists,
   FriendRequestMutationResponse,
   GetCountryResourcesParams,
@@ -6423,14 +6424,15 @@ export const getAcceptFriendRequestUrl = (requestId: string,) => {
   return `/api/friends/requests/${requestId}/accept`
 }
 
-export const acceptFriendRequest = async (requestId: string, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+export const acceptFriendRequest = async (requestId: string,
+    friendAcceptancePrivacy?: FriendAcceptancePrivacy, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
 
   return customFetch<void>(getAcceptFriendRequestUrl(requestId),
   {
     ...options,
-    method: 'POST'
-
-
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(friendAcceptancePrivacy)
   }
 );}
 
@@ -6439,8 +6441,8 @@ export const acceptFriendRequest = async (requestId: string, options?: Parameter
 
 
 export const getAcceptFriendRequestMutationOptions = <TError = ErrorType<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof acceptFriendRequest>>, TError,{requestId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof acceptFriendRequest>>, TError,{requestId: string}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof acceptFriendRequest>>, TError,{requestId: string;data?: BodyType<FriendAcceptancePrivacy>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof acceptFriendRequest>>, TError,{requestId: string;data?: BodyType<FriendAcceptancePrivacy>}, TContext> => {
 
 const mutationKey = ['acceptFriendRequest'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
@@ -6452,10 +6454,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof acceptFriendRequest>>, {requestId: string}> = (props) => {
-          const {requestId} = props ?? {};
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof acceptFriendRequest>>, {requestId: string;data?: BodyType<FriendAcceptancePrivacy>}> = (props) => {
+          const {requestId,data} = props ?? {};
 
-          return  acceptFriendRequest(requestId,requestOptions)
+          return  acceptFriendRequest(requestId,data,requestOptions)
         }
 
 
@@ -6466,15 +6468,15 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type AcceptFriendRequestMutationResult = NonNullable<Awaited<ReturnType<typeof acceptFriendRequest>>>
-
+    export type AcceptFriendRequestMutationBody = BodyType<FriendAcceptancePrivacy> | undefined
     export type AcceptFriendRequestMutationError = ErrorType<unknown>
 
     export const useAcceptFriendRequest = <TError = ErrorType<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof acceptFriendRequest>>, TError,{requestId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof acceptFriendRequest>>, TError,{requestId: string;data?: BodyType<FriendAcceptancePrivacy>}, TContext>, request?: SecondParameter<typeof customFetch>}
  ): UseMutationResult<
         Awaited<ReturnType<typeof acceptFriendRequest>>,
         TError,
-        {requestId: string},
+        {requestId: string;data?: BodyType<FriendAcceptancePrivacy>},
         TContext
       > => {
       return useMutation(getAcceptFriendRequestMutationOptions(options));

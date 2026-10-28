@@ -778,6 +778,11 @@ paths:
       operationId: acceptFriendRequest
       tags: [friends]
       parameters: [{ name: requestId, in: path, required: true, schema: { type: string } }]
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/FriendAcceptancePrivacy" }
       responses: { "200": { description: Friendship } }
   /friends/requests/{requestId}/decline:
     post:
@@ -2451,6 +2456,14 @@ components:
         react: { type: boolean }
         comment: { type: boolean }
         share: { type: boolean }
+    FriendAcceptancePrivacy:
+      type: object
+      additionalProperties: false
+      required: [permissions, expectedPermissions]
+      description: Saves only this friend's defaults atomically with acceptance. A mismatch with the reviewed defaults returns 409 without accepting. Omit the body to preserve current defaults.
+      properties:
+        permissions: { $ref: "#/components/schemas/InteractionPermissions" }
+        expectedPermissions: { $ref: "#/components/schemas/InteractionPermissions" }
     FriendPermissionMap:
       type: object
       maxProperties: 500
@@ -2925,6 +2938,9 @@ components:
       type: object
       properties:
         friendPermissions: { $ref: "#/components/schemas/FriendPermissionMap" }
+        expectedFriendPermissions:
+          $ref: "#/components/schemas/FriendPermissionMap"
+          description: Required when saving friendPermissions. The map originally reviewed; mismatches return 409 without changing settings.
         selectedFriends: { $ref: "#/components/schemas/SelectedProfileFriends" }
         discoverable: { type: boolean }
         visibility: { type: object, additionalProperties: { type: string, enum: [private, connections, members] } }

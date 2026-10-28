@@ -21,7 +21,6 @@ import { useToast } from "@/hooks/use-toast";
 import {
   useCreateSafetyRelationship,
   useSendFriendRequest,
-  useAcceptFriendRequest,
   useDeclineFriendRequest,
   useCancelFriendRequest,
   useUnfriend,
@@ -35,6 +34,8 @@ import {
   getListFollowsQueryKey,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
+import { AcceptFriendReview } from "@/components/friends/accept-friend-review";
+import { ALL_FRIENDS_KEY } from "@/hooks/use-all-friends";
 
 export interface MemberCardProps {
   memberId: string;
@@ -66,9 +67,9 @@ export function MemberCard({
   const queryClient = useQueryClient();
 
   const [isBlockDialogOpen, setIsBlockDialogOpen] = useState(false);
+  const [isAcceptReviewOpen, setIsAcceptReviewOpen] = useState(false);
 
   const sendRequest = useSendFriendRequest();
-  const acceptRequest = useAcceptFriendRequest();
   const declineRequest = useDeclineFriendRequest();
   const cancelRequest = useCancelFriendRequest();
   const removeFriend = useUnfriend();
@@ -79,7 +80,6 @@ export function MemberCard({
 
   const isPending = 
     sendRequest.isPending || 
-    acceptRequest.isPending || 
     declineRequest.isPending || 
     cancelRequest.isPending || 
     removeFriend.isPending || 
@@ -95,6 +95,7 @@ export function MemberCard({
     queryClient.invalidateQueries({ queryKey: getListFriendRequestsQueryKey() });
     queryClient.invalidateQueries({ queryKey: ['listFriendRequestsPaginated'] });
     queryClient.invalidateQueries({ queryKey: getListFriendsQueryKey() });
+    queryClient.invalidateQueries({ queryKey: ALL_FRIENDS_KEY });
     queryClient.invalidateQueries({ queryKey: ['listFriendsPaginated'] });
     queryClient.invalidateQueries({ queryKey: getListFollowsQueryKey() });
     queryClient.invalidateQueries({ queryKey: ['listFollowsPaginated'] });
@@ -108,17 +109,6 @@ export function MemberCard({
       invalidateAll();
     } catch (e: any) {
       toast({ title: "Failed to send request", description: e.message, variant: "destructive" });
-    }
-  };
-
-  const handleAcceptRequest = async () => {
-    if (!incomingRequestId) return;
-    try {
-      await acceptRequest.mutateAsync({ requestId: incomingRequestId });
-      toast({ title: "Request accepted" });
-      invalidateAll();
-    } catch (e: any) {
-      toast({ title: "Failed to accept request", description: e.message, variant: "destructive" });
     }
   };
 
@@ -217,7 +207,7 @@ export function MemberCard({
       <div className="flex flex-wrap items-center gap-3 shrink-0">
         {incomingRequestId ? (
           <>
-            <Button size="default" variant="default" onClick={handleAcceptRequest} disabled={isPending} className="rounded-xl h-11 px-5" data-testid={`button-accept-${memberId}`}>
+            <Button size="default" variant="default" onClick={() => setIsAcceptReviewOpen(true)} disabled={isPending} className="rounded-xl h-11 px-5" data-testid={`button-accept-${memberId}`}>
               <Check className="w-4 h-4 me-2" /> Accept
             </Button>
             <Button size="default" variant="outline" onClick={handleDeclineRequest} disabled={isPending} className="rounded-xl h-11 px-5" data-testid={`button-decline-${memberId}`}>
@@ -277,6 +267,10 @@ export function MemberCard({
         </DropdownMenu>
       </div>
 
+      {isAcceptReviewOpen && incomingRequestId && (
+        <AcceptFriendReview requestId={incomingRequestId} memberId={memberId} preferredName={preferredName}
+          onClose={() => setIsAcceptReviewOpen(false)} onAccepted={invalidateAll} />
+      )}
       <AlertDialog open={isBlockDialogOpen} onOpenChange={setIsBlockDialogOpen}>
         <AlertDialogContent className="rounded-[2rem]">
           <AlertDialogHeader>
