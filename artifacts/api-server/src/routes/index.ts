@@ -17,6 +17,9 @@ import resourcesRouter from "./resources";
 import videoRouter from "./video";
 import memoriesRouter from "./memories";
 import operationsRouter from "./operations";
+import uploadIngestionRouter from "./upload-ingestion";
+import { UploadAdmissionError } from "../lib/upload-admission";
+import type { ErrorRequestHandler } from "express";
 
 const router: IRouter = Router();
 
@@ -30,6 +33,7 @@ router.use(safetyRouter);
 router.use(relationshipsRouter);
 router.use(postsRouter);
 router.use(mediaRouter);
+router.use(uploadIngestionRouter);
 router.use(circlesRouter);
 router.use(groupsRouter);
 router.use(notificationsRouter);
@@ -38,5 +42,11 @@ router.use(educationRouter);
 router.use(resourcesRouter);
 router.use(videoRouter);
 router.use(memoriesRouter);
+const admissionErrors: ErrorRequestHandler = (error, _req, res, next) => {
+  if (!(error instanceof UploadAdmissionError)) { next(error); return; }
+  if (error.status === 429) res.setHeader("Retry-After", "60");
+  res.status(error.status).json({ error: error.message });
+};
+router.use(admissionErrors);
 
 export default router;

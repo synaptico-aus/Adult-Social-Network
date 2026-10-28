@@ -1275,6 +1275,54 @@ paths:
         required: true
         content: { application/json: { schema: { $ref: "#/components/schemas/ReportInput" } } }
       responses: { "201": { description: Group report, content: { application/json: { schema: { $ref: "#/components/schemas/GroupReportResponse" } } } } }
+  /uploads/{id}/bytes:
+    put:
+      operationId: ingestReservedUpload
+      description: Authenticated single-use bounded transfer. Exact reserved size is checked in private local staging before any storage write. No signed provider PUT is issued. Upload release hold still applies.
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      requestBody:
+        required: true
+        content:
+          image/jpeg:
+            schema: { $ref: "#/components/schemas/UploadBytes" }
+          image/png:
+            schema: { $ref: "#/components/schemas/UploadBytes" }
+          image/webp:
+            schema: { $ref: "#/components/schemas/UploadBytes" }
+          audio/mpeg:
+            schema: { $ref: "#/components/schemas/UploadBytes" }
+          audio/wav:
+            schema: { $ref: "#/components/schemas/UploadBytes" }
+          audio/mp4:
+            schema: { $ref: "#/components/schemas/UploadBytes" }
+          audio/ogg:
+            schema: { $ref: "#/components/schemas/UploadBytes" }
+          audio/webm:
+            schema: { $ref: "#/components/schemas/UploadBytes" }
+          video/mp4:
+            schema: { $ref: "#/components/schemas/UploadBytes" }
+          video/webm:
+            schema: { $ref: "#/components/schemas/UploadBytes" }
+          video/quicktime:
+            schema: { $ref: "#/components/schemas/UploadBytes" }
+      responses:
+        "204": { description: Exact-sized bytes stored privately; media still requires completion and screening }
+        "400": { description: Truncated or interrupted body }
+        "404": { description: Unknown or unowned upload }
+        "408": { description: Transfer deadline exceeded }
+        "409": { description: "Grant expired, active or already consumed" }
+        "413": { description: Transfer exceeds or differs from reserved bytes; nothing sent to storage }
+        "415": { description: Content type or encoding differs from reservation }
+        "503": { description: Release hold or storage/cleanup unavailable }
+  /uploads/{id}/cancel:
+    post:
+      operationId: cancelProfileUpload
+      description: Cancel an owner-scoped profile photo upload. Media uses its existing attachment-aware cancellation route.
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses:
+        "204": { description: Deleted or durably scheduled for cleanup; uncertain writes remain charged }
+        "404": { description: Unknown or unowned upload }
+        "409": { description: Use media cancellation instead }
   /media/uploads/request:
     post:
       operationId: requestMediaUpload
@@ -1754,6 +1802,10 @@ components:
       type: http
       scheme: bearer
   schemas:
+    UploadBytes:
+      type: string
+      contentMediaType: application/octet-stream
+      description: Raw file bytes; callers use a Blob or File body rather than JSON. The actual Content-Type must match the grant.
     ServicePolicy:
       type: object
       required: [staffingNotice, declaredHours, measurementEnabled, privacyNotice, backupNotice]

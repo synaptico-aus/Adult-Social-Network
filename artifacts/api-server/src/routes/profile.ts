@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { and, asc, desc, eq, gt, inArray, isNull, or } from "drizzle-orm";
 import { getAuth } from "@clerk/express";
 import { z } from "zod";
-import { resourceReportsTable } from "@workspace/db";
+import { resourceReportsTable, uploadAdmissionsTable } from "@workspace/db";
 import { circleHistoryGrantsTable, circleInvitationsTable, circleMembersTable, circlesTable, db, membersTable, mediaAssetsTable, profilesTable, thisIsMeCardsTable, verificationRequestsTable, consentHistoryTable, friendRequestsTable, friendshipsTable, followsTable, discoverySettingsTable, postsTable, commentsTable, postReactionsTable, postSavesTable, postHidesTable, groupMembersTable, groupsTable, groupMembershipRequestsTable, groupHostAssignmentsTable, groupWelcomeRequestsTable, reportsTable, communityHostTrainingTable, conversationsTable, conversationMembersTable, messagesTable, messageMemberRemovalsTable, messageRequestsTable, messageContactSettingsTable, notificationPreferencesTable, deviceRegistrationsTable, messageReportsTable, educationSavesTable, educationProgressTable } from "@workspace/db";
 import { requireAuth } from "../middlewares/account-auth";
 import { liveConversationMember } from "../lib/conversation-access";
@@ -16,6 +16,7 @@ import "../lib/profile-deletion-hook";
 import { blocked, friendship, visiblePost } from "./posts";
 import { exportMemberMemories } from "../lib/memory-access";
 import { exportExperience } from "../lib/experience-data";
+import { UploadAdmissionError } from "../lib/upload-admission";
 import { friendPermissionSchema, selectedFriendsSchema, lockPrivacyUpdate, intersectPermissions, permissionsFor, samePermissionMap } from "../lib/friend-permissions";
 
 const router: IRouter = Router();
@@ -71,7 +72,7 @@ router.post("/profile/photo/upload-url", async (req, res): Promise<void> => {
   try {
     const result = await requestProfilePhotoUpload(member.id, parsed.data.contentType, parsed.data.size);
     res.json({ ...result, reminder: "Only upload an image you have permission to use." });
-  } catch (error) { res.status(400).json({ error: error instanceof Error ? error.message : "Invalid profile photo" }); }
+  } catch (error) { res.status(error instanceof UploadAdmissionError ? error.status : 400).json({ error: error instanceof Error ? error.message : "Invalid profile photo" }); }
 });
 
 router.get("/profile/photo/:memberId/:photoId", async (req, res): Promise<void> => {
@@ -92,16 +93,19 @@ router.put("/profile", async (req, res): Promise<void> => {
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
   const member = await ownMember(req);
   if (!member) { res.status(404).json({ error: "Onboarding required" }); return; }
+  const profile = await db.transaction(async (tx) => {
   let photoMetadata: { photoMimeType?: string | null; photoSize?: number | null } = {};
   if (parsed.data.photoPath) {
     if (!isOwnedProfilePhotoPath(member.id, parsed.data.photoPath)) {
-      res.status(403).json({ error: "Profile photo must belong to the signed-in member" });
-      return;
+      throw new UploadAdmissionError(403, "Profile photo must belong to the signed-in member");
     }
+    // Same lock as ingestion, cancellation and expiry cleanup. A profile cannot
+    // attach a new photo after cleanup decided that it was unused.
+    const uploads = await tx.select().from(uploadAdmissionsTable).where(eq(uploadAdmissionsTable.objectPath, parsed.data.photoPath)).for("update");
+    if (uploads.length && !uploads.some(u => u.state === "stored")) throw new UploadAdmissionError(409, "Photo transfer is incomplete or cancelled");
     const file = await profilePhotoFile(parsed.data.photoPath);
     if (!file) {
-      res.status(400).json({ error: "Uploaded profile photo was not found" });
-      return;
+      throw new UploadAdmissionError(400, "Uploaded profile photo was not found");
     }
     const [metadata] = await file.getMetadata();
     photoMetadata = {
@@ -109,11 +113,13 @@ router.put("/profile", async (req, res): Promise<void> => {
       photoSize: Number(metadata.size ?? 0) || null,
     };
   }
-  const current = (await db.select().from(profilesTable).where(eq(profilesTable.memberId, member.id)).limit(1))[0];
+  const current = (await tx.select().from(profilesTable).where(eq(profilesTable.memberId, member.id)).limit(1))[0];
   const data = { ...parsed.data, ...photoMetadata, memberId: member.id, id: current?.id ?? randomUUID(), visibility: parsed.data.visibility ?? current?.visibility ?? defaultVisibility() };
   const [profile] = current
-    ? await db.update(profilesTable).set(data).where(eq(profilesTable.memberId, member.id)).returning()
-    : await db.insert(profilesTable).values({ ...data, preferredName: data.preferredName }).returning();
+    ? await tx.update(profilesTable).set(data).where(eq(profilesTable.memberId, member.id)).returning()
+    : await tx.insert(profilesTable).values({ ...data, preferredName: data.preferredName }).returning();
+  return profile;
+  });
   res.json(visibleProfile(profile, "owner"));
 });
 

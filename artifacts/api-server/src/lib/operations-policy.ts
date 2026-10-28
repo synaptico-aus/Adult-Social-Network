@@ -44,7 +44,7 @@ export const operationalFeatureGate: RequestHandler = async (req, res, next) => 
       }
     }
   }
-  const feature = /^\/media\/uploads.*(request|complete|retry)$/.test(path) || /\/profile\/photo.*upload/.test(path) ? "uploads"
+  const feature = /^\/uploads\/[^/]+\/bytes$/.test(path) || /^\/media\/uploads.*(request|complete|retry)$/.test(path) || /\/profile\/photo.*upload/.test(path) ? "uploads"
     : /^\/posts(?:\/[^/]+(?:\/(?:publish|comments))?)?$/.test(path) ? "posting"
     : /\/(?:conversations\/[^/]+\/messages|message-requests)(?:\/[^/]+)?$/.test(path) ? "messaging" : null;
   if (!feature) { next(); return; }

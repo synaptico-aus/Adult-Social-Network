@@ -5,6 +5,11 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+/**
+ * Raw file bytes; callers use a Blob or File body rather than JSON. The actual Content-Type must match the grant.
+ */
+export type UploadBytes = Blob;
+
 export interface ServicePolicy {
   staffingNotice: string;
   declaredHours: string[];

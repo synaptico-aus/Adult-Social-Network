@@ -2,7 +2,7 @@ import { after, before, beforeEach, test } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { and, eq, inArray } from "drizzle-orm";
-import { db, pool, membersTable, mediaAssetsTable, mediaCleanupTasksTable, mediaScreeningResultsTable, postsTable, friendshipsTable, safetyRelationshipsTable } from "@workspace/db";
+import { db, pool, membersTable, mediaAssetsTable, mediaCleanupTasksTable, mediaScreeningResultsTable, postsTable, friendshipsTable, safetyRelationshipsTable, uploadAdmissionsTable } from "@workspace/db";
 import { createApp } from "../app.ts";
 import { configureTestMediaStorage } from "../lib/media-storage";
 import { cleanupExpiredMedia } from "../lib/media-deletion-hook";
@@ -35,7 +35,8 @@ async function upload(user: string, key = randomUUID(), provider = false) {
   assert.equal(requested.status, 201);
   createdAssets.add(requested.body.asset.id);
   const path = (await db.select().from(mediaAssetsTable).where(eq(mediaAssetsTable.id, requested.body.asset.id)))[0].objectPath;
-  objects.set(path, { bytes: png, contentType: "image/png" });
+  const transfer = await fetch(`${base}${requested.body.uploadURL}`, { method: "PUT", headers: { "x-test-user": user, "content-type": "image/png" }, body: png });
+  assert.equal(transfer.status, 204);
   return { requested, path, id: requested.body.asset.id, complete: () => call(`/api/media/uploads/${requested.body.asset.id}/complete`, user, { method: "POST" }) };
 }
 
@@ -53,6 +54,7 @@ beforeEach(async () => {
   await db.delete(safetyRelationshipsTable).where(inArray(safetyRelationshipsTable.actorMemberId, Object.values(ids)));
 });
 after(async () => {
+  await db.delete(uploadAdmissionsTable).where(inArray(uploadAdmissionsTable.ownerMemberId, Object.values(ids)));
   if (createdAssets.size) await db.delete(mediaCleanupTasksTable).where(inArray(mediaCleanupTasksTable.assetId, [...createdAssets]));
   await db.delete(postsTable).where(inArray(postsTable.authorMemberId, Object.values(ids)));
   await db.delete(mediaAssetsTable).where(inArray(mediaAssetsTable.ownerMemberId, Object.values(ids)));
@@ -92,7 +94,8 @@ test("test-only clean provider permits publication and media bytes", async () =>
 
 test("audio transcript correction persists without bypassing missing scans", async () => {
   process.env.MEDIA_TEST_PROVIDER = ""; const req = await call("/api/media/uploads/request", ids.alice, { method: "POST", body: { kind: "audio", contentType: "audio/wav", size: wav.length, clientIdempotencyKey: randomUUID() } });
-  const id = req.body.asset.id; const objectPath = (await db.select().from(mediaAssetsTable).where(eq(mediaAssetsTable.id, id)))[0].objectPath; objects.set(objectPath, { bytes: wav, contentType: "audio/wav" });
+  const id = req.body.asset.id; const objectPath = (await db.select().from(mediaAssetsTable).where(eq(mediaAssetsTable.id, id)))[0].objectPath;
+  assert.equal((await fetch(`${base}${req.body.uploadURL}`, { method: "PUT", headers: { "x-test-user": ids.alice, "content-type": "audio/wav" }, body: wav })).status, 204);
   assert.equal((await call(`/api/media/uploads/${id}/complete`, ids.alice, { method: "POST" })).body.status, "held");
   const corrected = await call(`/api/media/${id}/transcript`, ids.alice, { method: "PATCH", body: { transcript: "corrected words" } });
   assert.equal(corrected.body.transcript, "corrected words"); assert.equal(corrected.body.status, "held");

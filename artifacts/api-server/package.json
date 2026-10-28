@@ -12,7 +12,7 @@
     "scanner:status": "tsx src/commands/scanner.ts status",
     "scanner:update": "tsx src/commands/scanner.ts update",
     "scanner:verify": "tsx src/commands/scanner.ts verify",
-    "test": "tsx --test src/lib/*.test.ts src/routes/*.test.ts"
+    "test": "NODE_ENV=test tsx --test --test-concurrency=1 src/lib/*.test.ts src/routes/*.test.ts"
   },
   "dependencies": {
     "@clerk/backend": "^3.17.2",

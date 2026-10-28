@@ -1,8 +1,10 @@
 import { and, eq, inArray, lt, ne, or, sql } from "drizzle-orm";
 import { db, mediaAssetsTable, mediaVariantsTable, videoJobsTable, mediaCleanupTasksTable, postsTable, thisIsMeCardsTable, messagesTable, messageReportsTable, messageReportContextTable, retainedEvidenceTable, type MediaAsset } from "@workspace/db";
 import { registerDeletionHook } from "./deletion-hooks";
-import { deleteMediaObject } from "./media-storage";
+import { deleteMediaObject, deleteIngestedObject } from "./media-storage";
 import { logger } from "./logger";
+import { retireUpload } from "./upload-admission";
+import { cleanupUploadAdmissions } from "./upload-cleanup";
 
 export async function mediaHasRetainedEvidence(asset: MediaAsset) {
   const reportedMessage = await db.select().from(messageReportsTable).where(sql`${messageReportsTable.mediaAssetIdsSnapshot} @> ${JSON.stringify([asset.id])}::jsonb`).limit(1);
@@ -20,7 +22,9 @@ export async function deleteMediaWithVariants(asset: MediaAsset) {
   await db.insert(mediaCleanupTasksTable).values({
     assetId: asset.id, paths, nextAttemptAt: new Date(Date.now() + 6 * 60000), expiresAt: new Date(Date.now() + 24 * 60 * 60000),
   }).onConflictDoNothing();
-  for (const path of paths) await deleteMediaObject(path);
+  await retireUpload(asset.id, async () => {
+    for (const path of paths) await deleteMediaObject(path);
+  });
 }
 async function hasLiveAttachment(assetId: string) {
   const matches = sql`${postsTable.mediaAssetIds} @> ${JSON.stringify([assetId])}::jsonb`;
@@ -80,6 +84,7 @@ export function startMediaCleanup() {
     if (busy) return;
     busy = true;
     try {
+      await cleanupUploadAdmissions();
       const unused = await db.select().from(mediaAssetsTable).where(and(eq(mediaAssetsTable.kind, "video"), eq(mediaAssetsTable.status, "ready"), lt(mediaAssetsTable.expiresAt, new Date()))).limit(20);
       await cleanupDetachedVideoAssets(unused.map((a) => a.id));
       await cleanupExpiredMedia();
@@ -88,7 +93,7 @@ export function startMediaCleanup() {
       const tasks = await db.select().from(mediaCleanupTasksTable).where(lt(mediaCleanupTasksTable.nextAttemptAt, new Date())).limit(20);
       for (const task of tasks) {
         try {
-          for (const path of task.paths) await deleteMediaObject(path);
+          for (const path of task.paths) await deleteIngestedObject(path);
           if (task.expiresAt < new Date()) await db.delete(mediaCleanupTasksTable).where(eq(mediaCleanupTasksTable.assetId, task.assetId));
           else await db.update(mediaCleanupTasksTable).set({ nextAttemptAt: new Date(Date.now() + 10 * 60000) }).where(eq(mediaCleanupTasksTable.assetId, task.assetId));
         } catch {

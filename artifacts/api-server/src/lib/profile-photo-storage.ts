@@ -1,5 +1,6 @@
 import { Storage } from "@google-cloud/storage";
 import { randomUUID } from "node:crypto";
+import { reserveUpload, retireUpload } from "./upload-admission";
 
 const sidecar = "http://127.0.0.1:1106";
 const storage = new Storage({ credentials: { audience: "replit", subject_token_type: "access_token", token_url: `${sidecar}/token`, type: "external_account", credential_source: { url: `${sidecar}/credential`, format: { type: "json", subject_token_field_name: "access_token" } } }, projectId: "" });
@@ -17,11 +18,10 @@ function parsePath(path: string) {
 }
 export async function requestProfilePhotoUpload(memberId: string, contentType: string, size: number) {
   assertProfilePhoto(contentType, size);
-  const objectPath = `/objects/profile-photos/${memberId}/${randomUUID()}`;
-  const { bucket, object } = parsePath(objectPath);
-  const response = await fetch(`${sidecar}/object-storage/signed-object-url`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ bucket_name: bucket, object_name: object, method: "PUT", expires_at: new Date(Date.now() + 900000).toISOString() }) });
-  if (!response.ok) throw new Error("Could not create private upload URL");
-  return { uploadURL: (await response.json() as { signed_url: string }).signed_url, objectPath };
+  const id = randomUUID();
+  const objectPath = `/objects/profile-photos/${memberId}/${id}`;
+  const uploadURL = await reserveUpload({ resourceId: id, purpose: "profile", ownerMemberId: memberId, objectPath, contentType, byteSize: size });
+  return { uploadURL, objectPath };
 }
 export async function profilePhotoFile(objectPath: string) {
   if (!/^\/objects\/profile-photos\/[a-zA-Z0-9-]+\/[a-zA-Z0-9-]+$/.test(objectPath)) throw new Error("Invalid private photo path");
@@ -33,6 +33,8 @@ export async function profilePhotoFile(objectPath: string) {
 }
 
 export async function deleteProfilePhoto(objectPath: string): Promise<void> {
-  const file = await profilePhotoFile(objectPath);
-  if (file) await file.delete();
+  await retireUpload(objectPath.split("/").at(-1)!, async () => {
+    const file = await profilePhotoFile(objectPath);
+    if (file) await file.delete();
+  });
 }

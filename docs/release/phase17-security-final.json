@@ -13,10 +13,18 @@
   "sast": { "status": "complete", "findings": 0 },
   "privacyDataflow": { "status": "complete", "findings": 0 },
   "aiReviewFindings": [
-    { "finding": "Unbounded direct-to-storage PUT grants", "severity": "high", "status": "Contained by non-overridable upload hold; underlying storage admission remains unresolved" },
+    { "finding": "Unbounded direct-to-storage PUT grants", "severity": "high", "status": "Direct PUT grants replaced with bounded authenticated ingestion, exact-size staging, shared byte/slot/rolling-day reservations and durable cleanup for media and profile photos. Actual oversized/chunked HTTP refusal and independent-process quota races regression-tested. Non-overridable upload hold remains; real-provider operational evidence and independent release review are still required. See docs/release/upload-admission.md." },
     { "finding": "Report queue flooding", "severity": "high", "status": "Shared report admission and exact-case deduplication implemented and regression-tested" }
   ],
   "regressions": {
+    "uploadAdmissionHardening": {
+      "fullBackendSuite": { "tests": 163, "initialPassed": 158, "initialFailed": 5 },
+      "affectedAfterFixtureMigration": { "passed": 12, "failed": 0, "scope": "Bounded spooling, video lifecycle and two independent API-process admission tests. Legacy video fixtures now send their bytes through ingestion; their leftover synthetic reservations were removed. All five initial failures passed this targeted recheck." },
+      "finalStagingWriteRecheck": { "passed": 9, "failed": 0, "scope": "Includes delayed/failing final disk writes after EOF, plus actual HTTP oversized/chunked refusals and all independent-process quota/cleanup tests. EOF now waits for successful staging writes and the file size is checked before storage." },
+      "retainedEvidenceCleanupRecheck": { "passed": 10, "failed": 0, "scope": "All current staging/admission tests, including account deactivation, the actual media deletion hook preserving reported photo/audio assets, and a subsequent admission cleanup pass. Stored media with an existing asset now defers to its evidence-aware lifecycle regardless of owner state; source bytes and reservations remain intact." },
+      "typeChecks": "Shared generated libraries, API and Me frontend passed",
+      "limitations": "Storage adapter is test-only. No production-provider outage, billing, authenticated capacity or independent human approval claim."
+    },
     "backendFullSuite": { "passed": 156, "failed": 0, "scope": "Full isolated suite before strengthening the messaging assertions" },
     "messagingStrengthened": { "passed": 14, "failed": 0, "scope": "Includes concurrent duplicate message reports and a distinct urgent concern after removing the overbroad target-level uniqueness constraint" },
     "finalAffectedBoundaryRecheck": { "passed": 30, "failed": 0, "scope": "Post/report audience boundaries, strengthened private messaging and Phase 17 admission/containment checks after the final fixes" },

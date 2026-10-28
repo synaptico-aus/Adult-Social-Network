@@ -215,7 +215,7 @@ export function useMediaUploads(opts: { recover?: boolean } = {}) {
 
     xhr.open('PUT', uploadURL, true);
     xhr.setRequestHeader('Content-Type', contentType);
-    xhr.timeout = 15 * 60 * 1000;
+    xhr.timeout = 130 * 1000;
 
     xhr.upload.onprogress = (e) => {
       if (e.lengthComputable) {
@@ -300,7 +300,12 @@ export function useMediaUploads(opts: { recover?: boolean } = {}) {
           updateItem(clientId, { status: asset.status as UploadItemStatus, asset, error: undefined });
           return;
         }
-        if (!uploadURL) throw new Error('Invalid response from retry request');
+        if (!uploadURL) {
+          updateItem(clientId, { status: 'completing', asset });
+          const completed = await completeUpload.mutateAsync({ id: asset.id }) as unknown as ExtendedMediaAttachment;
+          updateItem(clientId, { status: completed.status as UploadItemStatus, asset: completed, error: undefined });
+          return;
+        }
         updateItem(clientId, { status: 'uploading', asset, uploadURL });
         const contentType = item.file.type || (item.kind === 'audio' ? 'audio/mp4' : 'application/octet-stream');
         performXhrUpload(clientId, uploadURL, contentType, item.file, asset.id);
@@ -333,12 +338,18 @@ export function useMediaUploads(opts: { recover?: boolean } = {}) {
       const res = await requestUpload.mutateAsync({ data: payload as unknown as MediaUploadInput }) as unknown as { uploadURL: string; asset: ExtendedMediaAttachment };
       const { uploadURL, asset } = res;
 
-      if (!uploadURL || !asset) {
+      if (!asset) {
         throw new Error('Invalid response from upload request');
       }
 
-      if (asset.status !== 'uploading' || !uploadURL) {
+      if (asset.status !== 'uploading') {
         updateItem(clientId, { status: asset.status as UploadItemStatus, asset });
+        return;
+      }
+      if (!uploadURL) {
+        updateItem(clientId, { status: 'completing', asset });
+        const completed = await completeUpload.mutateAsync({ id: asset.id }) as unknown as ExtendedMediaAttachment;
+        updateItem(clientId, { status: completed.status as UploadItemStatus, asset: completed, error: undefined });
         return;
       }
       updateItem(clientId, { status: 'uploading', asset, uploadURL });

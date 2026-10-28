@@ -1,9 +1,18 @@
-import { Storage } from "@google-cloud/storage";
+import { Storage, type StorageOptions } from "@google-cloud/storage";
 import { randomUUID } from "node:crypto";
 import { Readable } from "node:stream";
+import { createReadStream } from "node:fs";
+import { pipeline } from "node:stream/promises";
+import { db, mediaAssetsTable } from "@workspace/db";
+import { eq } from "drizzle-orm";
+import { reserveUpload, UPLOAD_LIMITS } from "./upload-admission";
 
 const sidecar = "http://127.0.0.1:1106";
-const storage = new Storage({ credentials: { audience: "replit", subject_token_type: "access_token", token_url: `${sidecar}/token`, type: "external_account", credential_source: { url: `${sidecar}/credential`, format: { type: "json", subject_token_field_name: "access_token" } } }, projectId: "" });
+const createStorage = (retryOptions?: StorageOptions["retryOptions"]) => new Storage({ credentials: { audience: "replit", subject_token_type: "access_token", token_url: `${sidecar}/token`, type: "external_account", credential_source: { url: `${sidecar}/credential`, format: { type: "json", subject_token_field_name: "access_token" } } }, projectId: "", retryOptions });
+const storage = createStorage();
+// Dedicated client: bounded ingestion cannot leave resumable sessions or
+// background retry loops beyond the cleanup uncertainty window.
+const ingestionStorage = createStorage({ autoRetry: false, maxRetries: 0, totalTimeout: 60 });
 type TestObject = { bytes: Buffer; contentType?: string; deleted?: boolean; delete?: () => Promise<void> };
 /** Explicitly test-only storage injection; production cannot install this adapter. */
 export function configureTestMediaStorage(objects: Map<string, TestObject> | null) {
@@ -23,11 +32,36 @@ function resolve(path: string) {
   return { bucket, object: `${prefix}/${path.replace(/^\/objects\//, "")}` };
 }
 export async function requestMediaUpload(path: string) {
-  if (testStorage) return `test-media://${encodeURIComponent(path)}`;
+  const [asset] = await db.select().from(mediaAssetsTable).where(eq(mediaAssetsTable.objectPath, path));
+  if (!asset || asset.status !== "uploading" || asset.expiresAt <= new Date() || !asset.byteSize) throw new Error("Upload unavailable");
+  return reserveUpload({ resourceId: asset.id, ownerMemberId: asset.ownerMemberId, purpose: "media", objectPath: path, contentType: asset.requestedContentType, byteSize: asset.byteSize });
+}
+
+/** Only admission-checked, exact-sized local files reach this private writer. */
+export async function storeIngestedFile(path: string, localFile: string, contentType: string) {
+  if (!/^\/objects\/(?:media|profile-photos)\/[a-zA-Z0-9_-]+\/[a-zA-Z0-9_-]+$/.test(path)) throw new Error("Invalid upload path");
+  if (testStorage) {
+    const { readFile } = await import("node:fs/promises");
+    testStorage.set(path, { bytes: await readFile(localFile), contentType });
+    return;
+  }
   const { bucket, object } = resolve(path);
-  const response = await fetch(`${sidecar}/object-storage/signed-object-url`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ bucket_name: bucket, object_name: object, method: "PUT", expires_at: new Date(Date.now() + 300000).toISOString() }) });
-  if (!response.ok) throw new Error("Could not create private media upload URL");
-  return (await response.json() as { signed_url: string }).signed_url;
+  await pipeline(createReadStream(localFile), ingestionStorage.bucket(bucket).file(object).createWriteStream({
+    resumable: false, timeout: UPLOAD_LIMITS.storageMs,
+    preconditionOpts: { ifGenerationMatch: 0 },
+    metadata: { contentType, cacheControl: "private, no-store, max-age=0" },
+  }), { signal: AbortSignal.timeout(UPLOAD_LIMITS.storageMs) });
+}
+
+export async function deleteIngestedObject(path: string) {
+  if (testStorage) {
+    const entry = testStorage.get(path);
+    if (entry?.delete) await entry.delete();
+    if (entry) entry.deleted = true;
+    return;
+  }
+  const { bucket, object } = resolve(path);
+  await storage.bucket(bucket).file(object).delete({ ignoreNotFound: true });
 }
 export async function mediaFile(path: string) {
   if (testStorage) {

@@ -361,6 +361,7 @@ export * from './translationReportInput';
 export * from './translationReviewInput';
 export * from './translationReviewInputAction';
 export * from './unreadCount';
+export * from './uploadBytes';
 export * from './verificationRequest';
 export * from './verificationRequestInput';
 export * from './verificationReviewInput';

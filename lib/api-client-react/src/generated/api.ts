@@ -11613,6 +11613,143 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getReportGroupMutationOptions(options));
     }
 
+export const getIngestReservedUploadUrl = (id: string,) => {
+
+
+
+
+  return `/api/uploads/${id}/bytes`
+}
+
+/**
+ * Authenticated single-use bounded transfer. Exact reserved size is checked in private local staging before any storage write. No signed provider PUT is issued. Upload release hold still applies.
+ */
+export const ingestReservedUpload = async (id: string,
+    ingestReservedUploadBody: Blob, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+
+  return customFetch<void>(getIngestReservedUploadUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'image/jpeg', ...options?.headers },
+    body: ingestReservedUploadBody
+  }
+);}
+
+
+
+
+
+export const getIngestReservedUploadMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof ingestReservedUpload>>, TError,{id: string;data: BodyType<Blob>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof ingestReservedUpload>>, TError,{id: string;data: BodyType<Blob>}, TContext> => {
+
+const mutationKey = ['ingestReservedUpload'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof ingestReservedUpload>>, {id: string;data: BodyType<Blob>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  ingestReservedUpload(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type IngestReservedUploadMutationResult = NonNullable<Awaited<ReturnType<typeof ingestReservedUpload>>>
+    export type IngestReservedUploadMutationBody = BodyType<Blob>
+    export type IngestReservedUploadMutationError = ErrorType<void>
+
+    export const useIngestReservedUpload = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof ingestReservedUpload>>, TError,{id: string;data: BodyType<Blob>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof ingestReservedUpload>>,
+        TError,
+        {id: string;data: BodyType<Blob>},
+        TContext
+      > => {
+      return useMutation(getIngestReservedUploadMutationOptions(options));
+    }
+
+export const getCancelProfileUploadUrl = (id: string,) => {
+
+
+
+
+  return `/api/uploads/${id}/cancel`
+}
+
+/**
+ * Cancel an owner-scoped profile photo upload. Media uses its existing attachment-aware cancellation route.
+ */
+export const cancelProfileUpload = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+
+  return customFetch<void>(getCancelProfileUploadUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getCancelProfileUploadMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelProfileUpload>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof cancelProfileUpload>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['cancelProfileUpload'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof cancelProfileUpload>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  cancelProfileUpload(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CancelProfileUploadMutationResult = NonNullable<Awaited<ReturnType<typeof cancelProfileUpload>>>
+
+    export type CancelProfileUploadMutationError = ErrorType<void>
+
+    export const useCancelProfileUpload = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelProfileUpload>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof cancelProfileUpload>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getCancelProfileUploadMutationOptions(options));
+    }
+
 export const getRequestMediaUploadUrl = () => {
 
 

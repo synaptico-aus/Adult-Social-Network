@@ -4,7 +4,7 @@ import { randomUUID } from "node:crypto";
 import { Readable } from "node:stream";
 import { getAuth } from "@clerk/express";
 import { z } from "zod";
-import { db, membersTable, mediaAssetsTable, postsTable, thisIsMeCardsTable, messagesTable, conversationsTable, conversationMembersTable, messageMemberRemovalsTable, safetyRelationshipsTable, videoJobsTable } from "@workspace/db";
+import { db, membersTable, mediaAssetsTable, postsTable, thisIsMeCardsTable, messagesTable, conversationsTable, conversationMembersTable, messageMemberRemovalsTable, safetyRelationshipsTable, videoJobsTable, uploadAdmissionsTable } from "@workspace/db";
 import { requireAuth, memberRateLimit } from "../middlewares/account-auth";
 import { liveConversationMember } from "../lib/conversation-access";
 import { deleteMediaObject, mediaFile, mediaObjectPath, requestMediaUpload, freezeMediaObject } from "../lib/media-storage";
@@ -15,6 +15,7 @@ import { visiblePost } from "./posts";
 import { mediaResponse } from "../lib/media-response";
 import { serveVideoAsset } from "../lib/video-delivery";
 import { deleteMediaWithVariants } from "../lib/media-deletion-hook";
+import { reserveUpload, UploadAdmissionError } from "../lib/upload-admission";
 
 const router = Router();
 router.use("/media", requireAuth);
@@ -27,25 +28,35 @@ router.post("/media/uploads/request", memberRateLimit(20, 60000, "media-request"
   if (parsed.data.kind === "photo" && !parsed.data.altText) { res.status(400).json({ error: "Photo altText is required" }); return; }
   if (parsed.data.kind === "video" && !parsed.data.videoFormat) { res.status(400).json({ error: "Select reel or video post" }); return; }
   try { validateDeclared(parsed.data.kind, parsed.data.contentType, parsed.data.size, parsed.data.videoFormat); } catch (e) { res.status(400).json({ error: e instanceof Error ? e.message : "Invalid media" }); return; }
-  const existing = (await db.select().from(mediaAssetsTable).where(and(eq(mediaAssetsTable.ownerMemberId, m.id), eq(mediaAssetsTable.clientIdempotencyKey, parsed.data.clientIdempotencyKey))).limit(1))[0];
+  const result = await db.transaction(async (tx) => {
+  await tx.execute(sql`select pg_advisory_xact_lock(170016)`);
+  const existing = (await tx.select().from(mediaAssetsTable).where(and(eq(mediaAssetsTable.ownerMemberId, m.id), eq(mediaAssetsTable.clientIdempotencyKey, parsed.data.clientIdempotencyKey))).limit(1))[0];
   if (existing) {
-    if (existing.kind !== parsed.data.kind || existing.requestedContentType !== parsed.data.contentType || (existing.kind === "video" && existing.videoFormat !== parsed.data.videoFormat)) { res.status(409).json({ error: "Recovery key belongs to a different file type or format" }); return; }
-    if (existing.status === "uploading" && existing.expiresAt < new Date()) { res.status(410).json({ error: "Upload recovery expired" }); return; }
-    res.json({ asset: mediaResponse(existing), uploadURL: existing.status === "uploading" ? await requestMediaUpload(existing.objectPath) : null }); return;
+    if (existing.kind !== parsed.data.kind || existing.requestedContentType !== parsed.data.contentType || (existing.status === "uploading" && existing.byteSize !== parsed.data.size) || (existing.kind === "video" && existing.videoFormat !== parsed.data.videoFormat)) throw new UploadAdmissionError(409, "Recovery key belongs to a different file");
+    if (existing.status === "uploading" && existing.expiresAt < new Date()) throw new UploadAdmissionError(410, "Upload recovery expired");
+    const uploadURL = existing.status === "uploading" ? await reserveUpload({ resourceId: existing.id, ownerMemberId: m.id, purpose: "media", objectPath: existing.objectPath, contentType: existing.requestedContentType, byteSize: parsed.data.size }, tx) : null;
+    return { status: 200, asset: existing, uploadURL };
   }
   if (parsed.data.kind === "video") {
-    const pending = await db.select().from(mediaAssetsTable).where(and(eq(mediaAssetsTable.ownerMemberId, m.id), eq(mediaAssetsTable.kind, "video"), inArray(mediaAssetsTable.status, ["uploading", "quarantined"]))).limit(3);
-    if (pending.length >= 3) { res.status(429).json({ error: "Finish or cancel an existing video before adding another" }); return; }
+    const pending = await tx.select({ id: mediaAssetsTable.id }).from(mediaAssetsTable).where(and(eq(mediaAssetsTable.ownerMemberId, m.id), eq(mediaAssetsTable.kind, "video"), inArray(mediaAssetsTable.status, ["uploading", "quarantined"]))).limit(3);
+    if (pending.length >= 3) throw new UploadAdmissionError(429, "Finish or cancel an existing video before adding another");
   }
   const id = randomUUID(); const objectPath = mediaObjectPath(m.id, id);
-  const [asset] = await db.insert(mediaAssetsTable).values({ id, ownerMemberId: m.id, kind: parsed.data.kind, videoFormat: parsed.data.videoFormat, byteSize: parsed.data.kind === "video" ? parsed.data.size : null, altText: parsed.data.altText, objectPath, clientIdempotencyKey: parsed.data.clientIdempotencyKey, requestedContentType: parsed.data.contentType, expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) }).returning();
-  res.status(201).json({ asset: mediaResponse(asset), uploadURL: await requestMediaUpload(objectPath) });
+  const [asset] = await tx.insert(mediaAssetsTable).values({ id, ownerMemberId: m.id, kind: parsed.data.kind, videoFormat: parsed.data.videoFormat, byteSize: parsed.data.size, altText: parsed.data.altText, objectPath, clientIdempotencyKey: parsed.data.clientIdempotencyKey, requestedContentType: parsed.data.contentType, expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) }).returning();
+  const uploadURL = await reserveUpload({ resourceId: id, ownerMemberId: m.id, purpose: "media", objectPath, contentType: parsed.data.contentType, byteSize: parsed.data.size }, tx);
+  return { status: 201, asset, uploadURL };
+  });
+  res.status(result.status).json({ asset: mediaResponse(result.asset), uploadURL: result.uploadURL });
 });
 
 router.post("/media/uploads/:id/complete", async (req, res): Promise<void> => {
   const m = await member(req); const asset = m && (await db.select().from(mediaAssetsTable).where(and(eq(mediaAssetsTable.id, String(req.params.id)), eq(mediaAssetsTable.ownerMemberId, m.id))).limit(1))[0];
   if (!m || !asset) { res.status(404).json({ error: "Media upload not found" }); return; }
   if (asset.status === "ready" || asset.status === "held" || asset.status === "rejected") { res.json(mediaResponse(asset)); return; }
+  if (asset.status === "uploading") {
+    const [admission] = await db.select().from(uploadAdmissionsTable).where(and(eq(uploadAdmissionsTable.resourceId, asset.id), eq(uploadAdmissionsTable.state, "stored"))).limit(1);
+    if (!admission) { res.status(409).json({ error: "The bounded byte transfer must finish before completion" }); return; }
+  }
   if (asset.kind === "video") {
     const result = await db.transaction(async (tx) => {
       const [locked] = await tx.select().from(mediaAssetsTable).where(eq(mediaAssetsTable.id, asset.id)).for("update");
@@ -101,7 +112,8 @@ router.post("/media/uploads/:id/retry", async (req, res): Promise<void> => {
     }
   }
   if (asset.status !== "uploading" || asset.expiresAt < new Date()) { res.status(409).json({ error: "Upload no longer accepts replacement bytes" }); return; }
-  await db.update(mediaAssetsTable).set({ status: "uploading", malwareState: "pending", abuseState: "pending", rejectionReason: null, updatedAt: new Date() }).where(eq(mediaAssetsTable.id, asset.id));
+  // Do not reset status from a stale read: cancellation on another instance
+  // must never be undone by a concurrent retry.
   const updated = (await db.select().from(mediaAssetsTable).where(eq(mediaAssetsTable.id, asset.id)))[0];
   res.json({ asset: mediaResponse(updated), uploadURL: await requestMediaUpload(asset.objectPath) });
 });

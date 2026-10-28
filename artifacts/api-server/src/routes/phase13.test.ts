@@ -5,7 +5,7 @@ import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { eq, inArray } from "drizzle-orm";
-import { db, membersTable, mediaAssetsTable, mediaVariantsTable, mediaCleanupTasksTable, mediaScreeningResultsTable, postsTable, friendshipsTable, safetyRelationshipsTable, staffRoleAssignmentsTable, videoJobsTable } from "@workspace/db";
+import { db, membersTable, mediaAssetsTable, mediaVariantsTable, mediaCleanupTasksTable, mediaScreeningResultsTable, postsTable, friendshipsTable, safetyRelationshipsTable, staffRoleAssignmentsTable, videoJobsTable, uploadAdmissionsTable } from "@workspace/db";
 import { createApp } from "../app";
 import { configureTestMediaStorage } from "../lib/media-storage";
 import { runVideoJobOnce, runMediaTool, validateVideoProbe } from "../lib/video-processing";
@@ -37,7 +37,7 @@ async function upload() {
   const id = result.body.asset.id;
   createdAssets.add(id);
   const [asset] = await db.select().from(mediaAssetsTable).where(eq(mediaAssetsTable.id, id));
-  objects.set(asset.objectPath, { bytes, contentType: "video/mp4" });
+  assert.equal((await fetch(`${base}${result.body.uploadURL}`, { method: "PUT", headers: { "x-test-user": ids.alice, "content-type": "video/mp4" }, body: bytes })).status, 204);
   return { id, path: asset.objectPath };
 }
 async function processVideo(allowMalware = true) {
@@ -70,6 +70,7 @@ before(async () => {
   base = `http://127.0.0.1:${(server.address() as { port: number }).port}`;
 });
 beforeEach(async () => {
+  await db.delete(uploadAdmissionsTable).where(inArray(uploadAdmissionsTable.ownerMemberId, Object.values(ids)));
   resetRateLimitBuckets(); objects.clear(); process.env.MEDIA_TEST_PROVIDER = "";
   await db.delete(postsTable).where(inArray(postsTable.authorMemberId, Object.values(ids)));
   await db.delete(mediaAssetsTable).where(inArray(mediaAssetsTable.ownerMemberId, Object.values(ids)));
@@ -77,6 +78,7 @@ beforeEach(async () => {
   await db.delete(friendshipsTable).where(inArray(friendshipsTable.memberAId, Object.values(ids)));
 });
 after(async () => {
+  await db.delete(uploadAdmissionsTable).where(inArray(uploadAdmissionsTable.ownerMemberId, Object.values(ids)));
   await new Promise<void>((resolve) => server.close(() => resolve()));
   await db.delete(postsTable).where(inArray(postsTable.authorMemberId, Object.values(ids)));
   await db.delete(staffRoleAssignmentsTable).where(inArray(staffRoleAssignmentsTable.clerkUserId, Object.values(ids)));

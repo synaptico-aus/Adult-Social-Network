@@ -3560,6 +3560,26 @@ export const ReportGroupResponse = zod.object({
 })
 
 
+/**
+ * Authenticated single-use bounded transfer. Exact reserved size is checked in private local staging before any storage write. No signed provider PUT is issued. Upload release hold still applies.
+ */
+export const IngestReservedUploadParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const IngestReservedUploadResponse = zod.void()
+
+
+/**
+ * Cancel an owner-scoped profile photo upload. Media uses its existing attachment-aware cancellation route.
+ */
+export const CancelProfileUploadParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const CancelProfileUploadResponse = zod.void()
+
+
 export const RequestMediaUploadHeader = zod.object({
   "Idempotency-Key": zod.string().optional()
 })

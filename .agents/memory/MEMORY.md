@@ -16,3 +16,5 @@
 - [Shared database tests](shared-database-tests.md) — pause live API workers for fixture-backed media integration tests; restore the managed service afterward.
 - [Release evidence boundaries](release-evidence-boundaries.md) — consented people, physical native devices and independent human review cannot be replaced by synthetic tests.
 - [Member privacy expectations](member-privacy-expectations.md) — choose connected friends for profile/content visibility and control reacting, sharing and comments separately.
+- [Upload admission boundary](upload-admission-boundary.md) — keep uploads held; admission/cost containment and screening need separate release evidence.
+- [Generated binary contracts](generated-binary-contracts.md) — Orval infers Blob from octet-stream bodies even without a binary format marker.
