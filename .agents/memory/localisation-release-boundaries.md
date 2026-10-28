@@ -3,6 +3,14 @@ name: Localisation release and privacy boundaries
 description: Language approval, provider privacy and offline-draft product constraints.
 ---
 
+Me's initial launch country is Australia.
+
+**Why:** The user selected Australia when asked which country to launch in first.
+
+**How to apply:** Scope initial policy and legal-readiness work to Australia.
+This is a launch intention, not evidence of legal approval or permission to
+enable a region, and does not determine any individual member's location.
+
 Enable an interface language only after reviewed strings and documented
 operational moderation coverage exist. Regional English formats are the same
 English-language release, not evidence of coverage for another language.
