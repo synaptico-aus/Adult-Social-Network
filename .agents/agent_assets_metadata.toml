@@ -56,3 +56,17 @@ mtime_ms = 1792406836285
 storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:9297d1f2-0bfb-4905-a196-065b1a2c9e4d/36c29d64-5afd-4a10-bb63-495237bb67bc/c7060e62-833b-46bb-bce2-dd6ae07bcca5"
 storage_version_token = "1792406879543857"
 content_type = "image/png"
+
+[[outputs]]
+id = "xNXwGJHFFzcygRVlQkUyA"
+uri = "file://docs/store/me-australia-policy-pack.md"
+type = "text"
+title = "Me — Australian Policy Pack (Draft)"
+description = "GitHub-ready Markdown for Salveo Care PTY Ltd, Victoria: draft policies, missing-detail checklist, review requirements and publication handover. Documentation only; not approved or effective."
+logical_id = "5b57a7d7-aafc-4ac7-8336-0e3486492767"
+content_hash = "sha256:6711f264c54f6ff8eba229593390a8b97d7049f6a7752f3bfff91c01b1f22313"
+size = 30377
+mtime_ms = 1793258216986
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:9297d1f2-0bfb-4905-a196-065b1a2c9e4d/5b57a7d7-aafc-4ac7-8336-0e3486492767/0972aa3e-7fe0-4061-ab6f-fba68b960885"
+storage_version_token = "1793258231506220"
+content_type = "text/markdown"
